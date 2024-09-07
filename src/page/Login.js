@@ -1,15 +1,22 @@
 import React, {useState} from 'react';
+import { useNavigate} from "react-router-dom";
 import axios from 'axios';
 
 function Login() {
     const [userId, setUserId] = useState('');
     const [password, setPassword] = useState('');
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const response = await axios.post('http://localhost:8080/auth/login', {userId, password});
+            const token = response.data
             console.log(response.data);
+            localStorage.setItem('jwtToken', token);
+            if (response.status === 200) {
+                navigate("/questions");
+            }
         } catch(error) {
             console.error('로그인 실패', error);
         }

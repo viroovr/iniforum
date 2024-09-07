@@ -2,6 +2,8 @@ import './App.css';
 import {BrowserRouter as Router, Route, Routes, Link} from 'react-router-dom';
 import Login from './page/Login';
 import Signup from './page/Signup';
+import Posts from './page/Posts';
+import Logout from './page/Logout';
 
 function App() {
   return (
@@ -10,17 +12,25 @@ function App() {
         <nav>
           <ul>
             <li>
-              <Link to="/auth/login">Login</Link>
+              <Link to="/login">Login</Link>
             </li>
             <li>
-              <Link to="/auth/signup">Signup</Link>
+              <Link to="/signup">Signup</Link>
+            </li>
+            <li>
+              <Link to="/logout">Logout</Link>
+            </li>
+            <li>
+              <Link to="/questions">Questions</Link>
             </li>
           </ul>
         </nav>
       </div>
       <Routes>
-        <Route path="/auth/login" element={<Login />}></Route>
-        <Route path="/auth/signup" element={<Signup />}></Route>
+        <Route path="/login" element={<Login />}></Route>
+        <Route path="/signup" element={<Signup />}></Route>
+        <Route path="/logout" element={<Logout />}></Route>
+        <Route path="/questions" element={<Posts />} />
       </Routes>
     </Router>
   );

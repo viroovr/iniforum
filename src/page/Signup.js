@@ -1,4 +1,5 @@
 import React, {useState} from "react";
+
 import axios from 'axios';
 
 function Signup() {
@@ -19,6 +20,8 @@ function Signup() {
         try {
             const response = await axios.post('http://localhost:8080/auth/signup', userData)
             console.log('회원가입 성공', response.data);
+
+            
         } catch (error) {
             console.error('회원가입 실패 : ', error);
         }
