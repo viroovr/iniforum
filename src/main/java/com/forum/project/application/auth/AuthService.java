@@ -1,13 +1,14 @@
-package com.forum.project.application;
+package com.forum.project.application.auth;
 
+import com.forum.project.application.security.jwt.JwtBlacklistService;
 import com.forum.project.application.security.jwt.JwtTokenProvider;
 import com.forum.project.domain.User;
-import com.forum.project.presentation.CustomUserInfoDto;
-import com.forum.project.presentation.LoginRequestDto;
-import com.forum.project.presentation.SignupRequestDto;
+import com.forum.project.presentation.auth.CustomUserInfoDto;
+import com.forum.project.presentation.auth.LoginRequestDto;
+import com.forum.project.presentation.auth.SignupRequestDto;
 import com.forum.project.domain.UserRepository;
-import com.forum.project.presentation.SignupResponseDto;
-import lombok.AllArgsConstructor;
+import com.forum.project.presentation.auth.SignupResponseDto;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,6 +24,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private JwtBlacklistService jwtBlacklistService;
 
     public AuthService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -59,4 +62,10 @@ public class AuthService {
         return jwtTokenProvider.createAccessToken(info);
 
     }
+
+    @Transactional
+    public void logout(String jwt, long expirationTime) {
+        jwtBlacklistService.addToBlacklist(jwt, "jwt_token", expirationTime);
+    }
+
 }

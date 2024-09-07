@@ -1,4 +1,4 @@
-package com.forum.project.presentation;
+package com.forum.project.presentation.auth;
 
 import lombok.Getter;
 

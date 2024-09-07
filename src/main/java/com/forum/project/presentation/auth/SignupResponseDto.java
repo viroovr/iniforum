@@ -1,9 +1,6 @@
-package com.forum.project.presentation;
+package com.forum.project.presentation.auth;
 
 import com.forum.project.domain.User;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 
 public class SignupResponseDto {
 

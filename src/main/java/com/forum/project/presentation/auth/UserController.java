@@ -1,4 +1,4 @@
-package com.forum.project.presentation;
+package com.forum.project.presentation.auth;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

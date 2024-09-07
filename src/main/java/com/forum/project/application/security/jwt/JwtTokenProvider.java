@@ -1,6 +1,6 @@
 package com.forum.project.application.security.jwt;
 
-import com.forum.project.presentation.CustomUserInfoDto;
+import com.forum.project.presentation.auth.CustomUserInfoDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -52,6 +52,11 @@ public class JwtTokenProvider {
         return parseClaims(token).get("id", Long.class);
     }
 
+    public long getExpirationTime(String token) {
+        Date expiration = parseClaims(token).getExpiration();
+        return expiration.getTime() - System.currentTimeMillis();
+    }
+    
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);

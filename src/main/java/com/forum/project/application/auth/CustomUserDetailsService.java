@@ -1,9 +1,9 @@
-package com.forum.project.application;
+package com.forum.project.application.auth;
 
 import com.forum.project.domain.User;
 import com.forum.project.domain.UserRepository;
-import com.forum.project.presentation.CustomUserDetails;
-import com.forum.project.presentation.CustomUserInfoDto;
+import com.forum.project.presentation.auth.CustomUserDetails;
+import com.forum.project.presentation.auth.CustomUserInfoDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -22,7 +22,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(()->new UsernameNotFoundException("해당하는 유저가 없습니다."));
 
         CustomUserInfoDto customUserInfoDto = CustomUserInfoDto.toDto(user);
-        System.out.println(customUserInfoDto);
         return new CustomUserDetails(customUserInfoDto);
     }
 }
