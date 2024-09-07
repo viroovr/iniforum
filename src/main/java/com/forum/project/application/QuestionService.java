@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -37,6 +38,10 @@ public class QuestionService {
             throw new UsernameNotFoundException("존재하지 않는 질문입니다.");
         }
         return question.get();
+    }
+
+    public List<Question> getAllQuestions() {
+        return questionRepository.findAll();
     }
 
 }

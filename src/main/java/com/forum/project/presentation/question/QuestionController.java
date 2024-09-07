@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(value = "/q")
 @RequiredArgsConstructor
@@ -31,5 +33,14 @@ public class QuestionController {
         Question question = questionService.findById(id);
         return ResponseEntity.status(HttpStatus.OK).body(question);
     }
+
+    @RequestMapping(value = "/questions", method = RequestMethod.GET)
+    public ResponseEntity<List<Question>> getQuestions(
+    ) {
+        List<Question> question = questionService.getAllQuestions();
+        return ResponseEntity.status(HttpStatus.OK).body(question);
+    }
+
+
 
 }
