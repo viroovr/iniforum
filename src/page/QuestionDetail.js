@@ -1,27 +1,19 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import apiClient from "../excption/setupAxiosInterceptors";
 
 const QuestionDetail = () => {
     const { id } = useParams();
     const [question, setQuestions] = useState(null);
 
-    const token = localStorage.getItem('jwtToken');
-
     useEffect(() => {
         fetchQuestionDetails();
     }, [id]);
 
-    const api = axios.create({
-        baseURL: 'http://localhost:8080',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
-
     const fetchQuestionDetails = async () => {
         try {
-            const response = await api.get(`/q/${id}`);
+            const response = await apiClient.get(`/q/${id}`);
             setQuestions(response.data);
         } catch (error) {
             console.error("Error fetching question detail:", error);

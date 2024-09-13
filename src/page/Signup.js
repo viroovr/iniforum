@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-
+import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 
 function Signup() {
@@ -8,6 +8,7 @@ function Signup() {
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
 
+    const navigate = useNavigate();
     const handleSubmit = async (e) => {
         e.preventDefault();
         const userData = {
@@ -20,7 +21,7 @@ function Signup() {
         try {
             const response = await axios.post('http://localhost:8080/auth/signup', userData)
             console.log('회원가입 성공', response.data);
-
+            navigate("/login");
             
         } catch (error) {
             console.error('회원가입 실패 : ', error);

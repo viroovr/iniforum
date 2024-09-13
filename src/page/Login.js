@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import { useNavigate} from "react-router-dom";
 import axios from 'axios';
 
-function Login() {
+function Login({ onLogin }) {
     const [userId, setUserId] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
@@ -14,6 +14,7 @@ function Login() {
             const token = response.data
             console.log(response.data);
             localStorage.setItem('jwtToken', token);
+            onLogin();
             if (response.status === 200) {
                 navigate("/questions");
             }

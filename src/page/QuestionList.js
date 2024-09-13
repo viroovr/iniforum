@@ -2,25 +2,18 @@ import React, {useEffect, useState} from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import apiClient from "../excption/setupAxiosInterceptors";
 
 const QuestionList = () => {
     const [questions, setQuestions] = useState([]);
     const [currnetPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
 
-    const token = localStorage.getItem('jwtToken');
     const navigate = useNavigate();
 
     const goToPostPage = () => {
         navigate("/post");
     }
-
-    const api = axios.create({
-        baseURL: 'http://localhost:8080',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
 
     useEffect(() => {
         fetchQuestions(currnetPage);
@@ -28,7 +21,7 @@ const QuestionList = () => {
 
     const fetchQuestions = async (page) => {
         try {
-            const response = await api.get("/q/questions", {
+            const response = await apiClient.get("/q/questions", {
                 params: {
                     page: page,
                     size: 10,

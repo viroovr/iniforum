@@ -1,21 +1,13 @@
 import React, {useState} from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import apiClient from "../excption/setupAxiosInterceptors";
 
 function Post() {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [tag, setTag] = useState("");
     const navigate = useNavigate();
-
-    const token = localStorage.getItem('jwtToken');
-
-    const api = axios.create({
-        baseURL: 'http://localhost:8080',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
 
 
     const handleSubmit = async (e) => {
@@ -27,7 +19,7 @@ function Post() {
         };
     
         try {
-            await api.post("/q/post", newQuestion);
+            await apiClient.post("/q/post", newQuestion);
             navigate("/questions");
         } catch (error) {
             console.error("Failed to post question", error);
