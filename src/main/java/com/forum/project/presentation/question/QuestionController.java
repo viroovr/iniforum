@@ -3,6 +3,7 @@ package com.forum.project.presentation.question;
 import com.forum.project.application.QuestionService;
 import com.forum.project.domain.Question;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -27,18 +28,19 @@ public class QuestionController {
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseEntity<Question> getQuestionById(
+    public ResponseEntity<ResponseQuestionDto> getQuestionById(
             @PathVariable Long id
     ) {
-        Question question = questionService.findById(id);
-        return ResponseEntity.status(HttpStatus.OK).body(question);
+        ResponseQuestionDto responseQuestionDto = questionService.findById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(responseQuestionDto);
     }
 
     @RequestMapping(value = "/questions", method = RequestMethod.GET)
-    public ResponseEntity<List<Question>> getQuestions(
+    public Page<ResponseQuestionDto> getQuestions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        List<Question> question = questionService.getAllQuestions();
-        return ResponseEntity.status(HttpStatus.OK).body(question);
+        return questionService.getQuestionsByPage(page, size);
     }
 
 

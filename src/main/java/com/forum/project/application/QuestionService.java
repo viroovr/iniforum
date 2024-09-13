@@ -7,11 +7,14 @@ import com.forum.project.domain.UserRepository;
 import com.forum.project.presentation.question.RequestQuestionDto;
 import com.forum.project.presentation.question.ResponseQuestionDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -32,16 +35,24 @@ public class QuestionService {
         return questionRepository.save(question);
     }
 
-    public Question findById(Long id) {
+    public ResponseQuestionDto findById(Long id) {
         Optional<Question> question = questionRepository.findById(id);
         if (question.isEmpty()) {
             throw new UsernameNotFoundException("존재하지 않는 질문입니다.");
         }
-        return question.get();
+        return ResponseQuestionDto.toDto(question.get());
     }
 
-    public List<Question> getAllQuestions() {
-        return questionRepository.findAll();
+    public Page<ResponseQuestionDto> getQuestionsByPage(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Question> questionPage = questionRepository.findAllByOrderByCreatedDateDesc(pageable);
+
+        AtomicInteger startIndex = new AtomicInteger(page * size + questionPage.getTotalPages());
+        Page<ResponseQuestionDto> responseQuestionDtoPage = questionPage
+                                        .map(ResponseQuestionDto::toDto);
+        responseQuestionDtoPage.forEach(question -> question.setPostNumber(startIndex.decrementAndGet()));
+        return  responseQuestionDtoPage;
+
     }
 
 }

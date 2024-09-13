@@ -29,6 +29,14 @@ public class Question {
         this.tag = tag;
     }
 
+    public Question(String title, String userId, String content, String tag, LocalDateTime localDateTime) {
+        this.title = title;
+        this.userId = userId;
+        this.content = content;
+        this.tag = tag;
+        this.createdDate = localDateTime;
+    }
+
     public Question(String title, String userId, String content, String tag) {
         this.title = title;
         this.userId = userId;

@@ -8,7 +8,6 @@ import com.forum.project.presentation.auth.LoginRequestDto;
 import com.forum.project.presentation.auth.SignupRequestDto;
 import com.forum.project.domain.UserRepository;
 import com.forum.project.presentation.auth.SignupResponseDto;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
