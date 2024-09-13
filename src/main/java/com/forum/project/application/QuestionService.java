@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @RequiredArgsConstructor
@@ -47,7 +48,7 @@ public class QuestionService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Question> questionPage = questionRepository.findAllByOrderByCreatedDateDesc(pageable);
 
-        AtomicInteger startIndex = new AtomicInteger(page * size + questionPage.getTotalPages());
+        AtomicInteger startIndex = new AtomicInteger((int) (page * size + questionPage.getTotalElements()) + 1);
         Page<ResponseQuestionDto> responseQuestionDtoPage = questionPage
                                         .map(ResponseQuestionDto::toDto);
         responseQuestionDtoPage.forEach(question -> question.setPostNumber(startIndex.decrementAndGet()));
