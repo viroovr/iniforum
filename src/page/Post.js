@@ -1,11 +1,12 @@
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-function Posts() {
-    const [questions, setQuestions] = useState([]);
+function Post() {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [tag, setTag] = useState("");
+    const navigate = useNavigate();
 
     const token = localStorage.getItem('jwtToken');
 
@@ -15,20 +16,6 @@ function Posts() {
             'Authorization': `Bearer ${token}`
         }
     });
-
-    
-    useEffect(() => {
-        const fetchQuestion = async () => {
-            try {
-                const response = await api.get("/q/questions");
-                setQuestions(response.data);  // 바로 데이터를 설정
-            } catch (error) {
-                console.error("Failed to fetch questions", error);
-            }
-        };
-    
-        fetchQuestion();
-    }, []);  // 종속성 배열에 아무것도 없으므로, 처음 렌더링 때만 실행
 
 
     const handleSubmit = async (e) => {
@@ -41,8 +28,7 @@ function Posts() {
     
         try {
             await api.post("/q/post", newQuestion);
-            const response = await api.get("/q/questions");
-            setQuestions(response.data);
+            navigate("/questions");
         } catch (error) {
             console.error("Failed to post question", error);
         }
@@ -50,29 +36,24 @@ function Posts() {
 
     return (
         <div>
-            <h1>질문 목록</h1>
-            <ul>
-                {questions.map((question) => (
-                    <li key={question.id}>
-                        {question.title} - {question.userId} - {question.tag}
-                    </li>
-                ))}
-            </ul>
 
-        <h2>Post a Question</h2>
+        <h2>글 작성</h2>
         <form onSubmit={handleSubmit}>
+            <label>제목</label>
             <input
                 type="text"
                 placeholder="Title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
             />
+            <label>내용</label>
              <input
                 type="text"
                 placeholder="Content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
             />
+            <label>태그</label>
             <input
                 type="text"
                 placeholder="Tag"
@@ -88,4 +69,4 @@ function Posts() {
 
 };
 
-export default Posts;
+export default Post;
