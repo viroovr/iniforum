@@ -52,6 +52,8 @@ public class JwtTokenProvider {
         return parseClaims(token).get("id", Long.class);
     }
 
+    public String getUserId(String token) {return parseClaims(token).get("userId", String.class);}
+
     public long getExpirationTime(String token) {
         Date expiration = parseClaims(token).getExpiration();
         return expiration.getTime() - System.currentTimeMillis();

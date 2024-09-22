@@ -2,6 +2,7 @@ package com.forum.project.presentation.question;
 
 import com.forum.project.application.QuestionService;
 import com.forum.project.domain.Question;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -43,6 +44,41 @@ public class QuestionController {
         return questionService.getQuestionsByPage(page, size);
     }
 
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    public ResponseEntity<String> deleteQuestion(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization") String token
+    ) {
+        try {
+            String jwt = extractToken(token);
+            questionService.deleteQuestion(id, jwt);
+            return ResponseEntity.ok("Question deleted successfully.");
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found.");
+        }
+    }
+
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+    public ResponseEntity<ResponseQuestionDto> updateQuestion(
+            @RequestHeader(value = "Authorization") String token,
+            @PathVariable Long id,
+            @RequestBody RequestQuestionDto requestQuestionDto
+    ) {
+        try {
+            String jwt = extractToken(token);
+            ResponseQuestionDto responseQuestionDto = questionService.updateQuestion(id, requestQuestionDto, jwt);
+            return ResponseEntity.ok(responseQuestionDto);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+    
+    private String extractToken(String authorizationHeader) {
+        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7);
+        }
+        throw new IllegalArgumentException("Invalid Authorization header");
+    }
 
 
 }
