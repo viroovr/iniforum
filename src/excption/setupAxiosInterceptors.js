@@ -24,9 +24,11 @@ export const setuoAxiosInterceptors = (navigate) => {
         (response) => response,
         (error) => {
             if (error.response && error.response.status === 403) {
-                if (!toast.isActive('login-required'))
-                toast.error("로그인이 필요합니다.", {toastId: 'login-required'});
-                navigate("/login");
+                localStorage.removeItem('jwtToken');
+                if (!toast.isActive('login-required')){
+                    toast.error("로그인이 필요합니다.", {toastId: 'login-required'});
+                    navigate("/login");
+                }
             }
             return Promise.reject(error);
         }

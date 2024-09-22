@@ -1,5 +1,4 @@
 import React, {useState} from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../excption/setupAxiosInterceptors";
 
@@ -39,11 +38,12 @@ function Post() {
                 onChange={(e) => setTitle(e.target.value)}
             />
             <label>내용</label>
-             <input
-                type="text"
+            <textarea
                 placeholder="Content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                style={{width: '100%', resize: 'vertical'}}
+             
             />
             <label>태그</label>
             <input

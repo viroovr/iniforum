@@ -7,8 +7,9 @@ import Post from './page/Post';
 import QuestionList from './page/QuestionList';
 import QuestionDetail from './page/QuestionDetail';
 import { useEffect, useState } from 'react';
-import { setuoAxiosInterceptors } from './excption/setupAxiosInterceptors';
+import apiClient, { setuoAxiosInterceptors } from './excption/setupAxiosInterceptors';
 import { ToastContainer } from 'react-toastify';
+import QuestionEdit from './page/QuestionEdit';
 
 function Root() {
   const navigate = useNavigate();
@@ -59,6 +60,7 @@ function Root() {
           <Route path="/questions" element={<QuestionList />} />
           <Route path="/questions/:id" element={<QuestionDetail />} />
           <Route path="/post" element={<Post />} />
+          <Route path='/:id/edit' element={<QuestionEdit />} />
       </Routes>
       <ToastContainer />
     </div>

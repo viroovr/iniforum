@@ -6,11 +6,18 @@ function Signup() {
     const [userId, setUserId] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [name, setName] = useState('');
+    const [error, setError] = useState('');
 
     const navigate = useNavigate();
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (password !== confirmPassword) {
+          setError("패스워드가 일치하지 않습니다.");
+          return;
+        }
+
         const userData = {
             userId,
             email,
@@ -44,23 +51,32 @@ function Signup() {
 
                 </div>
                 <div>
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label>Password</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label>Confirm Password</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
         <div>
           <label>Name</label>
           <input
@@ -69,6 +85,7 @@ function Signup() {
             onChange={(e) => setName(e.target.value)}
             required
           />
+            {error && <p style={{ color: "red"}}>{error}</p>}
         </div>
         <button type="submit">회원가입</button>
             </form>

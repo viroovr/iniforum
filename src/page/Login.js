@@ -1,11 +1,13 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import { useNavigate} from "react-router-dom";
 import axios from 'axios';
 
 function Login({ onLogin }) {
     const [userId, setUserId] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const navigate = useNavigate();
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -20,6 +22,7 @@ function Login({ onLogin }) {
             }
         } catch(error) {
             console.error('로그인 실패', error);
+            setError("유저 아이디나 패스워드가 일치하지 않습니다.");
         }
     };
 
@@ -45,6 +48,7 @@ function Login({ onLogin }) {
                         required
                         />
                 </div>
+                {error && <p style={{ color: "red" }}>{error}</p>}
                 <button type='submit'>로그인</button>
 
             </form>
