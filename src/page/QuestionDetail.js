@@ -2,15 +2,18 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import apiClient from "../excption/setupAxiosInterceptors";
 import {jwtDecode} from "jwt-decode";
+import CommentForm from "./CommentForm";
 
 const QuestionDetail = () => {
     const { id } = useParams();
     const [question, setQuestions] = useState(null);
     const [isAuthor, setIsAuthor] = useState(false);
+    const [comments, setComment] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
         fetchQuestionDetails();
+        fetchComments();
     }, [id]);
 
     const fetchQuestionDetails = async () => {
@@ -22,6 +25,19 @@ const QuestionDetail = () => {
             console.error("Error fetching question detail:", error);
         }
     };
+
+    const fetchComments = async () => {
+        try {
+            const response = await apiClient.get(`/q/${id}/comments`);
+            setComment(response.data);
+        } catch (error) {
+            console.error("Error fetching comments:", error);
+        }
+    };
+
+    const habdleCommentAdded = (newComment) => {
+        setComment(prevComments => [...prevComments, newComment]);
+    }
 
     const checkIfUserIsAuthor = (questionData) => {
         const token = localStorage.getItem("jwtToken");
@@ -53,11 +69,6 @@ const QuestionDetail = () => {
 
     return (
         <div>
-            <h1>{question.title}</h1>
-            <p>작성자: {question.userId}</p>
-            <p>내용: {question.content}</p>
-            <p>태그: {question.tag}</p>
-            <p>작성일: {new Date(question.createdDate).toLocaleString()}</p>
             {
                 isAuthor &&  (
                     <div>
@@ -66,6 +77,21 @@ const QuestionDetail = () => {
                     </div>
                 )
             }
+            <h1>{question.title}</h1>
+            <p>작성자: {question.userId}</p>
+            <p>내용: {question.content}</p>
+            <p>태그: {question.tag}</p>
+            <p>작성일: {new Date(question.createdDate).toLocaleString()}</p>
+
+            <h2>댓글</h2>
+            <CommentForm questionId={id} onCommentAdded={habdleCommentAdded}/>
+            {comments.map((comment) => (
+                <div key={comment.id}>
+                    <p>작성자: {comment.userId} 작성일: {new Date(comment.createdDate).toLocaleString()}</p> 
+                    <p>{comment.content}</p>
+                </div>
+                
+            ))}
             
         </div>
     );
