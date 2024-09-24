@@ -1,12 +1,11 @@
 import axios from "axios";
 import {toast} from 'react-toastify'
-import { useNavigate } from "react-router-dom";
 import 'react-toastify/dist/ReactToastify.css';
 
 const apiClient = axios.create({
-    baseURL: 'http://localhost:8080'
+    baseURL: 'http://localhost:8080',
+    withCredentials: true
 });
-
 
 export const setuoAxiosInterceptors = (navigate) => {
     apiClient.interceptors.request.use(
@@ -22,7 +21,24 @@ export const setuoAxiosInterceptors = (navigate) => {
 
     apiClient.interceptors.response.use(
         (response) => response,
-        (error) => {
+        async (error) => {
+            const originalRequest = error.config;
+            if (error.response && error.response.status === 401 && !originalRequest._retry) {
+                originalRequest._retry = true;
+                try{
+                    const response = await axios.post('http://localhost:8080/auth/refresh', {}, {
+                        withCredentials: true
+                    });
+                    const {accessToken} = response.data;
+                    console.log(accessToken);
+                    localStorage.setItem('jwtToken', accessToken);
+                    originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
+                    return apiClient(originalRequest);
+                } catch (error) {
+                    console.error("Failed to refresh access token", error);
+                }
+                
+            }
             if (error.response && error.response.status === 403) {
                 localStorage.removeItem('jwtToken');
                 if (!toast.isActive('login-required')){

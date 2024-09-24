@@ -12,10 +12,14 @@ function Login({ onLogin }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:8080/auth/login', {userId, password});
-            const token = response.data
-            console.log(response.data);
-            localStorage.setItem('jwtToken', token);
+            const response = await axios.post('http://localhost:8080/auth/login', {userId, password}, 
+                {
+                    withCredentials: true
+                }
+            );
+            const {accessToken} = response.data;
+            console.log(accessToken);
+            localStorage.setItem('jwtToken', accessToken);
             onLogin();
             if (response.status === 200) {
                 navigate("/questions");
