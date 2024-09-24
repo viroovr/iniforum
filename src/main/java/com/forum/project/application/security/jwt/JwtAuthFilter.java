@@ -1,6 +1,8 @@
 package com.forum.project.application.security.jwt;
 
 import com.forum.project.application.auth.CustomUserDetailsService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +23,7 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final JwtBlacklistService jwtBlacklistService;
+
 
 
     @Override
@@ -31,22 +33,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7);
 
-            if(jwtBlacklistService.isBlacklisted(token)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Unauthorized: Token is blacklisted");
-                return;
-            }
+            try{
+                if(jwtTokenProvider.validateToken(token)) {
+                    Long userId = jwtTokenProvider.getId(token);
+                    UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId.toString());
 
-            if(jwtTokenProvider.validateToken(token)) {
-                Long userId = jwtTokenProvider.getId(token);
-                UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId.toString());
-
-                if(userDetails != null) {
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                    if(userDetails != null) {
+                        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                    }
                 }
+            } catch (ExpiredJwtException e) {
+                logger.info("Expired JWT");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has expired");
+                return;
+            } catch (JwtException e) {
+                logger.info("Invalid JWT token");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Token");
+                return;
             }
         }
         filterChain.doFilter(request, response);

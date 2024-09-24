@@ -26,6 +26,13 @@ public class CustomUserInfoDto {
         this.name = name;
     }
 
+    public CustomUserInfoDto(Long id, String userId, String email) {
+        this.id = id;
+        this.userId = userId;
+        this.email = email;
+    }
+
+
     static public CustomUserInfoDto toDto(User user) {
         return new CustomUserInfoDto(user.getId(), user.getUserId(), user.getEmail(), user.getPassword(),
                 user.getName());

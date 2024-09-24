@@ -18,7 +18,7 @@ public class JwtBlacklistService {
 
     public void addToBlacklist(String key, Object o, long expirationTime) {
         redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(o.getClass()));
-        redisTemplate.opsForValue().set(key, o, expirationTime, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set(key, o, expirationTime, TimeUnit.SECONDS);
     }
 
     public Object getBlackList(String key) {

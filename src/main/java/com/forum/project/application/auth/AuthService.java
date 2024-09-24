@@ -1,5 +1,6 @@
 package com.forum.project.application.auth;
 
+import com.forum.project.application.RefreshTokenService;
 import com.forum.project.application.security.jwt.JwtBlacklistService;
 import com.forum.project.application.security.jwt.JwtTokenProvider;
 import com.forum.project.domain.User;
@@ -16,6 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 public class AuthService {
 
@@ -25,6 +30,8 @@ public class AuthService {
     private JwtTokenProvider jwtTokenProvider;
     @Autowired
     private JwtBlacklistService jwtBlacklistService;
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
     public AuthService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -44,7 +51,9 @@ public class AuthService {
     }
 
     @Transactional
-    public String loginUser(LoginRequestDto loginRequestDto) {
+    public Map<String, String> loginUserWithTokens(
+            LoginRequestDto loginRequestDto
+    ) {
         String userId = loginRequestDto.getUserId();
         String password = loginRequestDto.getPassword();
         User user = userRepository.findByUserId(userId);
@@ -58,13 +67,25 @@ public class AuthService {
 
         CustomUserInfoDto info = CustomUserInfoDto.toDto(user);
 
-        return jwtTokenProvider.createAccessToken(info);
+        String accessToken = jwtTokenProvider.createAccessToken(info);
+        String refreshToken = jwtTokenProvider.createRefreshToken(info);
+
+        ZonedDateTime expiryDate = ZonedDateTime.now().plusDays(7);
+        refreshTokenService.saveRefreshToken(refreshToken, user.getId(), expiryDate);
+
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("accessToken", accessToken);
+        tokens.put("refreshToken", refreshToken);
+        return tokens;
 
     }
 
     @Transactional
-    public void logout(String jwt, long expirationTime) {
-        jwtBlacklistService.addToBlacklist(jwt, "jwt_token", expirationTime);
+    public void logout(String jwt, String refreshToken, long expirationTime) {
+        jwtBlacklistService.addToBlacklist("accessToken", "blacklisted", expirationTime);
+
+        refreshTokenService.invalidateRefreshToken(refreshToken);
+
     }
 
 }

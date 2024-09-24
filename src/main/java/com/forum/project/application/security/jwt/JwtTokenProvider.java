@@ -5,6 +5,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -17,19 +18,27 @@ import java.util.Date;
 public class JwtTokenProvider {
     private final Key key;
     private final long accessTokenExpTime;
+    private final long refreshTokenExpTime;
+    @Autowired
+    private JwtBlacklistService jwtBlacklistService;
 
     public JwtTokenProvider(
             @Value("${jwt.secret}") String secret_key,
-            @Value("${jwt.expiration_time}") long accessTokenExpTime
+            @Value("${jwt.access_token_expiration_time}") long accessTokenExpTime,
+            @Value("${jwt.refresh_token_expiration_time}") long refreshTokenExpTime
+
     ) {
         byte[] keyBytes = Decoders.BASE64URL.decode(secret_key);
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.accessTokenExpTime = accessTokenExpTime;
+        this.refreshTokenExpTime = refreshTokenExpTime;
     }
 
     public String createAccessToken(CustomUserInfoDto member) {
         return createToken(member, accessTokenExpTime);
     }
+
+    public String createRefreshToken(CustomUserInfoDto member) {return createToken(member, refreshTokenExpTime);}
 
     private String createToken(CustomUserInfoDto member, long expireTime) {
         Claims claims = Jwts.claims();
@@ -56,9 +65,9 @@ public class JwtTokenProvider {
 
     public long getExpirationTime(String token) {
         Date expiration = parseClaims(token).getExpiration();
-        return expiration.getTime() - System.currentTimeMillis();
+        return expiration.getTime() - System.currentTimeMillis() / 1000;
     }
-    
+
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
@@ -80,6 +89,21 @@ public class JwtTokenProvider {
             return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(accessToken).getBody();
         } catch (ExpiredJwtException e){
             return e.getClaims();
+        }
+    }
+
+    public String regenerateAccessToken(String refreshToken) {
+        if (validateToken(refreshToken)) {
+            Claims claims = parseClaims(refreshToken);
+            CustomUserInfoDto userInfoDto = new CustomUserInfoDto(
+                    claims.get("id", Long.class),
+                    claims.get("userId", String.class),
+                    claims.get("email", String.class)
+            );
+
+            return createAccessToken(userInfoDto);
+        } else {
+            throw new RuntimeException("Invalid Refresh Token");
         }
     }
 }
