@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,7 +22,6 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
-    @Setter
     private Question question;
 
     public Comment() {}

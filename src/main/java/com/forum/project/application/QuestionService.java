@@ -74,9 +74,11 @@ public class QuestionService {
                 throw new BadCredentialsException("You are not authorized");
             }
             questionRepository.delete(existing);
+        } else {
+
+            throw new EntityNotFoundException("Question not found.");
         }
 
-        throw new EntityNotFoundException("Question not found.");
 
     }
 
@@ -97,8 +99,10 @@ public class QuestionService {
             existing.setContent(requestQuestionDto.getContent());
             existing.setTag(requestQuestionDto.getTag());
             return ResponseQuestionDto.toDto(questionRepository.save(existing));
+        } else {
+            throw new EntityNotFoundException("Question not found.");
+
         }
-        throw new EntityNotFoundException("Question not found.");
     }
 
 }
