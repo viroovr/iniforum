@@ -48,30 +48,35 @@ const QuestionDetail = () => {
         const token = localStorage.getItem('jwtToken');
         if (token) {
             const decodedToken = jwtDecode(token);
-            console.log(decodedToken);
             setCurrentUserId(decodedToken.userId);
-            if ( questionData && currentUserId === questionData.userId) {
+            if ( questionData && decodedToken.userId === questionData.userId) {
                 setIsAuthor(true);
             }
         }
     }
 
     const handleDelete = async () => {
-        try {
-            await apiClient.delete(`/q/${id}`);
-            navigate("/questions");
-        } catch (error) {
-            console.error("Error delete question", error);
+        const confirmDelete = window.confirm("정말로 이 댓글을 삭제하시겠습니까?");
+        if(confirmDelete){
+            try {
+                await apiClient.delete(`/q/${id}`);
+                navigate("/questions");
+            } catch (error) {
+                console.error("Error delete question", error);
+            }
         }
     }
 
     const handleCommentDelete = async (commentId) => {
-        try {
-            await apiClient.delete(`/q/${id}/comments/${commentId}`);
-            setComment(prevComments => prevComments.filter(comment => comment.id !== commentId));
-            navigate(`/questions/${id}`);
-        } catch (error) {
-            console.error("Error deleting comment", error);
+        const confirmDelete = window.confirm("정말로 이 게시글을 삭제하시겠습니까?");
+        if(confirmDelete) {
+            try {
+                await apiClient.delete(`/q/${id}/comments/${commentId}`);
+                setComment(prevComments => prevComments.filter(comment => comment.id !== commentId));
+                navigate(`/questions/${id}`);
+            } catch (error) {
+                console.error("Error deleting comment", error);
+            }
         }
     }
 
@@ -82,6 +87,7 @@ const QuestionDetail = () => {
 
     const handleCommentEditSubmit = async (e) => {
         try {
+            console.log(currentUserId);
             await apiClient.put(`/q/${id}/comments/${editingCommentId}`, {
                 content:editingCommentContent,
                 userId: currentUserId
@@ -94,6 +100,18 @@ const QuestionDetail = () => {
         }
     }
 
+    const handleLikeComment = async (commentId) => {
+        try {
+            await apiClient.post(`/q/comments/${commentId}/like`);
+            fetchComments();
+        } catch (e) {
+            if(e.response && e.response.status === 400) {
+                alert("이미 이 댓글에 추천하셨습니다.");
+            } else {
+                console.error("Error liking commnet:",e);
+            }
+        }
+    }
 
     const handleEdit = () => {
         navigate(`/${id}/edit`);
@@ -125,6 +143,8 @@ const QuestionDetail = () => {
                 <div key={comment.id}>
                     <p>작성자: {comment.userId} 작성일: {new Date(comment.createdDate).toLocaleString()}</p> 
                     <p>{comment.content}</p>
+                    <p>추천수: {comment.likeCount}</p>
+                    <button onClick={() => handleLikeComment(comment.id)}>추천</button>
                     {comment.userId === currentUserId && (
                         <div>
                             <button onClick={() => handleCommentEditClick(comment)}>수정</button>

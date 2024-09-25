@@ -32,7 +32,7 @@ const QuestionEdit = () => {
         e.preventDefault();
         try {
             await apiClient.put(`/q/${id}`, form);
-            navigate("/questions");
+            navigate(`/questions/${id}`);
         } catch (error) {
             console.error("Error updating question:", error);
         }

@@ -58,7 +58,7 @@ const QuestionList = () => {
                 <ul>
                     {questions.map((question) => (
                         <li key={question.id}>
-                            {question.postNumber} <Link to={`/questions/${question.id}`}>{question.title}</Link> {question.userId}
+                            <Link to={`/questions/${question.id}`}>{question.title}</Link> {question.userId}
                         </li>
                     ))}
                 </ul>
