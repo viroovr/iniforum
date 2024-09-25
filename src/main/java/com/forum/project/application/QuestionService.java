@@ -55,11 +55,7 @@ public class QuestionService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Question> questionPage = questionRepository.findAllByOrderByCreatedDateDesc(pageable);
 
-        AtomicInteger startIndex = new AtomicInteger((int) (page * size + questionPage.getTotalElements()) + 1);
-        Page<ResponseQuestionDto> responseQuestionDtoPage = questionPage
-                                        .map(ResponseQuestionDto::toDto);
-        responseQuestionDtoPage.forEach(question -> question.setPostNumber(startIndex.decrementAndGet()));
-        return  responseQuestionDtoPage;
+        return questionPage.map(ResponseQuestionDto::toDto);
 
     }
 

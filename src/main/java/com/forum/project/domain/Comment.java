@@ -20,6 +20,8 @@ public class Comment {
 
     private LocalDateTime createdDate;
 
+    private Long likeCount;
+
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;

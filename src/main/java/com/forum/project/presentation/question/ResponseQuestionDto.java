@@ -19,13 +19,10 @@ public class ResponseQuestionDto {
     private String tag;
     private LocalDateTime createdDate;
 
-    @Setter
-    private int postNumber;
-
 
     static public ResponseQuestionDto toDto(Question question) {
         return new ResponseQuestionDto(question.getId(), question.getTitle(), question.getUserId(), question.getContent(),
-                question.getTag(), question.getCreatedDate(), 0);
+                question.getTag(), question.getCreatedDate());
     }
 
 }

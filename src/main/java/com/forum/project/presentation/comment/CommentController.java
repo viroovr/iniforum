@@ -71,4 +71,20 @@ public class CommentController {
         throw new IllegalArgumentException("Invalid Authorization header");
     }
 
+    @RequestMapping(value = "/comments/{id}/like", method = RequestMethod.POST)
+    public ResponseEntity<?> likeComment(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization") String token
+    ) {
+        try {
+            String jwt = extractToken(token);
+            commentService.likeComment(id, jwt);
+            return ResponseEntity.ok("Comment liked successfully");
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Comment not found");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }

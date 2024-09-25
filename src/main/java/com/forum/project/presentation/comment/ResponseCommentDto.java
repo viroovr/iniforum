@@ -16,14 +16,19 @@ public class ResponseCommentDto {
     private String userId;
 
     private LocalDateTime createdDate;
-    public ResponseCommentDto(Long id, String content, String userId, LocalDateTime localDateTime) {
+
+    private Long likeCount;
+
+    public ResponseCommentDto(Long id, String content, String userId, LocalDateTime localDateTime, Long likeCount) {
         this.id = id;
         this.content = content;
         this.userId = userId;
         this.createdDate = localDateTime;
+        this.likeCount = likeCount;
     }
 
     public static ResponseCommentDto toDto(Comment comment) {
-        return new ResponseCommentDto(comment.getId(), comment.getContent(), comment.getUserId(), comment.getCreatedDate());
+        return new ResponseCommentDto(comment.getId(), comment.getContent(), comment.getUserId(), comment.getCreatedDate(),
+            comment.getLikeCount());
     }
 }
