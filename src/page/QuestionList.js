@@ -31,6 +31,7 @@ const QuestionList = () => {
 
         } catch (error) {
             console.error('Failed to fetch questions', error);
+            navigate("/login");
         }
     };
 
