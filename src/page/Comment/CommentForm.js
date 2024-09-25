@@ -1,10 +1,10 @@
 import { useState } from "react"
-import apiClient from "../excption/setupAxiosInterceptors";
+import apiClient from "../../excption/setupAxiosInterceptors";
 import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 
 const CommentForm = ({questionId, onCommentAdded}) => {
     const [content, setContent] = useState("");
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
