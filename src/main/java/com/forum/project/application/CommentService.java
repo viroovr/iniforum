@@ -51,9 +51,10 @@ public class CommentService {
                 throw new BadCredentialsException("You are not authorized");
             }
             commentRepository.delete(existing);
-        } else {
-            throw new EntityNotFoundException("Comment not found.");
+            return ;
         }
+
+        throw new EntityNotFoundException("Comment not found.");
 
 
     }
@@ -88,7 +89,7 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new EntityNotFoundException("Comment not found"));
 
-        commentLikeRepository.save(new CommentLike(commentId, userId));
+        commentLikeRepository.save(new CommentLike(userId, comment));
 
         AtomicLong atomicLong = new AtomicLong(comment.getLikeCount());
         comment.setLikeCount(atomicLong.addAndGet(1));

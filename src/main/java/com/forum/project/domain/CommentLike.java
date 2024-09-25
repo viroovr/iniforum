@@ -1,9 +1,6 @@
 package com.forum.project.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,14 +12,17 @@ public class CommentLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long commentId;
     private String userId;
+
+    @ManyToOne
+    @JoinColumn(name = "comment_id", nullable = false)
+    private Comment comment;
 
     public CommentLike() {}
 
-    public CommentLike(Long commentId, String userId) {
-        this.commentId = commentId;
+    public CommentLike(String userId, Comment comment) {
         this.userId = userId;
+        this.comment = comment;
     }
 
 
