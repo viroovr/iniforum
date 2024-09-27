@@ -2,11 +2,13 @@ import React, {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import apiClient from "../excption/setupAxiosInterceptors";
+import QuestionSearch from "./QuestionSearch";
 
 const QuestionList = () => {
     const [questions, setQuestions] = useState([]);
     const [currnetPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
+    const [searchKeyword, setSearchKeyword] = useState('');
 
     const navigate = useNavigate();
 
@@ -15,15 +17,16 @@ const QuestionList = () => {
     }
 
     useEffect(() => {
-        fetchQuestions(currnetPage);
-    }, [currnetPage]);
+        fetchQuestions(currnetPage, searchKeyword);
+    }, [currnetPage, searchKeyword]);
 
-    const fetchQuestions = async (page) => {
+    const fetchQuestions = async (page, keyword) => {
         try {
             const response = await apiClient.get("/q/questions", {
                 params: {
                     page: page,
                     size: 10,
+                    keyword: keyword
                 }
             })
             setQuestions(response.data.content);
@@ -48,6 +51,11 @@ const QuestionList = () => {
         }
     };
 
+    const handleSearch = (keyword) => {
+        setSearchKeyword(keyword);
+        setCurrentPage(0);
+    }
+
     return (
         <div>
             <h1>질문 게시판</h1>
@@ -63,7 +71,7 @@ const QuestionList = () => {
                     ))}
                 </ul>
             )}
-
+            <QuestionSearch onSearch={handleSearch} />
             <div>
                 <button onClick={handlePreviousPage} disabled={currnetPage === 0}>
                     이전
