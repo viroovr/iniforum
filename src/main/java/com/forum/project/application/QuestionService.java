@@ -32,12 +32,9 @@ public class QuestionService {
 
     @Transactional
     public Question createPost(RequestQuestionDto requestQuestionDto, String id) {
-        Optional<User> user = userRepository.findById(Long.parseLong(id));
-        if (user.isEmpty()) {
-            throw new UsernameNotFoundException("존재하지 않는 유저입니다.");
-        }
-        User foundUser = user.get();
-        String userId = foundUser.getUserId();
+        User user = userRepository.findById(Long.parseLong(id));
+
+        String userId = user.getUserId();
 
         Question question = new Question(requestQuestionDto.getTitle(), userId, requestQuestionDto.getContent(), requestQuestionDto.getTag());
         return questionRepository.save(question);

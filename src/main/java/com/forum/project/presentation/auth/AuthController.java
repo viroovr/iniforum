@@ -6,6 +6,7 @@ import com.forum.project.application.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-public class LoginController {
+public class AuthController {
 
     private final AuthService authService;
 
@@ -24,13 +25,13 @@ public class LoginController {
     @Autowired
     private RefreshTokenService refreshTokenService;
 
-    public LoginController (AuthService authService) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
     @RequestMapping(value = "/signup", method = RequestMethod.POST)
     public ResponseEntity<?> requestSignup(
-            @RequestBody SignupRequestDto signupRequestDto
+            @Valid @RequestBody SignupRequestDto signupRequestDto
     ) {
         SignupResponseDto createdUser = authService.createUser(signupRequestDto);
         if (createdUser != null) {
@@ -42,7 +43,7 @@ public class LoginController {
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public ResponseEntity<Map<String, String>> requestLogin(
-            @RequestBody LoginRequestDto loginRequestDto,
+            @Valid @RequestBody LoginRequestDto loginRequestDto,
             HttpServletResponse response
     ) {
         Map<String, String> tokens = authService.loginUserWithTokens(loginRequestDto);
