@@ -1,60 +1,46 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import { useNavigate} from "react-router-dom";
-import axios from 'axios';
+import InputField from '../compontents/InputField';
+import ErrorMessage from '../compontents/ErrorMessage';
+import useLogin from '../hooks/useLogin';
+import '../compontents/styles/Login.css';
 
 function Login({ onLogin }) {
     const [userId, setUserId] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
     const navigate = useNavigate();
-
+    
+    const { error, login } = useLogin(onLogin, navigate);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-            const response = await axios.post('http://localhost:8080/auth/login', {userId, password}, 
-                {
-                    withCredentials: true
-                }
-            );
-            const {accessToken} = response.data;
-            console.log(accessToken);
-            localStorage.setItem('jwtToken', accessToken);
-            onLogin();
-            if (response.status === 200) {
-                navigate("/questions");
-            }
-        } catch(error) {
-            console.error('로그인 실패', error);
-            setError("유저 아이디나 패스워드가 일치하지 않습니다.");
-        }
+        login(userId, password);
     };
 
     return (
-        <div>
-            <h2>로그인</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>아이디</label>
-                    <input
+        <div className='login-container'>
+            <form className="login-form" onSubmit={handleSubmit}>
+                <h2>로그인</h2>
+                <div className='input-fields'>
+                    <InputField
+                        label="아이디"
                         type='text'
                         value={userId}
                         onChange={(e) => setUserId(e.target.value)}
+                        className="form-input"
                         required
-                        />
-                </div>
-                <div>
-                    <label>패스워드</label>
-                    <input
+                    />
+                    <InputField
+                        label="패스워드"
                         type='password'
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        className="form-input"
                         required
-                        />
+                    />
                 </div>
-                {error && <p style={{ color: "red" }}>{error}</p>}
-                <button type='submit'>로그인</button>
-
+                {error && <ErrorMessage message={error} className="error-message" />}
+                <button className="login-button" type='submit'>로그인</button>
             </form>
         </div>
     );
