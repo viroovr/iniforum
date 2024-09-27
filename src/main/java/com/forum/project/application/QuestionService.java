@@ -98,4 +98,10 @@ public class QuestionService {
         }
     }
 
+    public Page<ResponseQuestionDto> searchPosts(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return questionRepository.searchQuestions(keyword, pageable)
+                .map(ResponseQuestionDto::toDto);
+    }
+
 }

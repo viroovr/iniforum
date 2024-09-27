@@ -5,6 +5,8 @@ import com.forum.project.domain.Question;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -39,9 +41,14 @@ public class QuestionController {
     @RequestMapping(value = "/questions", method = RequestMethod.GET)
     public Page<ResponseQuestionDto> getQuestions(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword
     ) {
-        return questionService.getQuestionsByPage(page, size);
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return questionService.getQuestionsByPage(page, size);
+        } else {
+            return questionService.searchPosts(keyword, page, size);
+        }
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
