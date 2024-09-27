@@ -86,4 +86,16 @@ public class AuthService {
         return tokens;
     }
 
+    public long getJwtExpirationTime(String jwt) {
+        return jwtTokenProvider.getExpirationTime(jwt);
+    }
+
+    public boolean validateRefreshToken(String refreshToken) {
+        return jwtTokenProvider.validateToken(refreshToken);
+    }
+
+    public String refreshAccessToken(String refreshToken) {
+        refreshTokenService.validateRefreshToken(refreshToken);
+        return jwtTokenProvider.regenerateAccessToken(refreshToken);
+    }
 }

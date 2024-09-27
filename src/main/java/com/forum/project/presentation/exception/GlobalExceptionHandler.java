@@ -1,12 +1,8 @@
 package com.forum.project.presentation.exception;
 
-import com.forum.project.domain.exception.EmailAlreadyExistsException;
-import com.forum.project.domain.exception.InvalidPasswordException;
-import com.forum.project.domain.exception.UserIdAlreadyExistException;
-import com.forum.project.domain.exception.UserNotFoundException;
+import com.forum.project.domain.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,7 +13,6 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
 
     private ResponseEntity<Map<String, String>> createErrorResponse(
             String errorCode, String errorMessage, HttpStatus httpStatus
@@ -64,7 +59,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
+    @ExceptionHandler(RefreshTokenNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleRefreshTokenNotFoundException(RefreshTokenNotFoundException ex) {
+        return createErrorResponse("REFRESH_TOKEN_MISSING", ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 
-
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidTokenException(InvalidTokenException ex) {
+        return createErrorResponse("INVALID_TOKEN", ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 
 }

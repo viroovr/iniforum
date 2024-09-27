@@ -1,5 +1,6 @@
 package com.forum.project.application;
 
+import com.forum.project.domain.exception.InvalidTokenException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -22,8 +23,10 @@ public class RefreshTokenService {
         redisTemplate.delete(refreshToken);
     }
 
-    public boolean isRefreshTokenValid(String refreshToken) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(refreshToken));
+    public void validateRefreshToken(String refreshToken) {
+        boolean isValid = Boolean.TRUE.equals(redisTemplate.hasKey(refreshToken));
+        if (!isValid)
+            throw new InvalidTokenException("블랙리스트된 리프레시 토큰입니다.");
     }
 
     public Long getUserIdFromRefreshToken(String refreshToken) {

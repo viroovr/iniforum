@@ -1,5 +1,6 @@
 package com.forum.project.presentation.auth;
 
+import com.forum.project.application.CookieService;
 import com.forum.project.application.RefreshTokenService;
 import com.forum.project.application.auth.AuthService;
 import com.forum.project.application.security.jwt.JwtTokenProvider;
@@ -7,6 +8,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,14 +22,11 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final CookieService cookieService;
 
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
-    @Autowired
-    private RefreshTokenService refreshTokenService;
-
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, CookieService cookieService) {
         this.authService = authService;
+        this.cookieService = cookieService;
     }
 
     @RequestMapping(value = "/signup", method = RequestMethod.POST)
@@ -34,11 +34,7 @@ public class AuthController {
             @Valid @RequestBody SignupRequestDto signupRequestDto
     ) {
         SignupResponseDto createdUser = authService.createUser(signupRequestDto);
-        if (createdUser != null) {
-            return ResponseEntity.ok("User created");
-        } else {
-            return ResponseEntity.badRequest().body("User Created Failed");
-        }
+        return ResponseEntity.ok("User created");
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
@@ -47,14 +43,9 @@ public class AuthController {
             HttpServletResponse response
     ) {
         Map<String, String> tokens = authService.loginUserWithTokens(loginRequestDto);
-        String refreshToken = tokens.get("refreshToken");
 
-        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
-
-        response.addCookie(refreshTokenCookie);
+        Cookie refreshTokenCookie = cookieService.createRefreshTokenCookie(tokens.get("refreshToken"));
+        cookieService.addCookieToResponse(response, refreshTokenCookie);
 
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("accessToken", tokens.get("accessToken")));
     }
@@ -67,59 +58,28 @@ public class AuthController {
 
     ) {
         String jwt = token.substring(7);
-        long expirationTime = jwtTokenProvider.getExpirationTime(jwt);
 
-        String refreshToken = getRefreshTokenFromCookies(request);
-        System.out.println(refreshToken);
-        if(refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+        long expirationTime = authService.getJwtExpirationTime(jwt);
+        String refreshToken = cookieService.getRefreshTokenFromCookies(request);
+
+        if(refreshToken == null || !authService.validateRefreshToken(refreshToken)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Logged out failed");
         }
+
         authService.logout(jwt, refreshToken, expirationTime);
 
-        clearRefreshTokenCookie(response);
+        cookieService.clearRefreshTokenCookie(response);
 
         return ResponseEntity.ok("Logged out successfully");
     }
-
-    private String getRefreshTokenFromCookies(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if(cookies != null) {
-            for(Cookie cookie : cookies) {
-                if("refreshToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
-
-    private void clearRefreshTokenCookie(HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setMaxAge(0);
-        response.addCookie(refreshTokenCookie);
-    }
-
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshAccessToken(
             HttpServletRequest request
     ) {
-        String refreshToken = getRefreshTokenFromCookies(request);
-        System.out.println(refreshToken);
-        if(refreshToken == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Refresh Token is missing");
-        }
-        if(!refreshTokenService.isRefreshTokenValid(refreshToken)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Refresh Token is Blacklisted");
-        }
-        try {
-            String newAccessToken = jwtTokenProvider.regenerateAccessToken(refreshToken);
-            return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid Refresh Token");
-        }
+        String refreshToken = cookieService.getRefreshTokenFromCookies(request);
+        String newAccessToken = authService.refreshAccessToken(refreshToken);
+        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
     }
 
 
