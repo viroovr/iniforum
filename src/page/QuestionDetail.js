@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import apiClient from "../excption/setupAxiosInterceptors";
 import {jwtDecode} from "jwt-decode";
-import CommentForm from "./Comment/CommentForm";
 import CommentList from "./Comment/CommentList";
+import "./styles/QuestionDetail.css";
 
 const QuestionDetail = () => {
     const { id } = useParams();
@@ -62,25 +62,28 @@ const QuestionDetail = () => {
     }
 
     return (
-        <div>
+        <div className="questions-container">
             {
                 isAuthor &&  (
-                    <div>
+                    <div className="button-container">
                         <button onClick={handleEdit}>수정</button>
                         <button onClick={handleDelete}>삭제</button>
                     </div>
                 )
             }
-            <h1>{question.title}</h1>
-            <p>작성자: {question.userId}</p>
-            <p>내용: {question.content}</p>
-            <p>태그: {question.tag}</p>
-            <p>작성일: {new Date(question.createdDate).toLocaleDateString()} {new Date(question.createdDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+            <h1 className="question-title">{question.title}</h1>
+            <p className="question-meta">작성자: {question.userId} 작성일: {new Date(question.createdDate).toLocaleDateString()} {new Date(question.createdDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+            <div className="question-content">{question.content}</div>
+            <div className="question-tags">
+                <p>태그: {question.tag.split(',').map((t, index) => (
+                        <span key={index} className="question-tag">{t.trim()}</span>
+                    ))}</p>
+            </div>
 
-            <h2>댓글</h2>
-            
-            <CommentList questionId={id} currentUserId={currentUserId}/>
-            
+            <div className="comment-section">
+                <h2>댓글</h2>
+                <CommentList questionId={id} currentUserId={currentUserId}/>
+            </div>
         </div>
     );
 
