@@ -35,6 +35,7 @@ public class UserRepositoryImpl implements UserRepository {
             rs.getString("password"),
             rs.getString("name")
     );
+
     @Override
     public User findById(Long id) {
         String sql = "SELECT * FROM users WHERE id = :id";

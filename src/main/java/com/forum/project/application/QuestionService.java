@@ -7,17 +7,16 @@ import com.forum.project.domain.User;
 import com.forum.project.domain.UserRepository;
 import com.forum.project.presentation.question.RequestQuestionDto;
 import com.forum.project.presentation.question.ResponseQuestionDto;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,71 +27,61 @@ public class QuestionService {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
-    public Question createPost(RequestQuestionDto requestQuestionDto, String id) {
-        User user = userRepository.findById(Long.parseLong(id));
+    public Question createPost(RequestQuestionDto requestQuestionDto, String jwt) {
+        String userId = jwtTokenProvider.getUserId(jwt);
+        User user = userRepository.findByUserId(userId);
 
-        String userId = user.getUserId();
-
-        Question question = new Question(requestQuestionDto.getTitle(), userId, requestQuestionDto.getContent(), requestQuestionDto.getTag());
+        Question question = new Question(
+                requestQuestionDto.getTitle(),
+                user.getUserId(),
+                requestQuestionDto.getContent(),
+                requestQuestionDto.getTag()
+        );
         return questionRepository.save(question);
     }
 
     public ResponseQuestionDto findById(Long id) {
-        Optional<Question> question = questionRepository.findById(id);
-        if (question.isEmpty()) {
-            throw new UsernameNotFoundException("존재하지 않는 질문입니다.");
-        }
-        return ResponseQuestionDto.toDto(question.get());
+        Question question = questionRepository.findById(id);
+        return ResponseQuestionDto.toDto(question);
     }
 
     public Page<ResponseQuestionDto> getQuestionsByPage(int page, int size) {
+
+        List<Question> questionPage = questionRepository.getQuestionByPage(page, size);
+        long total = questionRepository.count();
+
+        List<ResponseQuestionDto> responseQuestionDtos =
+                questionPage.stream().map(ResponseQuestionDto::toDto).toList();
+
         Pageable pageable = PageRequest.of(page, size);
-        Page<Question> questionPage = questionRepository.findAllByOrderByCreatedDateDesc(pageable);
-
-        return questionPage.map(ResponseQuestionDto::toDto);
-
+        return new PageImpl<>(responseQuestionDtos, pageable, total);
     }
 
     @Transactional
     public void deleteQuestion(Long id, String token) {
-        String currentUserId = jwtTokenProvider.getUserId(token);
-        Optional<Question> existingQuestion = questionRepository.findById(id);
-
-        if(existingQuestion.isPresent()) {
-            Question existing = existingQuestion.get();
-            if(!existing.getUserId().equals(currentUserId)) {
-                throw new BadCredentialsException("You are not authorized");
-            }
-            questionRepository.delete(existing);
-        } else {
-
-            throw new EntityNotFoundException("Question not found.");
-        }
-
-
+        validateQuestionByUserId(id, token);
+        questionRepository.deleteById(id);
     }
 
     @Transactional
     public ResponseQuestionDto updateQuestion(Long id, RequestQuestionDto requestQuestionDto, String token) {
+        Question question = validateQuestionByUserId(id, token);
+
+        question.setTitle(requestQuestionDto.getTitle());
+        question.setContent(requestQuestionDto.getContent());
+        question.setTag(requestQuestionDto.getTag());
+
+        return ResponseQuestionDto.toDto(questionRepository.save(question));
+    }
+
+    private Question validateQuestionByUserId(Long id, String token) {
         String currentUserId = jwtTokenProvider.getUserId(token);
-        Optional<Question> existingQuestion = questionRepository.findById(id);
+        Question question = questionRepository.findById(id);
 
-        if (existingQuestion.isPresent()) {
-            Question existing = existingQuestion.get();
-
-            if(!existing.getUserId().equals(currentUserId)) {
-                throw new BadCredentialsException("You are not authorized");
-
-            }
-
-            existing.setTitle(requestQuestionDto.getTitle());
-            existing.setContent(requestQuestionDto.getContent());
-            existing.setTag(requestQuestionDto.getTag());
-            return ResponseQuestionDto.toDto(questionRepository.save(existing));
-        } else {
-            throw new EntityNotFoundException("Question not found.");
-
+        if(!question.getUserId().equals(currentUserId)) {
+            throw new BadCredentialsException("접근할 수 없는 권한입니다.");
         }
+        return question;
     }
 
     public Page<ResponseQuestionDto> searchPosts(String keyword, int page, int size) {

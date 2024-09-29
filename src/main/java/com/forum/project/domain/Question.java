@@ -1,7 +1,9 @@
 package com.forum.project.domain;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -11,6 +13,8 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Table(name = "questions")
+@NoArgsConstructor
 public class Question {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,14 +28,21 @@ public class Question {
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
-    public Question() {}
-
     public Question(Long id, String title, String userId, String content, String tag) {
         this.id = id;
         this.title = title;
         this.userId = userId;
         this.content = content;
         this.tag = tag;
+    }
+
+    public Question(Long id, String title, String userId, String content, String tag, LocalDateTime createdDate) {
+        this.id = id;
+        this.title = title;
+        this.userId = userId;
+        this.content = content;
+        this.tag = tag;
+        this.createdDate = createdDate;
     }
 
     public Question(String title, String userId, String content, String tag, LocalDateTime localDateTime) {

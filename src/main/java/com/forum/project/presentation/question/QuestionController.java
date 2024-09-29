@@ -24,9 +24,10 @@ public class QuestionController {
     @RequestMapping(value = "/post", method = RequestMethod.POST)
     public ResponseEntity<Question> postQuestion(
             @RequestBody RequestQuestionDto requestQuestionDto,
-            Authentication authentication
+            @RequestHeader(value = "Authorization") String token
     ) {
-        Question question = questionService.createPost(requestQuestionDto, authentication.getName());
+        String jwt = extractToken(token);
+        Question question = questionService.createPost(requestQuestionDto, jwt);
         return ResponseEntity.status(HttpStatus.CREATED).body(question);
     }
 
@@ -56,13 +57,9 @@ public class QuestionController {
             @PathVariable Long id,
             @RequestHeader(value = "Authorization") String token
     ) {
-        try {
-            String jwt = extractToken(token);
-            questionService.deleteQuestion(id, jwt);
-            return ResponseEntity.ok("Question deleted successfully.");
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found.");
-        }
+        String jwt = extractToken(token);
+        questionService.deleteQuestion(id, jwt);
+        return ResponseEntity.ok("Question deleted successfully.");
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
@@ -71,13 +68,9 @@ public class QuestionController {
             @PathVariable Long id,
             @RequestBody RequestQuestionDto requestQuestionDto
     ) {
-        try {
-            String jwt = extractToken(token);
-            ResponseQuestionDto responseQuestionDto = questionService.updateQuestion(id, requestQuestionDto, jwt);
-            return ResponseEntity.ok(responseQuestionDto);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        String jwt = extractToken(token);
+        ResponseQuestionDto responseQuestionDto = questionService.updateQuestion(id, requestQuestionDto, jwt);
+        return ResponseEntity.ok(responseQuestionDto);
     }
     
     private String extractToken(String authorizationHeader) {

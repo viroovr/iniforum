@@ -8,10 +8,12 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface QuestionRepository extends JpaRepository<Question, Long> {
-    Page<Question> findAllByOrderByCreatedDateDesc(Pageable pageable);
+public interface QuestionRepository {
+    Question findById(Long id);
+    Question save(Question question);
+    void deleteById(Long id);
+    long count();
+    List<Question> getQuestionByPage(int page, int size);
 
-    @Query("SELECT p FROM Question p WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
-        "OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Question> searchQuestions(@Param("keyword") String keyword, Pageable pageable);
 }
