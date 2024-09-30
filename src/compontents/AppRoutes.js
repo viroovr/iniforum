@@ -6,6 +6,7 @@ import QuestionDetail from "../page/QuestionDetail"
 import QuestionEdit from "../page/QuestionEdit"
 import QuestionList from "../page/QuestionList"
 import Signup from "../page/Signup"
+import ProfileForm from "../page/ProfileForm"
 
 const AppRoutes = ({ onLogin, onLogout}) => {
     return (
@@ -17,6 +18,7 @@ const AppRoutes = ({ onLogin, onLogout}) => {
           <Route path="/questions/:id" element={<QuestionDetail />} />
           <Route path="/post" element={<Post />} />
           <Route path='/:id/edit' element={<QuestionEdit />} />
+          <Route path='/profile' element={<ProfileForm />} />
       </Routes>
     )
 };

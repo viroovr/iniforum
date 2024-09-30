@@ -18,6 +18,9 @@ const Navbar = ( {isLoggedIn} ) => {
                     <li>
                         <Link to="/questions">게시판</Link>
                     </li>
+                    <li>
+                        <Link to="/profile">프로필</Link>
+                    </li>
                 </ul>
           </div>
         </nav>
