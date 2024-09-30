@@ -1,12 +1,11 @@
 package com.forum.project.application.auth;
 
-import com.forum.project.application.RefreshTokenService;
 import com.forum.project.application.ValidationService;
 import com.forum.project.application.security.jwt.JwtBlacklistService;
 import com.forum.project.application.security.jwt.JwtTokenProvider;
 import com.forum.project.domain.User;
 import com.forum.project.domain.exception.InvalidPasswordException;
-import com.forum.project.presentation.auth.CustomUserInfoDto;
+import com.forum.project.presentation.user.UserInfoDto;
 import com.forum.project.presentation.auth.LoginRequestDto;
 import com.forum.project.presentation.auth.SignupRequestDto;
 import com.forum.project.domain.UserRepository;
@@ -19,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -46,7 +44,8 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(String jwt, String refreshToken, long expirationTime) {
+    public void logout(String token, String refreshToken, long expirationTime) {
+        String jwt = jwtTokenProvider.extractTokenByHeader(token);
         jwtBlacklistService.addToBlacklist(jwt, "accessToken", expirationTime);
         refreshTokenService.invalidateRefreshToken(refreshToken);
     }
@@ -73,7 +72,7 @@ public class AuthService {
     }
 
     private Map<String, String> generateTokens(User user) {
-        CustomUserInfoDto info = CustomUserInfoDto.toDto(user);
+        UserInfoDto info = UserInfoDto.toDto(user);
         String accessToken = jwtTokenProvider.createAccessToken(info);
         String refreshToken = jwtTokenProvider.createRefreshToken(info);
 
@@ -86,7 +85,8 @@ public class AuthService {
         return tokens;
     }
 
-    public long getJwtExpirationTime(String jwt) {
+    public long getJwtExpirationTime(String token) {
+        String jwt = jwtTokenProvider.extractTokenByHeader(token);
         return jwtTokenProvider.getExpirationTime(jwt);
     }
 
@@ -98,4 +98,6 @@ public class AuthService {
         refreshTokenService.validateRefreshToken(refreshToken);
         return jwtTokenProvider.regenerateAccessToken(refreshToken);
     }
+
+
 }

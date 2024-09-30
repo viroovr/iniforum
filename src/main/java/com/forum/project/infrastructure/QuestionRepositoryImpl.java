@@ -2,13 +2,11 @@ package com.forum.project.infrastructure;
 
 import com.forum.project.domain.Question;
 import com.forum.project.domain.QuestionRepository;
-import com.forum.project.domain.exception.QuestionAlreadyExistsException;
 import com.forum.project.domain.exception.QuestionNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;

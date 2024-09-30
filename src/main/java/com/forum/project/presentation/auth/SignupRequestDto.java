@@ -37,8 +37,12 @@ public class SignupRequestDto {
     }
 
     static public User toUser(SignupRequestDto signupRequestDto) {
-        return new User(signupRequestDto.userId, signupRequestDto.email, signupRequestDto.password,
-                signupRequestDto.name);
+        return new User(
+                signupRequestDto.userId,
+                signupRequestDto.email,
+                signupRequestDto.password,
+                signupRequestDto.name
+        );
     }
 
     static public SignupRequestDto toDto(User user) {

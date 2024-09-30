@@ -1,16 +1,11 @@
 package com.forum.project.presentation.auth;
 
 import com.forum.project.application.CookieService;
-import com.forum.project.application.RefreshTokenService;
 import com.forum.project.application.auth.AuthService;
-import com.forum.project.application.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -57,16 +52,10 @@ public class AuthController {
             HttpServletResponse response
 
     ) {
-        String jwt = token.substring(7);
-
-        long expirationTime = authService.getJwtExpirationTime(jwt);
+        long expirationTime = authService.getJwtExpirationTime(token);
         String refreshToken = cookieService.getRefreshTokenFromCookies(request);
 
-        if(refreshToken == null || !authService.validateRefreshToken(refreshToken)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Logged out failed");
-        }
-
-        authService.logout(jwt, refreshToken, expirationTime);
+        authService.logout(token, refreshToken, expirationTime);
 
         cookieService.clearRefreshTokenCookie(response);
 
@@ -81,7 +70,5 @@ public class AuthController {
         String newAccessToken = authService.refreshAccessToken(refreshToken);
         return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
     }
-
-
 
 }

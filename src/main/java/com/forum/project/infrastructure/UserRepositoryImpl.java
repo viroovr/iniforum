@@ -15,8 +15,10 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Objects;
-import java.util.Optional;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
@@ -33,7 +35,10 @@ public class UserRepositoryImpl implements UserRepository {
             rs.getString("user_id"),
             rs.getString("email"),
             rs.getString("password"),
-            rs.getString("name")
+            rs.getString("name"),
+            rs.getTimestamp("created_date").toLocalDateTime(),
+            rs.getString("profile_image_path"),
+            rs.getString("nickname")
     );
 
     @Override
@@ -42,7 +47,7 @@ public class UserRepositoryImpl implements UserRepository {
         SqlParameterSource namedParameters = new MapSqlParameterSource("id", id);
         return namedParameterJdbcTemplate.query(sql, namedParameters, userRowMapper).stream()
                 .findFirst()
-                .orElseThrow(()-> new UserNotFoundException("해당 아이디 키를 찾을 수 없습니다."));
+                .orElseThrow(()-> new UserNotFoundException("해당 유저를 찾을 수 없습니다."));
     }
     
     
@@ -72,15 +77,41 @@ public class UserRepositoryImpl implements UserRepository {
         if (userIdExists(user.getUserId())) {
             throw new UserIdAlreadyExistException("이미 존재하는 아이디입니다.");
         }
+        if (user.getCreatedDate() == null) {
+            user.setCreatedDate(LocalDateTime.now());
+        }
 
-        String sql = "INSERT INTO users (user_id, email, password, name) VALUES (:userId, :email, :password, :name)";
+        user.setNickname(user.getUserId());
+
+        String sql = "INSERT INTO users (user_id, email, password, name, nickname, created_date) " +
+                "VALUES (:userId, :email, :password, :name, :nickname, :createdDate)";
         SqlParameterSource namedParameters = new BeanPropertySqlParameterSource(user);
+
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         namedParameterJdbcTemplate.update(sql, namedParameters, keyHolder);
 
         user.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
         return user;
+    }
+
+    public User update(User user) {
+        if (!userIdExists(user.getUserId())) {
+            throw new UserNotFoundException("존재하지 않는 아이디입니다.");
+        }
+        String sql = "UPDATE users SET password = :password, profile_image_path = :profileImagePath," +
+                "nickname = :nickname WHERE id = :id";
+        MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+        parameterSource.addValue("password", user.getPassword());
+        parameterSource.addValue("profileImagePath", user.getProfileImagePath());
+        parameterSource.addValue("nickname", user.getNickname());
+        parameterSource.addValue("id", user.getId());
+
+
+
+        namedParameterJdbcTemplate.update(sql, parameterSource);
+        return user;
+
     }
 
     private boolean emailExists(String email) {

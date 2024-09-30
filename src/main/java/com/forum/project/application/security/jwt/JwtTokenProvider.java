@@ -1,6 +1,6 @@
 package com.forum.project.application.security.jwt;
 
-import com.forum.project.presentation.auth.CustomUserInfoDto;
+import com.forum.project.presentation.user.UserInfoDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -34,13 +34,13 @@ public class JwtTokenProvider {
         this.refreshTokenExpTime = refreshTokenExpTime;
     }
 
-    public String createAccessToken(CustomUserInfoDto member) {
+    public String createAccessToken(UserInfoDto member) {
         return createToken(member, accessTokenExpTime);
     }
 
-    public String createRefreshToken(CustomUserInfoDto member) {return createToken(member, refreshTokenExpTime);}
+    public String createRefreshToken(UserInfoDto member) {return createToken(member, refreshTokenExpTime);}
 
-    private String createToken(CustomUserInfoDto member, long expireTime) {
+    private String createToken(UserInfoDto member, long expireTime) {
         Claims claims = Jwts.claims();
         claims.put("id", member.getId());
         claims.put("userId", member.getUserId());
@@ -95,7 +95,7 @@ public class JwtTokenProvider {
     public String regenerateAccessToken(String refreshToken) {
         if (validateToken(refreshToken)) {
             Claims claims = parseClaims(refreshToken);
-            CustomUserInfoDto userInfoDto = new CustomUserInfoDto(
+            UserInfoDto userInfoDto = new UserInfoDto(
                     claims.get("id", Long.class),
                     claims.get("userId", String.class),
                     claims.get("email", String.class)
@@ -105,5 +105,12 @@ public class JwtTokenProvider {
         } else {
             throw new RuntimeException("Invalid Refresh Token");
         }
+    }
+
+    public String extractTokenByHeader(String authorizationHeader) {
+        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7);
+        }
+        throw new IllegalArgumentException("Invalid Authorization header");
     }
 }

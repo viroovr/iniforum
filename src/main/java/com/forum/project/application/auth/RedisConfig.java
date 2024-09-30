@@ -1,4 +1,4 @@
-package com.forum.project.application;
+package com.forum.project.application.auth;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

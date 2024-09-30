@@ -1,4 +1,4 @@
-package com.forum.project.presentation.auth;
+package com.forum.project.presentation.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -10,7 +10,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
-    private final CustomUserInfoDto customUserInfoDto;
+    private final UserInfoDto userInfoDto;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -19,12 +19,12 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return customUserInfoDto.getPassword();
+        return userInfoDto.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return customUserInfoDto.getId().toString();
+        return userInfoDto.getId().toString();
     }
 
     @Override

@@ -1,8 +1,6 @@
-package com.forum.project.application;
+package com.forum.project.application.security;
 
-import com.forum.project.application.auth.CustomUserDetailsService;
 import com.forum.project.application.security.jwt.JwtAuthFilter;
-import com.forum.project.application.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

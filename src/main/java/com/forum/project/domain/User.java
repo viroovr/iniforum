@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Setter
@@ -30,6 +32,20 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    private LocalDateTime createdDate;
+
+    @Column(nullable = true)
+    private String profileImagePath;
+
+    public User(String password, String profileImagePath, String nickname) {
+        this.password = password;
+        this.profileImagePath = profileImagePath;
+        this.nickname = nickname;
+    }
+
+    @Column(nullable = false, unique = true)
+    private String nickname;
+
     public User(String userId, String email, String password, String name) {
         this.userId = userId;
         this.email = email;
@@ -37,5 +53,13 @@ public class User {
         this.name = name;
     }
 
-
+    public User(String userId, String email, String password, String name, LocalDateTime createdDate, String profileImagePath, String nickname) {
+        this.userId = userId;
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.createdDate = createdDate;
+        this.profileImagePath = profileImagePath;
+        this.nickname = nickname;
+    }
 }

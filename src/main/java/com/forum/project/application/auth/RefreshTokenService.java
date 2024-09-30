@@ -1,4 +1,4 @@
-package com.forum.project.application;
+package com.forum.project.application.auth;
 
 import com.forum.project.domain.exception.InvalidTokenException;
 import org.springframework.beans.factory.annotation.Autowired;

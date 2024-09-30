@@ -4,8 +4,6 @@ import com.forum.project.application.security.jwt.JwtTokenProvider;
 import com.forum.project.domain.*;
 import com.forum.project.presentation.comment.RequestCommentDto;
 import com.forum.project.presentation.comment.ResponseCommentDto;
-import com.forum.project.presentation.question.RequestQuestionDto;
-import com.forum.project.presentation.question.ResponseQuestionDto;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
