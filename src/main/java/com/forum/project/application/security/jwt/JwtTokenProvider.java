@@ -1,6 +1,6 @@
 package com.forum.project.application.security.jwt;
 
-import com.forum.project.presentation.user.UserInfoDto;
+import com.forum.project.presentation.dtos.user.UserInfoDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

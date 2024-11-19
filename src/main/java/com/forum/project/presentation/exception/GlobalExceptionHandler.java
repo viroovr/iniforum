@@ -8,7 +8,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,8 +21,21 @@ public class GlobalExceptionHandler {
             String errorCode, String errorMessage, HttpStatus httpStatus
     ) {
         Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now().toString());
         errorResponse.put("error", errorCode);
         errorResponse.put("message", errorMessage);
+        return new ResponseEntity<>(errorResponse, httpStatus);
+    }
+    private ResponseEntity<Map<String, String>> createErrorResponsev2(
+            String errorCode, String errorMessage, HttpStatus httpStatus, WebRequest request
+    ) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now().toString());
+        errorResponse.put("status", String.valueOf(httpStatus.value()));
+        errorResponse.put("error", errorCode);
+        errorResponse.put("message", errorMessage);
+        errorResponse.put("path",  request.getDescription(false).replace("uri=", ""));
+
         return new ResponseEntity<>(errorResponse, httpStatus);
     }
 
@@ -29,23 +44,20 @@ public class GlobalExceptionHandler {
         return createErrorResponse("USER_NOT_FOUND", ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(UserIdAlreadyExistException.class)
-    public ResponseEntity<Map<String, String>> handleIdAlreadyExistsException(UserNotFoundException ex) {
-        return createErrorResponse("USER_ID_ALREADY_EXISTS", ex.getMessage(), HttpStatus.CONFLICT);
-    }
 
     @ExceptionHandler(InvalidPasswordException.class)
     public ResponseEntity<Map<String, String>> handleInvalidPasswordException(InvalidPasswordException ex) {
         return createErrorResponse("INVALID_PASSWORD", ex.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<Map<String, String>> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex) {
-        return createErrorResponse("EMAIL_ALREADY_EXISTS", ex.getMessage(), HttpStatus.CONFLICT);
+    @ExceptionHandler(ApplicationException.class)
+    public ResponseEntity<Map<String, String>> handleBaseException(ApplicationException ex, WebRequest request) {
+        ErrorCode errorCode = ex.getErrorCode();
+        return createErrorResponsev2(errorCode.getCode(), errorCode.getMessage(), errorCode.getStatus(), request);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGenericException(EmailAlreadyExistsException ex) {
+    public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
         return createErrorResponse("INTERNAL_SERVER_ERROR", ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

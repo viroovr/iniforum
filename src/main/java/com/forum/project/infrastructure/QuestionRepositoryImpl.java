@@ -1,7 +1,7 @@
 package com.forum.project.infrastructure;
 
-import com.forum.project.domain.Question;
-import com.forum.project.domain.QuestionRepository;
+import com.forum.project.domain.entity.Question;
+import com.forum.project.domain.repository.QuestionRepository;
 import com.forum.project.domain.exception.QuestionNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

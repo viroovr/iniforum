@@ -1,9 +1,13 @@
 package com.forum.project.application;
 
 import com.forum.project.application.security.jwt.JwtTokenProvider;
-import com.forum.project.domain.*;
-import com.forum.project.presentation.comment.RequestCommentDto;
-import com.forum.project.presentation.comment.ResponseCommentDto;
+import com.forum.project.domain.entity.Comment;
+import com.forum.project.domain.entity.CommentLike;
+import com.forum.project.domain.entity.Question;
+import com.forum.project.domain.repository.CommentLikeRepository;
+import com.forum.project.domain.repository.CommentRepository;
+import com.forum.project.presentation.dtos.comment.RequestCommentDto;
+import com.forum.project.presentation.dtos.comment.ResponseCommentDto;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;

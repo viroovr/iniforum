@@ -1,4 +1,4 @@
-package com.forum.project.presentation.auth;
+package com.forum.project.presentation.dtos.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

@@ -1,12 +1,11 @@
-package com.forum.project.presentation.auth;
+package com.forum.project.presentation.dtos.auth;
 
-import com.forum.project.domain.User;
+import com.forum.project.domain.entity.User;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.Getter;
 
 @Data
-@Getter
 public class SignupRequestDto {
 
     @NotBlank(message = "사용자 ID는 필수입니다.")
@@ -37,12 +36,12 @@ public class SignupRequestDto {
     }
 
     static public User toUser(SignupRequestDto signupRequestDto) {
-        return new User(
-                signupRequestDto.userId,
-                signupRequestDto.email,
-                signupRequestDto.password,
-                signupRequestDto.name
-        );
+        return User.builder()
+                .userId(signupRequestDto.userId)
+                .email(signupRequestDto.email)
+                .password(signupRequestDto.password)
+                .name(signupRequestDto.name)
+                .build();
     }
 
     static public SignupRequestDto toDto(User user) {

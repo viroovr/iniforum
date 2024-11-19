@@ -1,4 +1,4 @@
-package com.forum.project.presentation.user;
+package com.forum.project.presentation.dtos.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;

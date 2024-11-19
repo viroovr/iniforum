@@ -1,9 +1,8 @@
-package com.forum.project.presentation.comment;
+package com.forum.project.presentation.controller;
 
 import com.forum.project.application.CommentService;
-import com.forum.project.domain.Comment;
-import com.forum.project.presentation.question.RequestQuestionDto;
-import com.forum.project.presentation.question.ResponseQuestionDto;
+import com.forum.project.presentation.dtos.comment.RequestCommentDto;
+import com.forum.project.presentation.dtos.comment.ResponseCommentDto;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

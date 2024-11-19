@@ -1,7 +1,10 @@
-package com.forum.project.presentation.auth;
+package com.forum.project.presentation.controller;
 
 import com.forum.project.application.CookieService;
 import com.forum.project.application.auth.AuthService;
+import com.forum.project.presentation.dtos.auth.LoginRequestDto;
+import com.forum.project.presentation.dtos.auth.SignupRequestDto;
+import com.forum.project.presentation.dtos.auth.SignupResponseDto;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -29,7 +32,7 @@ public class AuthController {
             @Valid @RequestBody SignupRequestDto signupRequestDto
     ) {
         SignupResponseDto createdUser = authService.createUser(signupRequestDto);
-        return ResponseEntity.ok("User created");
+        return ResponseEntity.status(HttpStatus.OK).body(createdUser);
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)

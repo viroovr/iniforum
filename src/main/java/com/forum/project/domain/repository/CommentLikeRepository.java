@@ -1,5 +1,6 @@
-package com.forum.project.domain;
+package com.forum.project.domain.repository;
 
+import com.forum.project.domain.entity.CommentLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> {

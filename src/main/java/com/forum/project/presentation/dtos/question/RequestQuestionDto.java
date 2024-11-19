@@ -1,4 +1,4 @@
-package com.forum.project.presentation.question;
+package com.forum.project.presentation.dtos.question;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

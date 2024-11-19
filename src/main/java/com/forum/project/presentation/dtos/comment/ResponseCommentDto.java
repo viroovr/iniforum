@@ -1,6 +1,6 @@
-package com.forum.project.presentation.comment;
+package com.forum.project.presentation.dtos.comment;
 
-import com.forum.project.domain.Comment;
+import com.forum.project.domain.entity.Comment;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

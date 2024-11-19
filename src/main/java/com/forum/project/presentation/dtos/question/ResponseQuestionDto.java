@@ -1,11 +1,10 @@
-package com.forum.project.presentation.question;
+package com.forum.project.presentation.dtos.question;
 
 
 
-import com.forum.project.domain.Question;
+import com.forum.project.domain.entity.Question;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 

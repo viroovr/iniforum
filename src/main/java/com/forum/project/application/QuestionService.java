@@ -1,12 +1,12 @@
 package com.forum.project.application;
 
 import com.forum.project.application.security.jwt.JwtTokenProvider;
-import com.forum.project.domain.Question;
-import com.forum.project.domain.QuestionRepository;
-import com.forum.project.domain.User;
-import com.forum.project.domain.UserRepository;
-import com.forum.project.presentation.question.RequestQuestionDto;
-import com.forum.project.presentation.question.ResponseQuestionDto;
+import com.forum.project.domain.entity.Question;
+import com.forum.project.domain.repository.QuestionRepository;
+import com.forum.project.domain.entity.User;
+import com.forum.project.domain.repository.UserRepository;
+import com.forum.project.presentation.dtos.question.RequestQuestionDto;
+import com.forum.project.presentation.dtos.question.ResponseQuestionDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

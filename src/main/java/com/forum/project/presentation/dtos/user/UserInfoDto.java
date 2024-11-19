@@ -1,6 +1,6 @@
-package com.forum.project.presentation.user;
+package com.forum.project.presentation.dtos.user;
 
-import com.forum.project.domain.User;
+import com.forum.project.domain.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

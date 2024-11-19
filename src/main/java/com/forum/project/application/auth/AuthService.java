@@ -3,13 +3,13 @@ package com.forum.project.application.auth;
 import com.forum.project.application.ValidationService;
 import com.forum.project.application.security.jwt.JwtBlacklistService;
 import com.forum.project.application.security.jwt.JwtTokenProvider;
-import com.forum.project.domain.User;
-import com.forum.project.domain.exception.InvalidPasswordException;
-import com.forum.project.presentation.user.UserInfoDto;
-import com.forum.project.presentation.auth.LoginRequestDto;
-import com.forum.project.presentation.auth.SignupRequestDto;
-import com.forum.project.domain.UserRepository;
-import com.forum.project.presentation.auth.SignupResponseDto;
+import com.forum.project.domain.entity.User;
+import com.forum.project.domain.exception.*;
+import com.forum.project.presentation.dtos.user.UserInfoDto;
+import com.forum.project.presentation.dtos.auth.LoginRequestDto;
+import com.forum.project.presentation.dtos.auth.SignupRequestDto;
+import com.forum.project.domain.repository.UserRepository;
+import com.forum.project.presentation.dtos.auth.SignupResponseDto;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,9 +32,21 @@ public class AuthService {
 
     @Transactional
     public SignupResponseDto createUser(SignupRequestDto signupRequestDto) {
-        User user = validateAndPrepareUser(signupRequestDto);
-        user = userRepository.save(user);
-        return SignupResponseDto.toDto(user);
+
+        if (userRepository.emailExists(signupRequestDto.getEmail())) {
+            throw new ApplicationException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+        if (userRepository.userIdExists(signupRequestDto.getUserId())) {
+            throw new ApplicationException(ErrorCode.USER_ID_ALREADY_EXISTS);
+        }
+
+
+        User validatedUser = validateAndPrepareUser(signupRequestDto);
+        validatedUser.setNickname(signupRequestDto.getUserId());
+
+        User committedUser = userRepository.save(validatedUser);
+
+        return SignupResponseDto.toDto(committedUser);
     }
 
     @Transactional
@@ -51,10 +63,13 @@ public class AuthService {
     }
 
     private User validateAndPrepareUser(SignupRequestDto signupRequestDto) {
-        String encodedPassword = passwordEncoder.encode(signupRequestDto.getPassword());
+        String rawPassword = signupRequestDto.getPassword();
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+
         User user = SignupRequestDto.toUser(signupRequestDto);
+
         user.setPassword(encodedPassword);
-        validationService.validate(user);
+
         return user;
     }
 
