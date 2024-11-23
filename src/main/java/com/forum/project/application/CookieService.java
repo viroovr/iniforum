@@ -1,21 +1,29 @@
 package com.forum.project.application;
 
+import com.forum.project.application.security.jwt.JwtProperties;
 import com.forum.project.domain.exception.RefreshTokenNotFoundException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 
 @Service
+@RequiredArgsConstructor
 public class CookieService {
+
+    private final JwtProperties jwtProperties;
 
     public Cookie createRefreshTokenCookie(String refreshToken) {
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
+        refreshTokenCookie.setMaxAge((int) jwtProperties.getRefreshTokenExpTime());
+//        refreshTokenCookie.setSecure(true); //Https 에서만 전송
 
         return refreshTokenCookie;
     }

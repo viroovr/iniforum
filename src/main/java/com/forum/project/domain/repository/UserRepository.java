@@ -2,9 +2,11 @@ package com.forum.project.domain.repository;
 
 import com.forum.project.domain.entity.User;
 
+import java.util.Optional;
+
 public interface UserRepository{
     User findById(Long id);
-    User findByUserId(String userId);
+    Optional<User> findByUserId(String userId);
     User save(User user);
     User update(User user);
 

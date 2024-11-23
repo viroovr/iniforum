@@ -2,6 +2,7 @@ package com.forum.project.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 
@@ -52,4 +53,5 @@ public class User {
         this.profileImagePath = profileImagePath;
         this.nickname = nickname;
     }
+
 }

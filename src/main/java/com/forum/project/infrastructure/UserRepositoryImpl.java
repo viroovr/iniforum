@@ -14,6 +14,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
@@ -37,14 +38,13 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User findByUserId(String userId) {
+    public Optional<User> findByUserId(String userId) {
         String sql = "SELECT * FROM users WHERE user_id = :userId";
         SqlParameterSource namedParameters = new MapSqlParameterSource("userId", userId);
         return namedParameterJdbcTemplate
                 .query(sql, namedParameters, new BeanPropertyRowMapper<>(User.class))
                 .stream()
-                .findFirst()
-                .orElseThrow(()-> new UserNotFoundException("해당 유저아이디를 찾을 수 없습니다."));
+                .findFirst();
     }
 
     @Override

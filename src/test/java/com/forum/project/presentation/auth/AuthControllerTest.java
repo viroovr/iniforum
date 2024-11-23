@@ -8,6 +8,7 @@ import com.forum.project.presentation.controller.AuthController;
 import com.forum.project.presentation.dtos.auth.LoginRequestDto;
 import com.forum.project.presentation.dtos.auth.SignupRequestDto;
 import com.forum.project.presentation.dtos.auth.SignupResponseDto;
+import com.forum.project.presentation.dtos.token.TokenResponseDto;
 import com.forum.project.presentation.exception.GlobalExceptionHandler;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 
@@ -102,19 +104,23 @@ class AuthControllerTest {
 
     @Test
     void requestLogin() throws Exception{
-        Map<String, String> tokens = Map.of("accessToken", "access-token", "refreshToken", "refresh-token");
-        when(authService.loginUserWithTokens(any(LoginRequestDto.class))).thenReturn(tokens);
-        when(cookieService.createRefreshTokenCookie("refresh-token")).thenReturn(new Cookie("refreshToken", "refresh-token"));
+        TokenResponseDto tokens = new TokenResponseDto("access-token", "refresh-token");
 
-        mockMvc.perform(post("/auth/login")
+
+        when(authService.loginUserWithTokens(any(LoginRequestDto.class))).thenReturn(tokens);
+        when(cookieService.createRefreshTokenCookie("refresh-token")).thenReturn(new Cookie("refreshToken","refresh-token"));
+
+        mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"userId\": \"userId\", \"password\": \"password\"}"))
                 .andExpect(status().isOk())
-                .andExpect(content().json("{\"accessToken\":\"access-token\"}"));
+                .andExpect(content().json("{\"accessToken\":\"access-token\", \"refreshToken\":\"refresh-token\"}"))
+                .andExpect(cookie().value("refreshToken", "refresh-token"));
 
         verify(authService, times(1)).loginUserWithTokens(any(LoginRequestDto.class));
-        verify(cookieService, times(1)).addCookieToResponse(any(), any());
+        verify(cookieService, times(1)).createRefreshTokenCookie(any());
     }
+
 
     @Test
     public void testLogout() throws Exception {

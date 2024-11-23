@@ -5,6 +5,7 @@ import com.forum.project.application.auth.AuthService;
 import com.forum.project.presentation.dtos.auth.LoginRequestDto;
 import com.forum.project.presentation.dtos.auth.SignupRequestDto;
 import com.forum.project.presentation.dtos.auth.SignupResponseDto;
+import com.forum.project.presentation.dtos.token.TokenResponseDto;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,16 +37,17 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public ResponseEntity<Map<String, String>> requestLogin(
+    public ResponseEntity<?> requestLogin(
             @Valid @RequestBody LoginRequestDto loginRequestDto,
             HttpServletResponse response
     ) {
-        Map<String, String> tokens = authService.loginUserWithTokens(loginRequestDto);
+        TokenResponseDto tokens = authService.loginUserWithTokens(loginRequestDto);
 
-        Cookie refreshTokenCookie = cookieService.createRefreshTokenCookie(tokens.get("refreshToken"));
-        cookieService.addCookieToResponse(response, refreshTokenCookie);
+        Cookie refreshTokenCookie = cookieService.createRefreshTokenCookie(tokens.getRefreshToken());
 
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("accessToken", tokens.get("accessToken")));
+        response.addCookie(refreshTokenCookie);
+
+        return ResponseEntity.status(HttpStatus.OK).body(tokens);
     }
 
     @RequestMapping(value = "/logout", method = RequestMethod.POST)

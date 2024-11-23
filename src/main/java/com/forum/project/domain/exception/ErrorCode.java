@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
 //  1. Authentication & Authorization
+    INVALID_PASSWORD("INVALID_PASSWORD", "Password not match", HttpStatus.BAD_REQUEST),
 //  2. Resource Management
     USER_NOT_FOUND("USER_NOT_FOUND", "User not found", HttpStatus.NOT_FOUND),
 

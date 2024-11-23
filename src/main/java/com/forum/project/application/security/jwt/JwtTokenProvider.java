@@ -4,6 +4,7 @@ import com.forum.project.presentation.dtos.user.UserInfoDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,8 +18,16 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
     private final Key key;
+
+    @Autowired
+    private JwtProperties jwtProperties;
+
+    @Getter
     private final long accessTokenExpTime;
+
+    @Getter
     private final long refreshTokenExpTime;
+
     @Autowired
     private JwtBlacklistService jwtBlacklistService;
 
@@ -33,12 +42,13 @@ public class JwtTokenProvider {
         this.accessTokenExpTime = accessTokenExpTime;
         this.refreshTokenExpTime = refreshTokenExpTime;
     }
-
-    public String createAccessToken(UserInfoDto member) {
-        return createToken(member, accessTokenExpTime);
+    public Long getId(String token) {
+        return parseClaims(token).get("id", Long.class);
     }
 
-    public String createRefreshToken(UserInfoDto member) {return createToken(member, refreshTokenExpTime);}
+    public String getUserId(String token) {
+        return parseClaims(token).get("userId", String.class);
+    }
 
     private String createToken(UserInfoDto member, long expireTime) {
         Claims claims = Jwts.claims();
@@ -57,11 +67,13 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public Long getId(String token) {
-        return parseClaims(token).get("id", Long.class);
+    public String createAccessToken(UserInfoDto member) {
+        return createToken(member, accessTokenExpTime);
     }
 
-    public String getUserId(String token) {return parseClaims(token).get("userId", String.class);}
+    public String createRefreshToken(UserInfoDto member) {
+        return createToken(member, refreshTokenExpTime);
+    }
 
     public long getExpirationTime(String token) {
         Date expiration = parseClaims(token).getExpiration();
@@ -113,4 +125,5 @@ public class JwtTokenProvider {
         }
         throw new IllegalArgumentException("Invalid Authorization header");
     }
+
 }

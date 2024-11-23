@@ -1,18 +1,19 @@
 package com.forum.project.application.auth;
 
-import com.forum.project.application.ValidationService;
-import com.forum.project.application.security.jwt.JwtBlacklistService;
+import com.forum.project.application.TokenService;
+import com.forum.project.application.security.PasswordUtil;
 import com.forum.project.application.security.jwt.JwtTokenProvider;
 import com.forum.project.domain.entity.User;
 import com.forum.project.domain.exception.*;
+import com.forum.project.presentation.dtos.token.TokenResponseDto;
 import com.forum.project.presentation.dtos.user.UserInfoDto;
 import com.forum.project.presentation.dtos.auth.LoginRequestDto;
 import com.forum.project.presentation.dtos.auth.SignupRequestDto;
 import com.forum.project.domain.repository.UserRepository;
 import com.forum.project.presentation.dtos.auth.SignupResponseDto;
 import lombok.AllArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
@@ -24,11 +25,22 @@ import java.util.Map;
 public class AuthService {
 
     private UserRepository userRepository;
-    private PasswordEncoder passwordEncoder;
-    private ValidationService validationService;
-    private JwtTokenProvider jwtTokenProvider;
-    private JwtBlacklistService jwtBlacklistService;
+    private PasswordUtil passwordUtil;
     private RefreshTokenService refreshTokenService;
+    private JwtTokenProvider jwtTokenProvider;
+    private TokenService tokenService;
+
+
+    private User validateAndPrepareUser(SignupRequestDto signupRequestDto) {
+        String rawPassword = signupRequestDto.getPassword();
+        String encodedPassword = passwordUtil.encode(rawPassword);
+
+        User user = SignupRequestDto.toUser(signupRequestDto);
+
+        user.setPassword(encodedPassword);
+
+        return user;
+    }
 
     @Transactional
     public SignupResponseDto createUser(SignupRequestDto signupRequestDto) {
@@ -49,55 +61,27 @@ public class AuthService {
         return SignupResponseDto.toDto(committedUser);
     }
 
-    @Transactional
-    public Map<String, String> loginUserWithTokens(LoginRequestDto loginRequestDto) {
-        User user = authenticateUser(loginRequestDto);
-        return generateTokens(user);
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+    public TokenResponseDto loginUserWithTokens(LoginRequestDto loginRequestDto) {
+        String userId = loginRequestDto.getUserId();
+        String password = loginRequestDto.getPassword();
+
+        User user = userRepository.findByUserId(userId)
+                    .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
+
+        UserInfoDto userInfoDto = UserInfoDto.toDto(user);
+
+        if (!passwordUtil.matches(password, userInfoDto.getPassword())) {
+            throw new ApplicationException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        return tokenService.generateTokens(userInfoDto);
     }
 
     @Transactional
     public void logout(String token, String refreshToken, long expirationTime) {
         String jwt = jwtTokenProvider.extractTokenByHeader(token);
-        jwtBlacklistService.addToBlacklist(jwt, "accessToken", expirationTime);
-        refreshTokenService.invalidateRefreshToken(refreshToken);
-    }
-
-    private User validateAndPrepareUser(SignupRequestDto signupRequestDto) {
-        String rawPassword = signupRequestDto.getPassword();
-        String encodedPassword = passwordEncoder.encode(rawPassword);
-
-        User user = SignupRequestDto.toUser(signupRequestDto);
-
-        user.setPassword(encodedPassword);
-
-        return user;
-    }
-
-    private User authenticateUser(LoginRequestDto loginRequestDto) {
-        String userId = loginRequestDto.getUserId();
-        User user = userRepository.findByUserId(userId);
-        checkPassword(loginRequestDto, user);
-        return user;
-    }
-
-    private void checkPassword(LoginRequestDto loginRequestDto, User user) {
-        if (!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
-            throw new InvalidPasswordException("비밀번호가 일치하지 않습니다.");
-        }
-    }
-
-    private Map<String, String> generateTokens(User user) {
-        UserInfoDto info = UserInfoDto.toDto(user);
-        String accessToken = jwtTokenProvider.createAccessToken(info);
-        String refreshToken = jwtTokenProvider.createRefreshToken(info);
-
-        ZonedDateTime expiryDate = ZonedDateTime.now().plusDays(7);
-        refreshTokenService.saveRefreshToken(refreshToken, info.getId(), expiryDate);
-
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("accessToken", accessToken);
-        tokens.put("refreshToken", refreshToken);
-        return tokens;
+        tokenService.invalidTokens(jwt, refreshToken, expirationTime);
     }
 
     public long getJwtExpirationTime(String token) {
