@@ -10,29 +10,31 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final AuthService authService;
+
     private final CookieService cookieService;
 
-    public AuthController(AuthService authService, CookieService cookieService) {
-        this.authService = authService;
-        this.cookieService = cookieService;
-    }
-
     @RequestMapping(value = "/signup", method = RequestMethod.POST)
-    public ResponseEntity<?> requestSignup(
+    public ResponseEntity<SignupResponseDto> requestSignup(
             @Valid @RequestBody SignupRequestDto signupRequestDto
     ) {
         SignupResponseDto createdUser = authService.createUser(signupRequestDto);
+
         return ResponseEntity.status(HttpStatus.OK).body(createdUser);
     }
 

@@ -2,10 +2,13 @@ package com.forum.project.presentation.dtos.auth;
 
 import com.forum.project.domain.entity.User;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class SignupRequestDto {
 
     @NotBlank(message = "사용자 ID는 필수입니다.")
@@ -27,13 +30,6 @@ public class SignupRequestDto {
     @Size(max = 50, message = "이름은 최대 50자 이하이어야 합니다.")
     @Pattern(regexp = "^[a-zA-Z가-힣]*$", message = "이름은 한글 또는 영문만 포함할 수 있습니다.")
     private String name;
-
-    public SignupRequestDto(String userId, String email, String password, String name) {
-        this.userId = userId;
-        this.email = email;
-        this.password = password;
-        this.name = name;
-    }
 
     static public User toUser(SignupRequestDto signupRequestDto) {
         return User.builder()

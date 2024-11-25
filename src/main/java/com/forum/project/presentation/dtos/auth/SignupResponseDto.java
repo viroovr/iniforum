@@ -3,9 +3,11 @@ package com.forum.project.presentation.dtos.auth;
 import com.forum.project.domain.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class SignupResponseDto {
 
     private String userId;

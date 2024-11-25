@@ -42,6 +42,7 @@ public class JwtTokenProvider {
         this.accessTokenExpTime = accessTokenExpTime;
         this.refreshTokenExpTime = refreshTokenExpTime;
     }
+
     public Long getId(String token) {
         return parseClaims(token).get("id", Long.class);
     }
