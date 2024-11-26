@@ -11,9 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +19,6 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@Slf4j
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
@@ -39,7 +36,7 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public ResponseEntity<?> requestLogin(
+    public ResponseEntity<TokenResponseDto> requestLogin(
             @Valid @RequestBody LoginRequestDto loginRequestDto,
             HttpServletResponse response
     ) {
@@ -57,7 +54,6 @@ public class AuthController {
             @RequestHeader("Authorization") String token,
             HttpServletRequest request,
             HttpServletResponse response
-
     ) {
         long expirationTime = authService.getJwtExpirationTime(token);
         String refreshToken = cookieService.getRefreshTokenFromCookies(request);

@@ -1,7 +1,7 @@
 package com.forum.project.application.auth;
 
 import com.forum.project.application.TokenService;
-import com.forum.project.application.security.PasswordUtil;
+import com.forum.project.application.security.UserPasswordService;
 import com.forum.project.application.security.jwt.JwtTokenProvider;
 import com.forum.project.domain.entity.User;
 import com.forum.project.domain.exception.*;
@@ -11,33 +11,29 @@ import com.forum.project.presentation.dtos.auth.LoginRequestDto;
 import com.forum.project.presentation.dtos.auth.SignupRequestDto;
 import com.forum.project.domain.repository.UserRepository;
 import com.forum.project.presentation.dtos.auth.SignupResponseDto;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.Map;
-
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthService {
 
-    private UserRepository userRepository;
-    private PasswordUtil passwordUtil;
-    private RefreshTokenService refreshTokenService;
-    private JwtTokenProvider jwtTokenProvider;
-    private TokenService tokenService;
+    private final UserRepository userRepository;
+    private final UserPasswordService userPasswordService;
+    private final RefreshTokenService refreshTokenService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenService tokenService;
 
-
-    private User validateAndPrepareUser(SignupRequestDto signupRequestDto) {
+    private User prepareUser(SignupRequestDto signupRequestDto) {
         String rawPassword = signupRequestDto.getPassword();
-        String encodedPassword = passwordUtil.encode(rawPassword);
+        String encodedPassword = userPasswordService.encode(rawPassword);
 
         User user = SignupRequestDto.toUser(signupRequestDto);
 
         user.setPassword(encodedPassword);
+        user.setNickname(signupRequestDto.getUserId());
 
         return user;
     }
@@ -52,11 +48,9 @@ public class AuthService {
             throw new ApplicationException(ErrorCode.USER_ID_ALREADY_EXISTS);
         }
 
+        User preparedUser = prepareUser(signupRequestDto);
 
-        User validatedUser = validateAndPrepareUser(signupRequestDto);
-        validatedUser.setNickname(signupRequestDto.getUserId());
-
-        User committedUser = userRepository.save(validatedUser);
+        User committedUser = userRepository.save(preparedUser);
 
         return SignupResponseDto.toDto(committedUser);
     }
@@ -71,9 +65,7 @@ public class AuthService {
 
         UserInfoDto userInfoDto = UserInfoDto.toDto(user);
 
-        if (!passwordUtil.matches(password, userInfoDto.getPassword())) {
-            throw new ApplicationException(ErrorCode.INVALID_PASSWORD);
-        }
+        userPasswordService.validatePassword(password, userInfoDto.getPassword());
 
         return tokenService.generateTokens(userInfoDto);
     }

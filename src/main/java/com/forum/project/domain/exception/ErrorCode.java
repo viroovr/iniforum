@@ -1,6 +1,7 @@
 package com.forum.project.domain.exception;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.HttpStatus;
 
 @Getter
@@ -12,8 +13,9 @@ public enum ErrorCode {
 
 //  3. Conflict & Duplication
     EMAIL_ALREADY_EXISTS("EMAIL_ALREADY_EXISTS", "Email already exists", HttpStatus.CONFLICT),
-    USER_ID_ALREADY_EXISTS("USER_ID_ALREADY_EXISTS", "User ID already exists", HttpStatus.CONFLICT);
-//     4. Validation
+    USER_ID_ALREADY_EXISTS("USER_ID_ALREADY_EXISTS", "User ID already exists", HttpStatus.CONFLICT),
+//  4. Validation
+    VALIDATION_ERROR("VALIDATION_ERROR", "Invalid arguments", HttpStatus.BAD_REQUEST);
 //   5. Server Errors
 //    Rate Limiting & Resource Limits
 //    I/O & Networks
@@ -28,6 +30,4 @@ public enum ErrorCode {
         this.message = message;
         this.status = status;
     }
-
-
 }

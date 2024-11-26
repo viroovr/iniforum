@@ -1,16 +1,24 @@
 package com.forum.project.application.security;
 
+import com.forum.project.domain.exception.ApplicationException;
+import com.forum.project.domain.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 @RequiredArgsConstructor
-public class PasswordUtil {
+public class UserPasswordService {
     private final PasswordEncoder passwordEncoder;
 
     public boolean matches(String rawPassword, String encodedPassword) {
         return passwordEncoder.matches(rawPassword, encodedPassword);
+    }
+
+    public void validatePassword(String rawPassword, String encodedPassword) {
+        if (matches(rawPassword, encodedPassword)) {
+            throw new ApplicationException(ErrorCode.INVALID_PASSWORD);
+        }
     }
 
     public String encode(String rawPassword) {

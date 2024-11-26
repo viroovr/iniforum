@@ -3,12 +3,14 @@ package com.forum.project.presentation.dtos.auth;
 import com.forum.project.domain.entity.User;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class SignupRequestDto {
 
     @NotBlank(message = "사용자 ID는 필수입니다.")
