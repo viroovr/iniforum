@@ -1,6 +1,6 @@
 package com.forum.project.application;
 
-import com.forum.project.application.security.jwt.JwtTokenProvider;
+import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.entity.Comment;
 import com.forum.project.domain.entity.CommentLike;
 import com.forum.project.domain.entity.Question;
@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class CommentService {
     private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenService tokenService;
 
     public ResponseCommentDto addComment(Long questionId, RequestCommentDto requestCommentDto) {
         Question question = new Question();
@@ -44,7 +44,7 @@ public class CommentService {
     @Transactional
     public void deleteComment(Long id, String token) {
 
-        String currentUserId = jwtTokenProvider.getUserId(token);
+        String currentUserId = tokenService.getUserId(token);
         Optional<Comment> existingComment = commentRepository.findById(id);
 
         if(existingComment.isPresent()) {
@@ -63,7 +63,7 @@ public class CommentService {
 
     @Transactional
     public ResponseCommentDto updateComment(Long id, RequestCommentDto requestCommentDto, String token) {
-        String currentUserId = jwtTokenProvider.getUserId(token);
+        String currentUserId = tokenService.getUserId(token);
         Optional<Comment> existingComment = commentRepository.findById(id);
 
         if (existingComment.isPresent()) {
@@ -83,7 +83,7 @@ public class CommentService {
 
     @Transactional
     public void likeComment(Long commentId, String token) {
-        String userId = jwtTokenProvider.getUserId(token);
+        String userId = tokenService.getUserId(token);
 
         if(commentLikeRepository.existsByCommentIdAndUserId(commentId, userId))
             throw new IllegalArgumentException("Already recommend");

@@ -1,6 +1,6 @@
 package com.forum.project.application;
 
-import com.forum.project.application.security.jwt.JwtTokenProvider;
+import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.entity.Question;
 import com.forum.project.domain.exception.UserNotFoundException;
 import com.forum.project.domain.repository.QuestionRepository;
@@ -25,11 +25,11 @@ public class QuestionService {
 
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenService tokenService;
 
     @Transactional
     public Question createPost(RequestQuestionDto requestQuestionDto, String jwt) {
-        String userId = jwtTokenProvider.getUserId(jwt);
+        String userId = tokenService.getUserId(jwt);
         User user = userRepository.findByUserId(userId).orElseThrow(() -> new UserNotFoundException("유저를 찾을수없습니다."));
 
         Question question = new Question(
@@ -76,7 +76,7 @@ public class QuestionService {
     }
 
     private Question validateQuestionByUserId(Long id, String token) {
-        String currentUserId = jwtTokenProvider.getUserId(token);
+        String currentUserId = tokenService.getUserId(token);
         Question question = questionRepository.findById(id);
 
         if(!question.getUserId().equals(currentUserId)) {

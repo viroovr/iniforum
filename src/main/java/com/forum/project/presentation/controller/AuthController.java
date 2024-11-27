@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -26,7 +27,7 @@ public class AuthController {
 
     private final CookieService cookieService;
 
-    @RequestMapping(value = "/signup", method = RequestMethod.POST)
+    @PostMapping(value = "/signup")
     public ResponseEntity<SignupResponseDto> requestSignup(
             @Valid @RequestBody SignupRequestDto signupRequestDto
     ) {
@@ -35,7 +36,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).body(createdUser);
     }
 
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    @PostMapping(value = "/login")
     public ResponseEntity<TokenResponseDto> requestLogin(
             @Valid @RequestBody LoginRequestDto loginRequestDto,
             HttpServletResponse response
@@ -49,29 +50,34 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).body(tokens);
     }
 
-    @RequestMapping(value = "/logout", method = RequestMethod.POST)
-    public ResponseEntity<?> logout(
-            @RequestHeader("Authorization") String token,
+    @PostMapping(value = "/logout")
+    public ResponseEntity<Map<String, String>> logout(
+            @RequestHeader("Authorization") String authHeader,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        long expirationTime = authService.getJwtExpirationTime(token);
-        String refreshToken = cookieService.getRefreshTokenFromCookies(request);
+        authService.logout(
+                authHeader,
+                cookieService.getRefreshTokenFromCookies(request)
+        );
 
-        authService.logout(token, refreshToken, expirationTime);
+        cookieService.clearRefreshToken(response);
 
-        cookieService.clearRefreshTokenCookie(response);
+        Map<String, String> responseBody = new HashMap<>();
+        responseBody.put("message", "Logged out successfully");
 
-        return ResponseEntity.ok("Logged out successfully");
+        return ResponseEntity.status(HttpStatus.OK).body(responseBody);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshAccessToken(
+    public ResponseEntity<TokenResponseDto> refreshAccessToken(
             HttpServletRequest request
     ) {
         String refreshToken = cookieService.getRefreshTokenFromCookies(request);
-        String newAccessToken = authService.refreshAccessToken(refreshToken);
-        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                authService.refreshAccessToken(refreshToken)
+        );
     }
 
 }

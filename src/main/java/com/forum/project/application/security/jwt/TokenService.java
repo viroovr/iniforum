@@ -16,11 +16,9 @@ import java.util.Date;
 
 @Slf4j
 @Component
-public class JwtTokenProvider {
-    private final Key key;
+public class TokenService {
 
-    @Autowired
-    private JwtProperties jwtProperties;
+    private final Key key;
 
     @Getter
     private final long accessTokenExpTime;
@@ -28,10 +26,7 @@ public class JwtTokenProvider {
     @Getter
     private final long refreshTokenExpTime;
 
-    @Autowired
-    private JwtBlacklistService jwtBlacklistService;
-
-    public JwtTokenProvider(
+    public TokenService(
             @Value("${jwt.secret}") String secret_key,
             @Value("${jwt.access_token_expiration_time}") long accessTokenExpTime,
             @Value("${jwt.refresh_token_expiration_time}") long refreshTokenExpTime
@@ -106,18 +101,15 @@ public class JwtTokenProvider {
     }
 
     public String regenerateAccessToken(String refreshToken) {
-        if (validateToken(refreshToken)) {
-            Claims claims = parseClaims(refreshToken);
-            UserInfoDto userInfoDto = new UserInfoDto(
-                    claims.get("id", Long.class),
-                    claims.get("userId", String.class),
-                    claims.get("email", String.class)
-            );
+        Claims claims = parseClaims(refreshToken);
+        UserInfoDto userInfoDto = new UserInfoDto(
+                claims.get("id", Long.class),
+                claims.get("userId", String.class),
+                claims.get("email", String.class)
+        );
 
-            return createAccessToken(userInfoDto);
-        } else {
-            throw new RuntimeException("Invalid Refresh Token");
-        }
+        return createAccessToken(userInfoDto);
+
     }
 
     public String extractTokenByHeader(String authorizationHeader) {
@@ -126,5 +118,4 @@ public class JwtTokenProvider {
         }
         throw new IllegalArgumentException("Invalid Authorization header");
     }
-
 }

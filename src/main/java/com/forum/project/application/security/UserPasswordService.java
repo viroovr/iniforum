@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserPasswordService {
+
     private final PasswordEncoder passwordEncoder;
 
     public boolean matches(String rawPassword, String encodedPassword) {
@@ -17,7 +18,7 @@ public class UserPasswordService {
 
     public void validatePassword(String rawPassword, String encodedPassword) {
         if (matches(rawPassword, encodedPassword)) {
-            throw new ApplicationException(ErrorCode.INVALID_PASSWORD);
+            throw new ApplicationException(ErrorCode.AUTH_INVALID_PASSWORD);
         }
     }
 

@@ -2,7 +2,7 @@ package com.forum.project.presentation.config;
 
 import com.forum.project.application.auth.CustomUserDetailsService;
 import com.forum.project.application.security.jwt.JwtAuthFilter;
-import com.forum.project.application.security.jwt.JwtTokenProvider;
+import com.forum.project.application.security.jwt.TokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -26,7 +26,7 @@ public class TestSecurityConfig {
     private CustomUserDetailsService customUserDetailsService;
 
     @MockBean
-    private JwtTokenProvider jwtTokenProvider;
+    private TokenService tokenService;
 
     private final JwtAuthFilter jwtAuthFilter;
 

@@ -1,8 +1,7 @@
 package com.forum.project.application.auth;
 
-import com.forum.project.application.TokenService;
 import com.forum.project.application.security.UserPasswordService;
-import com.forum.project.application.security.jwt.JwtTokenProvider;
+import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.entity.User;
 import com.forum.project.domain.exception.ApplicationException;
 import com.forum.project.domain.exception.ErrorCode;
@@ -27,9 +26,6 @@ class AuthServiceTest {
 
     @Mock
     private UserPasswordService userPasswordService;
-
-    @Mock
-    private JwtTokenProvider jwtTokenProvider;
 
     @Mock
     private TokenService tokenService;

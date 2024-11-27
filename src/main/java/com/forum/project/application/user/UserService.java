@@ -1,6 +1,6 @@
 package com.forum.project.application.user;
 
-import com.forum.project.application.security.jwt.JwtTokenProvider;
+import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.entity.User;
 import com.forum.project.domain.repository.UserRepository;
 import com.forum.project.domain.exception.InvalidPasswordException;
@@ -19,29 +19,29 @@ import java.util.UUID;
 @Service
 public class UserService {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenService tokenService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final String uploadDir = "src/main/resources/static/profile-images/";
 
     @Autowired
-    public UserService(JwtTokenProvider jwtTokenProvider, UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.jwtTokenProvider = jwtTokenProvider;
+    public UserService(TokenService tokenService, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.tokenService = tokenService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     public UserInfoDto getUserProfile(String token) {
-        String jwt = jwtTokenProvider.extractTokenByHeader(token);
-        Long id = jwtTokenProvider.getId(jwt);
+        String jwt = tokenService.extractTokenByHeader(token);
+        Long id = tokenService.getId(jwt);
         User user = userRepository.findById(id);
 
         return UserInfoDto.toDto(user);
     }
 
     public UserResponseDto updateUserProfile(String token, UserRequestDto userRequestDto, MultipartFile file) throws IOException {
-        String jwt = jwtTokenProvider.extractTokenByHeader(token);
-        User user = userRepository.findById(jwtTokenProvider.getId(jwt));
+        String jwt = tokenService.extractTokenByHeader(token);
+        User user = userRepository.findById(tokenService.getId(jwt));
         checkPassword(userRequestDto, user);
 
         String newPassword = passwordEncoder.encode(userRequestDto.getNewPassword());

@@ -25,7 +25,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final CustomUserDetailsService customUserDetailsService;
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenService tokenService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -35,8 +35,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = authorizationHeader.substring(7);
 
             try{
-                if(jwtTokenProvider.validateToken(token)) {
-                    Long userId = jwtTokenProvider.getId(token);
+                if(tokenService.validateToken(token)) {
+                    Long userId = tokenService.getId(token);
                     UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId.toString());
 
                     if(userDetails != null) {

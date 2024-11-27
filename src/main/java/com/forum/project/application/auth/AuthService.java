@@ -1,8 +1,9 @@
 package com.forum.project.application.auth;
 
-import com.forum.project.application.TokenService;
+import com.forum.project.application.security.jwt.AccessTokenService;
+import com.forum.project.application.security.jwt.RefreshTokenService;
 import com.forum.project.application.security.UserPasswordService;
-import com.forum.project.application.security.jwt.JwtTokenProvider;
+import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.entity.User;
 import com.forum.project.domain.exception.*;
 import com.forum.project.presentation.dtos.token.TokenResponseDto;
@@ -21,9 +22,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UserRepository userRepository;
+
     private final UserPasswordService userPasswordService;
+
     private final RefreshTokenService refreshTokenService;
-    private final JwtTokenProvider jwtTokenProvider;
+
+    private final AccessTokenService accessTokenService;
+
     private final TokenService tokenService;
 
     private User prepareUser(SignupRequestDto signupRequestDto) {
@@ -67,28 +72,31 @@ public class AuthService {
 
         userPasswordService.validatePassword(password, userInfoDto.getPassword());
 
-        return tokenService.generateTokens(userInfoDto);
+        return new TokenResponseDto(
+                accessTokenService.createAccessToken(userInfoDto),
+                refreshTokenService.createRefreshToken(userInfoDto)
+        );
     }
 
     @Transactional
-    public void logout(String token, String refreshToken, long expirationTime) {
-        String jwt = jwtTokenProvider.extractTokenByHeader(token);
-        tokenService.invalidTokens(jwt, refreshToken, expirationTime);
+    public void logout(String authHeader, String refreshToken) {
+        String accessToken = accessTokenService.extractTokenByHeader(authHeader);
+
+        refreshTokenService.validateToken(refreshToken);
+        accessTokenService.validateToken(accessToken);
+
+        accessTokenService.invalidateToken(accessToken);
+        refreshTokenService.invalidateToken(refreshToken);
     }
 
-    public long getJwtExpirationTime(String token) {
-        String jwt = jwtTokenProvider.extractTokenByHeader(token);
-        return jwtTokenProvider.getExpirationTime(jwt);
+    public TokenResponseDto refreshAccessToken(String refreshToken) {
+        refreshTokenService.validateToken(refreshToken);
+
+        String accessToken = tokenService.regenerateAccessToken(refreshToken);
+
+        return new TokenResponseDto(
+                accessToken,
+                null
+        );
     }
-
-    public boolean validateRefreshToken(String refreshToken) {
-        return jwtTokenProvider.validateToken(refreshToken);
-    }
-
-    public String refreshAccessToken(String refreshToken) {
-        refreshTokenService.validateRefreshToken(refreshToken);
-        return jwtTokenProvider.regenerateAccessToken(refreshToken);
-    }
-
-
 }
