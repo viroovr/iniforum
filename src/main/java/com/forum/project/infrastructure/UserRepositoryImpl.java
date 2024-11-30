@@ -49,11 +49,9 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User save(User user) {
-
         String sql = "INSERT INTO users (user_id, email, password, name, nickname, created_date) " +
                 "VALUES (:userId, :email, :password, :name, :nickname, :createdDate)";
         SqlParameterSource namedParameters = new BeanPropertySqlParameterSource(user);
-
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         namedParameterJdbcTemplate.update(sql, namedParameters, keyHolder);

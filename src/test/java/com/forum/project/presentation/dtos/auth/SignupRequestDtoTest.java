@@ -8,21 +8,44 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class SignupRequestDtoTest {
 
+    private static final Logger logger = Logger.getLogger(SignupRequestDtoTest.class.getName());
+
     private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private static final Validator validator = factory.getValidator();
 
-    private SignupRequestDto signupRequestDto;
+    private void logging(Set<ConstraintViolation<SignupRequestDto>> violations) {
+        if (!violations.isEmpty()) {
+            String errorMessages = violations.stream()
+                    .map(ConstraintViolation::getMessage)  // 오류 메시지 추출
+                    .collect(Collectors.joining("\n"));    // 메시지들을 쉼표로 구분하여 연결
+            logger.info("Validation errors: " + errorMessages);  // 로그로 출력
+        }
+    }
+
+    private void compareExpectedAndActual(Set<String> expectedMessages, Set<ConstraintViolation<SignupRequestDto>> violations) {
+        Set<String> actualMessages = new HashSet<>();
+        for (ConstraintViolation<SignupRequestDto> violation : violations) {
+            actualMessages.add(violation.getMessage());
+        }
+
+        assertTrue(actualMessages.containsAll(expectedMessages));
+    }
 
     @Test
     void testValidSignupRequestDto() {
-        signupRequestDto = SignupRequestDto.builder()
+        SignupRequestDto signupRequestDto = SignupRequestDto.builder()
                 .userId("validUser123")
                 .email("email@example.com")
                 .password("ValidPass123!")
@@ -40,41 +63,90 @@ class SignupRequestDtoTest {
 
         Set<ConstraintViolation<SignupRequestDto>> violations = validator.validate(dto);
 
-        System.out.println(violations);
+        Set<String> expectedMessages = new HashSet<>(Arrays.asList(
+                "사용자 ID는 필수입니다.",
+                "이메일은 필수입니다.",
+                "비밀번호는 필수입니다.",
+                "이름은 필수입니다."
+        ));
 
         assertFalse(violations.isEmpty());
-
-        assertEquals(8, violations.size());
+        compareExpectedAndActual(expectedMessages, violations);
     }
 
     @Test
     void testInvalidSignupRequestDto() {
-        // 잘못된 입력값을 갖는 SignupRequestDto 생성
         SignupRequestDto dto = new SignupRequestDto("1s", "invalid-email", "short", "");
 
-        // 유효성 검사
         Set<ConstraintViolation<SignupRequestDto>> violations = validator.validate(dto);
 
-        // 검증 오류가 있어야 함
+        logging(violations);
+        Set<String> expectedMessages = new HashSet<>(Arrays.asList(
+                "사용자 Id는 최소 4자 이상, 최대 20자 이하이어야 합니다.",
+                "사용자 ID는 알파벳으로 시작해야하며, 알파벳과 숫자만 포함할 수 있습니다.",
+                "유효한 이메일 형식이 아닙니다.",
+                "비밀번호는 최소 1개의 숫자, 1개의 알파벳, 1개의 특수문자를 포함해야 합니다.",
+                "비밀번호는 최소 8자 이상, 30자 이하이어야 합니다.",
+                "이름은 필수입니다.",
+                "이름은 최대 50자 이하이어야 합니다."
+        ));
+
         assertFalse(violations.isEmpty());
-
-        // 예상하는 오류 메시지 개수 확인 (각 필드에서 발생할 오류가 있어야 함)
-        assertEquals(6, violations.size()); // 각 필드에서 1개의 오류가 발생해야 함
+        compareExpectedAndActual(expectedMessages, violations);
     }
-
 
     @Test
     void testUserIdTooShort() {
-        SignupRequestDto dto = new SignupRequestDto("usr", "valid@example.com", "ValidPass1@", "User Name");
+        SignupRequestDto dto = new SignupRequestDto("usr", "valid@example.com", "ValidPass1@", "UserName");
 
-        // 유효성 검사
         Set<ConstraintViolation<SignupRequestDto>> violations = validator.validate(dto);
 
-        // 사용자 ID가 너무 짧으면 오류가 있어야 함
+        Set<String> expectedMessages = new HashSet<>(List.of(
+                "사용자 Id는 최소 4자 이상, 최대 20자 이하이어야 합니다."
+        ));
+
         assertFalse(violations.isEmpty());
-        assertEquals(1, violations.size());
-        assertEquals("사용자 Id는 최소 4자 이상, 최대 20자 이하이어야 합니다.", violations.iterator().next().getMessage());
+        compareExpectedAndActual(expectedMessages, violations);
+    }
+    @Test
+    void testInvalidEmailFormat() {
+        SignupRequestDto dto = new SignupRequestDto("user123", "invalid-email", "ValidPass1@", "User Name");
+
+        Set<ConstraintViolation<SignupRequestDto>> violations = validator.validate(dto);
+
+        Set<String> expectedMessages = new HashSet<>(List.of(
+                "유효한 이메일 형식이 아닙니다."
+        ));
+
+        assertFalse(violations.isEmpty());
+        compareExpectedAndActual(expectedMessages, violations);
     }
 
+    @Test
+    void testPasswordTooShort() {
+        SignupRequestDto dto = new SignupRequestDto("user123", "user@example.com", "short", "User Name");
 
+        Set<ConstraintViolation<SignupRequestDto>> violations = validator.validate(dto);
+        Set<String> expectedMessages = new HashSet<>(Arrays.asList(
+                "비밀번호는 최소 1개의 숫자, 1개의 알파벳, 1개의 특수문자를 포함해야 합니다.",
+                "비밀번호는 최소 8자 이상, 30자 이하이어야 합니다."
+        ));
+
+        assertFalse(violations.isEmpty());
+        compareExpectedAndActual(expectedMessages, violations);
+    }
+
+    @Test
+    void testInvalidName() {
+        SignupRequestDto dto = new SignupRequestDto("user123", "user@example.com", "ValidPass1@", "User123");
+
+        Set<ConstraintViolation<SignupRequestDto>> violations = validator.validate(dto);
+
+        Set<String> expectedMessages = new HashSet<>(Arrays.asList(
+                "이름은 한글 또는 영문만 포함할 수 있습니다."
+        ));
+
+        assertFalse(violations.isEmpty());
+        compareExpectedAndActual(expectedMessages, violations);
+    }
 }

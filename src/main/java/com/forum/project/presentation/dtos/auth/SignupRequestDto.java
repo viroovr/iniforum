@@ -29,8 +29,8 @@ public class SignupRequestDto {
     private String password;
 
     @NotBlank(message = "이름은 필수입니다.")
-    @Size(max = 50, message = "이름은 최대 50자 이하이어야 합니다.")
-    @Pattern(regexp = "^[a-zA-Z가-힣]*$", message = "이름은 한글 또는 영문만 포함할 수 있습니다.")
+    @Size(min = 1, max = 50, message = "이름은 최대 50자 이하이어야 합니다.")
+    @Pattern(regexp = "^[a-zA-Z가-힣 ]*$", message = "이름은 한글 또는 영문만 포함할 수 있습니다.")
     private String name;
 
     static public User toUser(SignupRequestDto signupRequestDto) {

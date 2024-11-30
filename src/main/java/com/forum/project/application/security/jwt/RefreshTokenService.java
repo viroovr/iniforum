@@ -2,7 +2,6 @@ package com.forum.project.application.security.jwt;
 
 import com.forum.project.domain.exception.ApplicationException;
 import com.forum.project.domain.exception.ErrorCode;
-import com.forum.project.domain.exception.InvalidTokenException;
 import com.forum.project.presentation.dtos.user.UserInfoDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;

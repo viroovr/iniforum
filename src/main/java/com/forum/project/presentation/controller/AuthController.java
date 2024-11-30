@@ -2,6 +2,7 @@ package com.forum.project.presentation.controller;
 
 import com.forum.project.application.CookieService;
 import com.forum.project.application.auth.AuthService;
+import com.forum.project.application.auth.EmailService;
 import com.forum.project.presentation.dtos.auth.LoginRequestDto;
 import com.forum.project.presentation.dtos.auth.SignupRequestDto;
 import com.forum.project.presentation.dtos.auth.SignupResponseDto;
@@ -27,10 +28,42 @@ public class AuthController {
 
     private final CookieService cookieService;
 
+    private final EmailService emailService;
+
+    @PostMapping("/send-email")
+    public ResponseEntity<Map<String, String>> sendVerificationEmail(
+            @RequestBody Map<String, String> request
+    ) {
+        String email = request.get("email");
+        emailService.sendVerificationCode(email);
+
+        Map<String, String> responseBody = new HashMap<>();
+        responseBody.put("message", "Verification email sent");
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseBody);
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<Map<String, String>> verifyEmailCode(
+            @RequestBody Map<String, String> request
+    ) {
+        String email = request.get("email");
+        String code = request.get("code");
+
+        Map<String, String> responseBody = new HashMap<>();
+
+        emailService.verifyCode(email, code);
+
+        responseBody.put("message", "Email verified successfully");
+        return ResponseEntity.status(HttpStatus.OK).body(responseBody);
+    }
+
     @PostMapping(value = "/signup")
     public ResponseEntity<SignupResponseDto> requestSignup(
             @Valid @RequestBody SignupRequestDto signupRequestDto
     ) {
+        emailService.verifyEmail(signupRequestDto.getEmail());
+
         SignupResponseDto createdUser = authService.createUser(signupRequestDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(createdUser);

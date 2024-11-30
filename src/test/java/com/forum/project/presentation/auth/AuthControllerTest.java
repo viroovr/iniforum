@@ -3,6 +3,7 @@ package com.forum.project.presentation.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.forum.project.application.CookieService;
 import com.forum.project.application.auth.AuthService;
+import com.forum.project.application.auth.EmailService;
 import com.forum.project.domain.exception.ApplicationException;
 import com.forum.project.domain.exception.ErrorCode;
 import com.forum.project.presentation.config.TestSecurityConfig;
@@ -48,6 +49,9 @@ class AuthControllerTest {
     private CookieService cookieService;
 
     @MockBean
+    private EmailService emailService;
+
+    @MockBean
     private ExceptionResponseUtil exceptionResponseUtil;
 
     private final String requestSignupUriPath = "/api/v1/auth/signup";
@@ -61,9 +65,11 @@ class AuthControllerTest {
     void setup() {
         doCallRealMethod().when(exceptionResponseUtil).createErrorResponsev2(any(String.class), any(String.class), any(HttpStatus.class), any(WebRequest.class));
     }
+
     @Test
     void testRequestSignup_Success() throws Exception {
-        when(authService.createUser(any(SignupRequestDto.class))).thenReturn(signupResponseDto);
+        when(authService.createUser(signupRequestDto)).thenReturn(signupResponseDto);
+        doNothing().when(emailService).verifyEmail(signupRequestDto.getEmail());
 
         mockMvc.perform(post(requestSignupUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -111,6 +117,21 @@ class AuthControllerTest {
 
         verifyErrorResponse(result, ErrorCode.EMAIL_ALREADY_EXISTS, requestSignupUriPath);
     }
+
+    @Test
+    void testRequestSignup_EmailNotValidated() throws Exception {
+        doThrow(new ApplicationException(ErrorCode.INVALID_SENDING_EMAIL))
+                .when(emailService).verifyEmail(signupRequestDto.getEmail());
+
+        ResultActions result = mockMvc.perform(post(requestSignupUriPath)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(signupRequestDto)))
+                .andDo(print())
+                .andExpect(status().isInternalServerError());
+
+        verifyErrorResponse(result, ErrorCode.INVALID_SENDING_EMAIL, requestSignupUriPath);
+    }
+
 
     @Test
     void testRequestLogin_Success() throws Exception {
@@ -165,7 +186,6 @@ class AuthControllerTest {
         verify(authService, times(1)).logout(eq(jwt), eq(refreshToken));
         verify(cookieService, times(1)).clearRefreshToken(any(HttpServletResponse.class));
         verify(cookieService, times(1)).getRefreshTokenFromCookies(any());
-
     }
 
     @Test

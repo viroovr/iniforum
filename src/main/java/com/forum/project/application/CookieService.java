@@ -21,7 +21,6 @@ public class CookieService {
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge((int) tokenService.getRefreshTokenExpTime());
-//        refreshTokenCookie.setSecure(true); //Https 에서만 전송
 
         return refreshTokenCookie;
     }
