@@ -29,6 +29,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.context.request.WebRequest;
 
+import java.util.Map;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -56,6 +58,8 @@ class AuthControllerTest {
 
     private final String requestSignupUriPath = "/api/v1/auth/signup";
     private final String requestLoginUriPath = "/api/v1/auth/login";
+    private final String requestVerificationCodeUriPath = "/api/v1/auth/send-email";
+    private final String requestVerifyEmailUriPath = "/api/v1/auth/verify-email";
     private final SignupRequestDto signupRequestDto = new SignupRequestDto("user1", "email@example.com", "password1_", "홍길동");
     private final SignupResponseDto signupResponseDto = new SignupResponseDto("user1", "email@example.com", "홍길동");
     private final LoginRequestDto loginRequestDto = new LoginRequestDto("user1", "password1_");
@@ -64,6 +68,41 @@ class AuthControllerTest {
     @BeforeEach
     void setup() {
         doCallRealMethod().when(exceptionResponseUtil).createErrorResponsev2(any(String.class), any(String.class), any(HttpStatus.class), any(WebRequest.class));
+    }
+
+    @Test
+    void testSendEmail_Success() throws Exception {
+        String email = "receiver@example.com";
+        doNothing().when(emailService).sendVerificationCode(email);
+        Map<String, String> request = Map.of("email", email);
+
+        mockMvc.perform(post(requestVerificationCodeUriPath)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.message").value("Verification email sent"));
+
+        verify(emailService).sendVerificationCode(email);
+    }
+
+    @Test
+    void testVerifyEmail_Success() throws Exception {
+        String email = "receiver@example.com";
+        String code = "123456";
+        doNothing().when(emailService).verifyCode(email, code);
+        Map<String, String> request = Map.of("email", email, "code", code);
+
+        mockMvc.perform(post(requestVerifyEmailUriPath)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.message").value("Email verified successfully"));
+
+        verify(emailService).verifyCode(email, code);
     }
 
     @Test
@@ -90,6 +129,42 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.message").value(errorCode.getMessage()))
                 .andExpect(jsonPath("$.path").value(uriPath));
     }
+
+    @Test
+    void testSendEmail_FailureSendingEmailException() throws Exception {
+        String email = "receiver@example.com";
+        Map<String, String> request = Map.of("email", email);
+
+        doThrow(new ApplicationException(ErrorCode.FAIL_SENDING_EMAIL))
+                .when(emailService).sendVerificationCode(email);
+
+        ResultActions result = mockMvc.perform(post(requestVerificationCodeUriPath)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isInternalServerError());
+
+        verifyErrorResponse(result, ErrorCode.FAIL_SENDING_EMAIL, requestVerificationCodeUriPath);
+    }
+
+    @Test
+    void testSendEmail_InvalidSendingEmailException() throws Exception {
+        String email = "receiver@example.com";
+        String code = "123456";
+        Map<String, String> request = Map.of("email", email, "code", code);
+
+        doThrow(new ApplicationException(ErrorCode.INVALID_VERIFICATION_CODE))
+                .when(emailService).verifyCode(email, code);
+
+        ResultActions result = mockMvc.perform(post(requestVerifyEmailUriPath)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        verifyErrorResponse(result, ErrorCode.INVALID_VERIFICATION_CODE, requestVerifyEmailUriPath);
+    }
+
 
     @Test
     void testRequestSignup_UserIdAlreadyExistsException() throws Exception {
@@ -120,7 +195,7 @@ class AuthControllerTest {
 
     @Test
     void testRequestSignup_EmailNotValidated() throws Exception {
-        doThrow(new ApplicationException(ErrorCode.INVALID_SENDING_EMAIL))
+        doThrow(new ApplicationException(ErrorCode.FAIL_SENDING_EMAIL))
                 .when(emailService).verifyEmail(signupRequestDto.getEmail());
 
         ResultActions result = mockMvc.perform(post(requestSignupUriPath)
@@ -129,9 +204,8 @@ class AuthControllerTest {
                 .andDo(print())
                 .andExpect(status().isInternalServerError());
 
-        verifyErrorResponse(result, ErrorCode.INVALID_SENDING_EMAIL, requestSignupUriPath);
+        verifyErrorResponse(result, ErrorCode.FAIL_SENDING_EMAIL, requestSignupUriPath);
     }
-
 
     @Test
     void testRequestLogin_Success() throws Exception {

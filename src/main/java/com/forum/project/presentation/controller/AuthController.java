@@ -50,11 +50,11 @@ public class AuthController {
         String email = request.get("email");
         String code = request.get("code");
 
-        Map<String, String> responseBody = new HashMap<>();
-
         emailService.verifyCode(email, code);
 
+        Map<String, String> responseBody = new HashMap<>();
         responseBody.put("message", "Email verified successfully");
+
         return ResponseEntity.status(HttpStatus.OK).body(responseBody);
     }
 

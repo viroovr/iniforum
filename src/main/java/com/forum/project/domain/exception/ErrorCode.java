@@ -18,14 +18,14 @@ public enum ErrorCode {
     EMAIL_ALREADY_EXISTS("EMAIL_ALREADY_EXISTS", "Email already exists", HttpStatus.CONFLICT),
     USER_ID_ALREADY_EXISTS("USER_ID_ALREADY_EXISTS", "User ID already exists", HttpStatus.CONFLICT),
 //  4. Validation
-    VALIDATION_ERROR("VALIDATION_ERROR", "Invalid arguments", HttpStatus.BAD_REQUEST),
     INVALID_USER_ID("VALID_001", "Invalid user ID", HttpStatus.BAD_REQUEST),
     INVALID_EMAIL("VALID_002", "Invalid Email", HttpStatus.BAD_REQUEST),
     INVALID_PASSWORD("VALID_003", "Invalid Password", HttpStatus.BAD_REQUEST),
     INVALID_NAME("VALID_004", "Invalid Name", HttpStatus.BAD_REQUEST),
-    INVALID_SENDING_EMAIL("VALID_005", "Failed to send Email", HttpStatus.INTERNAL_SERVER_ERROR),
-    INVALID_VERIFICATION_CODE("VALID_006", "Invalid Verification Code", HttpStatus.BAD_REQUEST);
+    INVALID_VERIFICATION_CODE("VALID_006", "Invalid Verification Code", HttpStatus.BAD_REQUEST),
+    INVALID_REFRESH_TOKEN("VALID_007", "Invalid Refresh Token", HttpStatus.BAD_REQUEST),
 //   5. Server Errors
+    FAIL_SENDING_EMAIL("SERVER_001", "Failed to send Email", HttpStatus.INTERNAL_SERVER_ERROR);
 //    Rate Limiting & Resource Limits
 //    I/O & Networks
 //

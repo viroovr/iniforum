@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class EmailService {
 
-    private final RedisTemplate<String, EmailVerification> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     private final JavaMailSender mailSender;
 
@@ -46,7 +46,7 @@ public class EmailService {
 
             mailSender.send(mimeMessage);
         } catch (MessagingException e) {
-            throw new ApplicationException(ErrorCode.INVALID_SENDING_EMAIL);
+            throw new ApplicationException(ErrorCode.FAIL_SENDING_EMAIL);
         }
     }
 
@@ -58,7 +58,7 @@ public class EmailService {
     }
 
     public void verifyCode(String email, String inputCode) {
-        EmailVerification verification = redisTemplate.opsForValue().get(REDIS_PREFIX + email);
+        EmailVerification verification = (EmailVerification) redisTemplate.opsForValue().get(REDIS_PREFIX + email);
         if (verification == null || !verification.getVerificationCode().equals(inputCode)) {
             throw new ApplicationException(ErrorCode.INVALID_VERIFICATION_CODE);
         }
@@ -67,11 +67,9 @@ public class EmailService {
     }
 
     public void verifyEmail(String email) {
-        EmailVerification verification = redisTemplate.opsForValue().get(REDIS_PREFIX + email);
+        EmailVerification verification = (EmailVerification) redisTemplate.opsForValue().get(REDIS_PREFIX + email);
         if (verification == null || !verification.isVerified()) {
             throw new ApplicationException(ErrorCode.INVALID_VERIFICATION_CODE);
         }
     }
-
-
 }

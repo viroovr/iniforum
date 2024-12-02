@@ -4,7 +4,6 @@ import com.forum.project.domain.exception.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -50,30 +49,4 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
         return exceptionResponseUtil.createErrorResponse("INTERNAL_SERVER_ERROR", ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    @ExceptionHandler(RefreshTokenNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleRefreshTokenNotFoundException(RefreshTokenNotFoundException ex) {
-        return exceptionResponseUtil.createErrorResponse("REFRESH_TOKEN_MISSING", ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidTokenException(InvalidTokenException ex) {
-        return exceptionResponseUtil.createErrorResponse("INVALID_TOKEN", ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(QuestionNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleQuestionNotFoundException(QuestionNotFoundException ex) {
-        return exceptionResponseUtil.createErrorResponse("QUESTION_NOT_FOUND", ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Map<String, String>> handleBadCredentialException(BadCredentialsException ex) {
-        return exceptionResponseUtil.createErrorResponse("BAD_CREDENTIAL", ex.getMessage(), HttpStatus.UNAUTHORIZED);
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return exceptionResponseUtil.createErrorResponse("ILLEGAL_ARGUMENT", ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
 }
