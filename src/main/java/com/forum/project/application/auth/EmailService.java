@@ -34,7 +34,7 @@ public class EmailService {
 
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         String subject = "Verification Email";
-        String body = "<h1>Hello!</h1><p>Verification Code : " + code + "</p?";
+        String body = "<h1>Hello!</h1><p>Verification Code : " + code + "</p>";
 
         try {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");

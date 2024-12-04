@@ -75,6 +75,4 @@ public class QuestionController {
         }
         throw new IllegalArgumentException("Invalid Authorization header");
     }
-
-
 }
