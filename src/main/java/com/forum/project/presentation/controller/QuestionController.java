@@ -1,7 +1,7 @@
 package com.forum.project.presentation.controller;
 
-import com.forum.project.application.QuestionService;
-import com.forum.project.domain.entity.Question;
+import com.forum.project.application.question.QuestionService;
+import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.presentation.dtos.question.RequestQuestionDto;
 import com.forum.project.presentation.dtos.question.ResponseQuestionDto;
 import lombok.RequiredArgsConstructor;
@@ -10,24 +10,29 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
-@RequestMapping(value = "/q")
+@RequestMapping(value = "/api/v1/q")
 @RequiredArgsConstructor
 public class QuestionController {
 
     private final QuestionService questionService;
 
-    @RequestMapping(value = "/post", method = RequestMethod.POST)
-    public ResponseEntity<Question> postQuestion(
+    private final TokenService tokenService;
+
+    @PostMapping(value = "/post")
+    public ResponseEntity<ResponseQuestionDto> postQuestion(
             @RequestBody RequestQuestionDto requestQuestionDto,
-            @RequestHeader(value = "Authorization") String token
+            @RequestHeader(value = "Authorization") String header
     ) {
-        String jwt = extractToken(token);
-        Question question = questionService.createPost(requestQuestionDto, jwt);
-        return ResponseEntity.status(HttpStatus.CREATED).body(question);
+        String accessToken = tokenService.extractTokenByHeader(header);
+        ResponseQuestionDto responseQuestionDto = questionService.createPost(requestQuestionDto, accessToken);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseQuestionDto);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @GetMapping(value = "/{id}")
     public ResponseEntity<ResponseQuestionDto> getQuestionById(
             @PathVariable Long id
     ) {
@@ -35,7 +40,31 @@ public class QuestionController {
         return ResponseEntity.status(HttpStatus.OK).body(responseQuestionDto);
     }
 
-    @RequestMapping(value = "/questions", method = RequestMethod.GET)
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<ResponseQuestionDto> updateQuestion(
+            @PathVariable("id") Long questionId,
+            @RequestBody RequestQuestionDto requestQuestionDto,
+            @RequestHeader(value = "Authorization") String header
+            ) {
+        String accessToken = tokenService.extractTokenByHeader(header);
+        ResponseQuestionDto responseQuestionDto = questionService.updateQuestion(questionId, requestQuestionDto, accessToken);
+        return ResponseEntity.status(HttpStatus.OK).body(responseQuestionDto);
+    }
+
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<Map<String, String>> deleteQuestion(
+            @PathVariable("id") Long questionId,
+            @RequestHeader(value = "Authorization") String header
+    ) {
+        String accessToken = tokenService.extractTokenByHeader(header);
+        questionService.deleteQuestion(questionId, accessToken);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Question deleted successfully.");
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping(value = "/questions")
     public Page<ResponseQuestionDto> getQuestions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -46,33 +75,5 @@ public class QuestionController {
         } else {
             return questionService.searchPosts(keyword, page, size);
         }
-    }
-
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<String> deleteQuestion(
-            @PathVariable Long id,
-            @RequestHeader(value = "Authorization") String token
-    ) {
-        String jwt = extractToken(token);
-        questionService.deleteQuestion(id, jwt);
-        return ResponseEntity.ok("Question deleted successfully.");
-    }
-
-    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public ResponseEntity<ResponseQuestionDto> updateQuestion(
-            @RequestHeader(value = "Authorization") String token,
-            @PathVariable Long id,
-            @RequestBody RequestQuestionDto requestQuestionDto
-    ) {
-        String jwt = extractToken(token);
-        ResponseQuestionDto responseQuestionDto = questionService.updateQuestion(id, requestQuestionDto, jwt);
-        return ResponseEntity.ok(responseQuestionDto);
-    }
-    
-    private String extractToken(String authorizationHeader) {
-        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            return authorizationHeader.substring(7);
-        }
-        throw new IllegalArgumentException("Invalid Authorization header");
     }
 }

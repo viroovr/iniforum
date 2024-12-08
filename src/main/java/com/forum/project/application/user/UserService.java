@@ -2,6 +2,8 @@ package com.forum.project.application.user;
 
 import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.entity.User;
+import com.forum.project.domain.exception.ApplicationException;
+import com.forum.project.domain.exception.ErrorCode;
 import com.forum.project.domain.repository.UserRepository;
 import com.forum.project.domain.exception.InvalidPasswordException;
 import com.forum.project.presentation.dtos.user.UserInfoDto;
@@ -34,14 +36,14 @@ public class UserService {
     public UserInfoDto getUserProfile(String token) {
         String jwt = tokenService.extractTokenByHeader(token);
         Long id = tokenService.getId(jwt);
-        User user = userRepository.findById(id);
+        User user = userRepository.findById(id).orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
 
         return UserInfoDto.toDto(user);
     }
 
     public UserResponseDto updateUserProfile(String token, UserRequestDto userRequestDto, MultipartFile file) throws IOException {
         String jwt = tokenService.extractTokenByHeader(token);
-        User user = userRepository.findById(tokenService.getId(jwt));
+        User user = userRepository.findById(tokenService.getId(jwt)).orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));;
         checkPassword(userRequestDto, user);
 
         String newPassword = passwordEncoder.encode(userRequestDto.getNewPassword());

@@ -1,4 +1,4 @@
-package com.forum.project.application;
+package com.forum.project.application.question;
 
 import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.entity.Comment;

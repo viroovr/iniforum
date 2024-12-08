@@ -1,6 +1,6 @@
 package com.forum.project.presentation.controller;
 
-import com.forum.project.application.CommentService;
+import com.forum.project.application.question.CommentService;
 import com.forum.project.presentation.dtos.comment.RequestCommentDto;
 import com.forum.project.presentation.dtos.comment.ResponseCommentDto;
 import jakarta.persistence.EntityNotFoundException;

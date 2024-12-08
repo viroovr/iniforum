@@ -10,9 +10,13 @@ public enum ErrorCode {
     AUTH_BLACKLISTED_REFRESH_TOKEN("AUTH_002", "Invalid Refresh Token", HttpStatus.BAD_REQUEST),
     AUTH_INVALID_TOKEN("AUTH_003", "Invalid Token", HttpStatus.BAD_REQUEST),
     AUTH_BLACKLISTED_ACCESS_TOKEN("AUTH_004", "Invalid Access Token", HttpStatus.BAD_REQUEST),
+    AUTH_BAD_CREDENTIAL("AUTH_005", "No Access", HttpStatus.BAD_REQUEST),
 
 //  2. Resource Management
+    DATABASE_ERROR("INTERNAL_SERVER_ERROR", "Internal Server error", HttpStatus.INTERNAL_SERVER_ERROR),
+
     USER_NOT_FOUND("USER_NOT_FOUND", "User not found", HttpStatus.NOT_FOUND),
+    QUESTION_NOT_FOUND("QUESTION_NOT_FOUND", "Question not found", HttpStatus.NOT_FOUND),
 
 //  3. Conflict & Duplication
     EMAIL_ALREADY_EXISTS("EMAIL_ALREADY_EXISTS", "Email already exists", HttpStatus.CONFLICT),

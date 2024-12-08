@@ -27,14 +27,13 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User findById(Long id) {
+    public Optional<User> findById(Long id) {
         String sql = "SELECT * FROM users WHERE id = :id";
         SqlParameterSource namedParameters = new MapSqlParameterSource("id", id);
         return namedParameterJdbcTemplate
                 .query(sql, namedParameters, new BeanPropertyRowMapper<>(User.class))
                 .stream()
-                .findFirst()
-                .orElseThrow(()-> new UserNotFoundException("해당 유저를 찾을 수 없습니다."));
+                .findFirst();
     }
 
     @Override
@@ -72,11 +71,8 @@ public class UserRepositoryImpl implements UserRepository {
         parameterSource.addValue("nickname", user.getNickname());
         parameterSource.addValue("id", user.getId());
 
-
-
         namedParameterJdbcTemplate.update(sql, parameterSource);
         return user;
-
     }
 
     public boolean emailExists(String email) {

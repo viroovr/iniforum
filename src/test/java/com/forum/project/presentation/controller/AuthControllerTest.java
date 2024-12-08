@@ -1,13 +1,13 @@
-package com.forum.project.presentation.auth;
+package com.forum.project.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.forum.project.application.CookieService;
 import com.forum.project.application.auth.AuthService;
 import com.forum.project.application.auth.EmailService;
+import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.exception.ApplicationException;
 import com.forum.project.domain.exception.ErrorCode;
 import com.forum.project.presentation.config.TestSecurityConfig;
-import com.forum.project.presentation.controller.AuthController;
 import com.forum.project.presentation.dtos.auth.LoginRequestDto;
 import com.forum.project.presentation.dtos.auth.SignupRequestDto;
 import com.forum.project.presentation.dtos.auth.SignupResponseDto;
@@ -46,6 +46,9 @@ class AuthControllerTest {
 
     @MockBean
     private AuthService authService;
+
+    @MockBean
+    private TokenService tokenService;
 
     @MockBean
     private CookieService cookieService;

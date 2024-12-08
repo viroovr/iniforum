@@ -2,6 +2,7 @@ package com.forum.project.presentation.exception;
 
 import com.forum.project.domain.exception.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
+@Slf4j
 public class GlobalExceptionHandler {
 
     private final ExceptionResponseUtil exceptionResponseUtil;
@@ -41,6 +43,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<Map<String, String>> handleApplicationException(ApplicationException ex, WebRequest request) {
+        log.error("Application Error occurred: {}", ex.getMessage());
+        ErrorCode errorCode = ex.getErrorCode();
+        return exceptionResponseUtil.createErrorResponsev2(errorCode.getCode(), errorCode.getMessage(), errorCode.getStatus(), request);
+    }
+
+    @ExceptionHandler(CustomDatabaseException.class)
+    public ResponseEntity<Map<String, String >> handleDatabaseException(CustomDatabaseException ex, WebRequest request) {
+        log.error("Database Error occurred: {}", ex.getMessage());
         ErrorCode errorCode = ex.getErrorCode();
         return exceptionResponseUtil.createErrorResponsev2(errorCode.getCode(), errorCode.getMessage(), errorCode.getStatus(), request);
     }

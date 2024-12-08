@@ -1,4 +1,4 @@
-package com.forum.project.application.auth;
+package com.forum.project.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
@@ -10,10 +10,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import redis.embedded.RedisServer;
@@ -21,6 +19,7 @@ import redis.embedded.RedisServer;
 import java.io.IOException;
 
 @Configuration
+@Profile("redis")
 public class RedisConfig {
 
     private static final Logger log = LoggerFactory.getLogger(RedisConfig.class);
@@ -29,26 +28,6 @@ public class RedisConfig {
 
     @Value("${spring.data.redis.host}")
     private String host;
-
-    private RedisServer redisServer;
-
-    @Bean
-    @Profile("dev")
-    public RedisServer embeddedRedisServer() throws IOException {
-        redisServer = RedisServer.builder()
-                        .port(port)
-                        .setting("bind 127.0.0.1")
-                        .setting("maxmemory 128M")
-                        .build();
-        redisServer.start();
-        return redisServer;
-    }
-
-    public void stopRedis() {
-        if (redisServer != null) {
-            redisServer.stop();
-        }
-    }
 
     @Bean
     @Profile("dev")

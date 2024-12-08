@@ -6,13 +6,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface QuestionRepository {
-    Question findById(Long id);
+    Optional<Question> findById(Long id);
     Question save(Question question);
     void deleteById(Long id);
     long count();
     List<Question> getQuestionByPage(int page, int size);
 
-    Page<Question> searchQuestions(@Param("keyword") String keyword, Pageable pageable);
+    List<Question> searchQuestions(String keyword, int page, int size);
+    void updateViewCount(Long questionId, Integer viewCount);
 }

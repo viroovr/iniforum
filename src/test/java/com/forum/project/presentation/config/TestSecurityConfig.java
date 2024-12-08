@@ -25,9 +25,6 @@ public class TestSecurityConfig {
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
 
-    @MockBean
-    private TokenService tokenService;
-
     private final JwtAuthFilter jwtAuthFilter;
 
     private static final String[] AUTH_WHITELIST = {
@@ -36,6 +33,21 @@ public class TestSecurityConfig {
             "/api/users/**","/h2-console/**", "/auth/**"
     };
 
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        log.info("Test security Filter Chain Start");
+//        http
+//                .csrf(AbstractHttpConfigurer::disable)
+//                .cors(Customizer.withDefaults())
+//                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(
+//                        SessionCreationPolicy.STATELESS
+//                ))
+//                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+//                .formLogin(AbstractHttpConfigurer::disable)
+//                .httpBasic(AbstractHttpConfigurer::disable);
+//
+//        return http.build();
+//    }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         log.info("Test security Filter Chain Start");

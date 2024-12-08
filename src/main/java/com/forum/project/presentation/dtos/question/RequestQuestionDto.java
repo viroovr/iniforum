@@ -1,20 +1,27 @@
 package com.forum.project.presentation.dtos.question;
 
+import com.forum.project.domain.entity.Question;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 
-
-@Getter
+@Data
+@AllArgsConstructor
 public class RequestQuestionDto {
+
     @NotNull
     private String title;
+
     private String content;
+
     private String tag;
 
-    public RequestQuestionDto(String title, String content, String tag) {
-        this.title = title;
-        this.content = content;
-        this.tag = tag;
+    public static RequestQuestionDto toDto(Question question) {
+        return new RequestQuestionDto(
+                question.getTitle(),
+                question.getContent(),
+                question.getTag()
+        );
     }
-
 }
