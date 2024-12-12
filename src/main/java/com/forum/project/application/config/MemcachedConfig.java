@@ -1,4 +1,4 @@
-package com.forum.project.application;
+package com.forum.project.application.config;
 
 import net.rubyeye.xmemcached.MemcachedClient;
 import net.rubyeye.xmemcached.XMemcachedClientBuilder;

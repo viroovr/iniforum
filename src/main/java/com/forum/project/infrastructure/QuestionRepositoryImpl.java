@@ -21,6 +21,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -31,6 +32,8 @@ import java.util.Optional;
 public class QuestionRepositoryImpl implements QuestionRepository {
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    private final Clock clock;
 
     private final RowMapper<Question> questionRowMapper = (rs, rowNum) -> new Question(
             rs.getLong("id"),
@@ -52,21 +55,18 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 
     public Question save(Question question) {
         if (question.getCreatedDate() == null) {
-            question.setCreatedDate(LocalDateTime.now());
+            question.setCreatedDate(LocalDateTime.now(clock));
         }
         question.setViewCount(0);
         String sql = "INSERT INTO questions (title, user_id, content, tag, created_date) VALUES (:title, :userId, :content, :tag, :createdDate)";
         SqlParameterSource namedParameters = new BeanPropertySqlParameterSource(question);
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        try {
-            namedParameterJdbcTemplate.update(sql, namedParameters, keyHolder);
+        namedParameterJdbcTemplate.update(sql, namedParameters, keyHolder);
 
-            question.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
-            return question;
-        } catch (DataAccessException e) {
-            throw new CustomDatabaseException(e.getMessage());
-        }
+        question.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
+        return question;
+
     }
 
     public void deleteById(Long id) {

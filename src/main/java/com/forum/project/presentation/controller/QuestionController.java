@@ -28,7 +28,7 @@ public class QuestionController {
             @RequestHeader(value = "Authorization") String header
     ) {
         String accessToken = tokenService.extractTokenByHeader(header);
-        ResponseQuestionDto responseQuestionDto = questionService.createPost(requestQuestionDto, accessToken);
+        ResponseQuestionDto responseQuestionDto = questionService.createQuestion(requestQuestionDto, accessToken);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseQuestionDto);
     }
 
@@ -73,7 +73,7 @@ public class QuestionController {
         if (keyword == null || keyword.trim().isEmpty()) {
             return questionService.getQuestionsByPage(page, size);
         } else {
-            return questionService.searchPosts(keyword, page, size);
+            return questionService.searchQuestions(keyword, page, size);
         }
     }
 }

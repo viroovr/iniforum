@@ -2,22 +2,20 @@ package com.forum.project.application.question;
 
 import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.entity.Question;
+import com.forum.project.domain.entity.User;
 import com.forum.project.domain.exception.ApplicationException;
 import com.forum.project.domain.exception.ErrorCode;
 import com.forum.project.domain.repository.QuestionRepository;
-import com.forum.project.domain.entity.User;
 import com.forum.project.domain.repository.TotalCountRepository;
 import com.forum.project.domain.repository.UserRepository;
+import com.forum.project.presentation.dtos.question.QuestionDtoConverter;
 import com.forum.project.presentation.dtos.question.RequestQuestionDto;
 import com.forum.project.presentation.dtos.question.ResponseQuestionDto;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,13 +30,24 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
 
+    private final QuestionDtoConverter questionDtoConverter;
     private final TokenService tokenService;
 
-    @Transactional
-    public ResponseQuestionDto createPost(RequestQuestionDto requestQuestionDto, String jwt) {
+    private User extractUserFromJwt(String jwt) {
         long id = tokenService.getId(jwt);
-        User user = userRepository.findById(id)
+        return userRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    private Question saveQuestion(Question question) {
+        Question savedQuestion = questionRepository.save(question);
+        totalCountRepository.incrementTotalCount();
+        return savedQuestion;
+    }
+
+    @Transactional
+    public ResponseQuestionDto createQuestion(RequestQuestionDto requestQuestionDto, String jwt) {
+        User user = extractUserFromJwt(jwt);
 
         Question question = Question.builder()
                 .title(requestQuestionDto.getTitle())
@@ -46,21 +55,15 @@ public class QuestionService {
                 .content(requestQuestionDto.getContent())
                 .tag(requestQuestionDto.getTag())
                 .build();
-
-        try {
-            Question savedQuestion = questionRepository.save(question);
-            totalCountRepository.incrementTotalCount();
-            return ResponseQuestionDto.toDto(savedQuestion);
-        } catch (EntityNotFoundException e) {
-            throw new ApplicationException(ErrorCode.QUESTION_NOT_FOUND);
-        }
+        Question savedQuestion = saveQuestion(question);
+        return questionDtoConverter.toResponseQuestionDto(savedQuestion);
     }
 
     public ResponseQuestionDto findById(Long id) {
         Question question = questionRepository
                 .findById(id)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.QUESTION_NOT_FOUND));
-        return ResponseQuestionDto.toDto(question);
+        return questionDtoConverter.toResponseQuestionDto(question);
     }
 
     private Question validateQuestion(Long questionId, String token) {
@@ -82,6 +85,17 @@ public class QuestionService {
         totalCountRepository.decrementTotalCount();
     }
 
+    @Transactional
+    public ResponseQuestionDto updateQuestion(Long questionId, RequestQuestionDto requestQuestionDto, String accessToken) {
+        Question question = validateQuestion(questionId, accessToken);
+
+        question.setTitle(requestQuestionDto.getTitle());
+        question.setContent(requestQuestionDto.getContent());
+        question.setTag(requestQuestionDto.getTag());
+
+        return questionDtoConverter.toResponseQuestionDto(questionRepository.save(question));
+    }
+
     private Long getTotalQuestionCount() {
         Long total = totalCountRepository.getTotalCount();
         if (total == null) {
@@ -91,17 +105,6 @@ public class QuestionService {
         return total;
     }
 
-    @Transactional
-    public ResponseQuestionDto updateQuestion(Long questionId, RequestQuestionDto requestQuestionDto, String accessToken) {
-        Question question = validateQuestion(questionId, accessToken);
-
-        question.setTitle(requestQuestionDto.getTitle());
-        question.setContent(requestQuestionDto.getContent());
-        question.setTag(requestQuestionDto.getTag());
-
-        return ResponseQuestionDto.toDto(questionRepository.save(question));
-    }
-
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public Page<ResponseQuestionDto> getQuestionsByPage(int page, int size) {
         Long total = getTotalQuestionCount();
@@ -109,20 +112,20 @@ public class QuestionService {
         List<Question> questionPage = questionRepository.getQuestionByPage(page, size);
 
         List<ResponseQuestionDto> responseQuestionDtos =
-                questionPage.stream().map(ResponseQuestionDto::toDto).toList();
+                questionPage.stream().map(questionDtoConverter::toResponseQuestionDto).toList();
 
         Pageable pageable = PageRequest.of(page, size);
         return new PageImpl<>(responseQuestionDtos, pageable, total);
     }
 
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
-    public Page<ResponseQuestionDto> searchPosts(String keyword, int page, int size) {
+    public Page<ResponseQuestionDto> searchQuestions(String keyword, int page, int size) {
         Long total = getTotalQuestionCount();
 
         List<Question> questionPage = questionRepository.searchQuestions(keyword, page, size);
 
         List<ResponseQuestionDto> responseQuestionDtos =
-                questionPage.stream().map(ResponseQuestionDto::toDto).toList();
+                questionPage.stream().map(questionDtoConverter::toResponseQuestionDto).toList();
 
         Pageable pageable = PageRequest.of(page, size);
         return new PageImpl<>(responseQuestionDtos, pageable, total);

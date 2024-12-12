@@ -202,15 +202,15 @@ class EmailServiceTest {
         @Test
         void testStoreVerificationCode() {
             EmailVerification emailVerification = new EmailVerification(code, false);
-        ValueOperations<String, EmailVerification> valueOps = mock(ValueOperations.class);
+            ValueOperations<String, EmailVerification> valueOps = mock(ValueOperations.class);
 
-        when(redisTemplate.opsForValue()).thenReturn(valueOps);
-        doNothing().when(valueOps).set(REDIS_PREFIX + fromEmail, emailVerification, 3, TimeUnit.MINUTES);
+            when(redisTemplate.opsForValue()).thenReturn(valueOps);
+            doNothing().when(valueOps).set(REDIS_PREFIX + fromEmail, emailVerification, 3, TimeUnit.MINUTES);
 
             emailService.storeVerificationCode(fromEmail, code);
 
             verify(redisTemplate).opsForValue();
-        verify(valueOps, times(1))
+            verify(valueOps, times(1))
                 .set(eq(REDIS_PREFIX + fromEmail), eq(emailVerification), eq(3L), eq(TimeUnit.MINUTES));
         }
 
@@ -239,7 +239,7 @@ class EmailServiceTest {
         }
 
         @Test
-        void testVerifyCode_nullEmailVerification_InvalidVerificationCode() {
+        void testVerifyCode_nullEmailVerification_InvalidVerificationCodeException() {
             EmailVerification emailVerification = null;
             ValueOperations<String, EmailVerification> valueOps = mock(ValueOperations.class);
 
@@ -255,7 +255,7 @@ class EmailServiceTest {
         }
 
         @Test
-        void testVerifyCode_notValidCode_InvalidVerificationCode() {
+        void testVerifyCode_notValidCode_InvalidVerificationCodeException() {
             EmailVerification emailVerification = new EmailVerification("invalid", false);
             ValueOperations<String, EmailVerification> valueOps = mock(ValueOperations.class);
 
@@ -286,7 +286,7 @@ class EmailServiceTest {
         }
 
         @Test
-        void testVerifyEmail_nullEmailVerification_InvalidVerificationCode() {
+        void testVerifyEmail_nullEmailVerification_InvalidVerificationCodeException() {
             EmailVerification emailVerification = null;
             ValueOperations<String, EmailVerification> valueOps = mock(ValueOperations.class);
 
@@ -302,7 +302,7 @@ class EmailServiceTest {
         }
 
         @Test
-        void testVerifyEmail_notVerified_InvalidVerificationCode() {
+        void testVerifyEmail_notVerified_InvalidVerificationCodeException() {
             EmailVerification emailVerification = new EmailVerification(code, false);
             ValueOperations<String, EmailVerification> valueOps = mock(ValueOperations.class);
 

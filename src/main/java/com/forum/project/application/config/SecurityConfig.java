@@ -1,4 +1,4 @@
-package com.forum.project.application.security;
+package com.forum.project.application.config;
 
 import com.forum.project.application.security.jwt.JwtAuthFilter;
 import jakarta.servlet.http.HttpServletResponse;

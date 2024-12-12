@@ -76,7 +76,7 @@ class QuestionControllerTest {
         String header = "Bearer " + accessToken;
 
         when(tokenService.extractTokenByHeader(header)).thenReturn(accessToken);
-        when(questionService.createPost(requestQuestionDto, accessToken)).thenReturn(responseQuestionDto);
+        when(questionService.createQuestion(requestQuestionDto, accessToken)).thenReturn(responseQuestionDto);
 
         mockMvc.perform(post("/api/v1/q/post")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -92,7 +92,7 @@ class QuestionControllerTest {
                 .andExpect(jsonPath("$.tag").value(responseQuestionDto.getTag()));
 
         verify(tokenService).extractTokenByHeader(header);
-        verify(questionService).createPost(requestQuestionDto, accessToken);
+        verify(questionService).createQuestion(requestQuestionDto, accessToken);
     }
 
     @Test
@@ -208,7 +208,7 @@ class QuestionControllerTest {
                 new ResponseQuestionDto(2L, "Test title 2", "testUserId2", "Content2", "tag2", dateTime)
         );
         PageImpl<ResponseQuestionDto> responsePage = new PageImpl<>(questions, PageRequest.of(page, size), questions.size());
-        when(questionService.searchPosts(keyword, page, size)).thenReturn(responsePage);
+        when(questionService.searchQuestions(keyword, page, size)).thenReturn(responsePage);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/q/questions")
                         .param("page", String.valueOf(page))
@@ -225,7 +225,7 @@ class QuestionControllerTest {
                 .andExpect(jsonPath("$.pageable.pageSize").value("10"))
                 .andExpect(jsonPath("$.totalElements").value("2"));
 
-        verify(questionService).searchPosts(keyword, page, size);
+        verify(questionService).searchQuestions(keyword, page, size);
     }
 
 }

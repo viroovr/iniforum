@@ -3,6 +3,7 @@ package com.forum.project.presentation.exception;
 import com.forum.project.domain.exception.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
@@ -49,10 +50,16 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(CustomDatabaseException.class)
-    public ResponseEntity<Map<String, String >> handleDatabaseException(CustomDatabaseException ex, WebRequest request) {
-        log.error("Database Error occurred: {}", ex.getMessage());
+    public ResponseEntity<Map<String, String >> handleCustomDatabaseException(CustomDatabaseException ex, WebRequest request) {
+        log.error("CustomDatabase Error occurred: {}", ex.getMessage());
         ErrorCode errorCode = ex.getErrorCode();
         return exceptionResponseUtil.createErrorResponsev2(errorCode.getCode(), errorCode.getMessage(), errorCode.getStatus(), request);
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public void handleDatabaseException(DataAccessException ex, WebRequest request) {
+        log.error("DatabaseAccess Error occurred: {}", ex.getMessage());
+        throw new CustomDatabaseException(ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
