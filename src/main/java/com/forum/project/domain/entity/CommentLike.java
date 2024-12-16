@@ -1,29 +1,25 @@
 package com.forum.project.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 public class CommentLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String userId;
+    private Long userId;
 
-    @ManyToOne
-    @JoinColumn(name = "comment_id", nullable = false)
-    private Comment comment;
+//    @ManyToOne
+//    @JoinColumn(name = "comment_id", nullable = false)
+    private Long commentId;
 
-    public CommentLike() {}
-
-    public CommentLike(String userId, Comment comment) {
+    public CommentLike(Long userId, Long commentId) {
         this.userId = userId;
-        this.comment = comment;
+        this.commentId = commentId;
     }
-
-
 }

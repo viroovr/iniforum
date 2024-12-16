@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(controllers = AuthController.class)
 @Import(TestSecurityConfig.class)
-class AuthControllerTest {
+class AuthControllerUnitTest {
     @Autowired
     private MockMvc mockMvc;
 
@@ -56,9 +56,6 @@ class AuthControllerTest {
     @MockBean
     private EmailService emailService;
 
-    @MockBean
-    private ExceptionResponseUtil exceptionResponseUtil;
-
     private final String requestSignupUriPath = "/api/v1/auth/signup";
     private final String requestLoginUriPath = "/api/v1/auth/login";
     private final String requestVerificationCodeUriPath = "/api/v1/auth/send-email";
@@ -67,11 +64,6 @@ class AuthControllerTest {
     private final SignupResponseDto signupResponseDto = new SignupResponseDto("user1", "email@example.com", "홍길동");
     private final LoginRequestDto loginRequestDto = new LoginRequestDto("user1", "password1_");
     private final TokenResponseDto tokens = new TokenResponseDto("access-token", "refresh-token");
-
-    @BeforeEach
-    void setup() {
-        doCallRealMethod().when(exceptionResponseUtil).createErrorResponsev2(any(String.class), any(String.class), any(HttpStatus.class), any(WebRequest.class));
-    }
 
     @Test
     void testSendEmail_Success() throws Exception {

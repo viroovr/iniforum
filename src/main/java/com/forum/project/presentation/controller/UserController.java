@@ -1,9 +1,14 @@
 package com.forum.project.presentation.controller;
 
+import com.forum.project.application.io.FileService;
+import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.application.user.UserService;
 import com.forum.project.presentation.dtos.user.UserInfoDto;
 import com.forum.project.presentation.dtos.user.UserRequestDto;
 import com.forum.project.presentation.dtos.user.UserResponseDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,33 +16,34 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/v1/user")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private final TokenService tokenService;
 
-    @RequestMapping(value = "/profile", method = RequestMethod.GET)
+    private final FileService fileService;
+
+    @GetMapping(value = "/profile")
     public ResponseEntity<UserInfoDto> getUserProfile(
-            @RequestHeader("Authorization") String token
+            @RequestHeader("Authorization") String header
     ) {
+        String token = tokenService.extractTokenByHeader(header);
         UserInfoDto user = userService.getUserProfile(token);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 
-    @RequestMapping(value = "/profile", method = RequestMethod.PUT)
+    @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserResponseDto> updateUserProfile (
-            @RequestHeader("Authorization") String token,
-            @RequestBody UserRequestDto userRequestDto,
-            @RequestParam MultipartFile file
-            ) throws IOException {
-
-        UserResponseDto userResponseDto = userService.updateUserProfile(token, userRequestDto, file);
-        return ResponseEntity.ok(userResponseDto);
+            @RequestHeader("Authorization") String header,
+            @ModelAttribute UserRequestDto userRequestDto,
+            @RequestParam(value = "profileImage", required = false) MultipartFile file
+    ) throws IOException{
+        String uploadDir = fileService.uploadFile(file);
+        String token = tokenService.extractTokenByHeader(header);
+        UserResponseDto userResponseDto = userService.updateUserProfile(token, userRequestDto, uploadDir);
+        return ResponseEntity.status(HttpStatus.OK).body(userResponseDto);
     }
-
-
 }

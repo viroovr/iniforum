@@ -51,15 +51,7 @@ class QuestionControllerTest {
     @MockBean
     private TokenService tokenService;
 
-    @MockBean
-    private ExceptionResponseUtil exceptionResponseUtil;
-
     private static final Logger log = LoggerFactory.getLogger(QuestionControllerTest.class);
-
-    @BeforeEach
-    void setup() {
-        doCallRealMethod().when(exceptionResponseUtil).createErrorResponsev2(any(String.class), any(String.class), any(HttpStatus.class), any(WebRequest.class));
-    }
 
     private final RequestQuestionDto requestQuestionDto =
             new RequestQuestionDto("testTitle", "testContent", "testTag");
@@ -136,8 +128,8 @@ class QuestionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", header)
                         .content(new ObjectMapper().writeValueAsString(requestQuestionDto)))
-                .andExpect(status().isOk())
                 .andDo(print())
+                .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
                 .andExpect(jsonPath("$.message").value("Question deleted successfully."));
 

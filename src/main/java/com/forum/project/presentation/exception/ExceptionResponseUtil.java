@@ -13,16 +13,6 @@ import java.util.Map;
 public class ExceptionResponseUtil {
 
     public ResponseEntity<Map<String, String>> createErrorResponse(
-            String errorCode, String errorMessage, HttpStatus httpStatus
-    ) {
-        Map<String, String> errorResponse = new HashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now().toString());
-        errorResponse.put("error", errorCode);
-        errorResponse.put("message", errorMessage);
-        return new ResponseEntity<>(errorResponse, httpStatus);
-    }
-
-    public ResponseEntity<Map<String, String>> createErrorResponsev2(
             String errorCode, String errorMessage, HttpStatus httpStatus, WebRequest request
     ) {
         Map<String, String> errorResponse = new HashMap<>();
@@ -36,7 +26,7 @@ public class ExceptionResponseUtil {
     }
 
     public ResponseEntity<Map<String, String>> createInvalidResponse(String message, WebRequest request) {
-        return createErrorResponsev2(
+        return createErrorResponse(
                 "VALIDATION_ERROR", message, HttpStatus.BAD_REQUEST, request
         );
     }

@@ -14,13 +14,15 @@ public enum ErrorCode {
 
 //  2. Resource Management
     DATABASE_ERROR("INTERNAL_SERVER_ERROR", "Internal Server error", HttpStatus.INTERNAL_SERVER_ERROR),
-
     USER_NOT_FOUND("USER_NOT_FOUND", "User not found", HttpStatus.NOT_FOUND),
     QUESTION_NOT_FOUND("QUESTION_NOT_FOUND", "Question not found", HttpStatus.NOT_FOUND),
+    COMMENT_NOT_FOUND("COMMENT_NOT_FOUND", "Comment not found", HttpStatus.NOT_FOUND),
 
 //  3. Conflict & Duplication
     EMAIL_ALREADY_EXISTS("EMAIL_ALREADY_EXISTS", "Email already exists", HttpStatus.CONFLICT),
     USER_ID_ALREADY_EXISTS("USER_ID_ALREADY_EXISTS", "User ID already exists", HttpStatus.CONFLICT),
+    LIKE_ALREADY_EXISTS("LIKE_ALREADY_EXISTS", "Like already exists", HttpStatus.CONFLICT),
+
 //  4. Validation
     INVALID_USER_ID("VALID_001", "Invalid user ID", HttpStatus.BAD_REQUEST),
     INVALID_EMAIL("VALID_002", "Invalid Email", HttpStatus.BAD_REQUEST),
@@ -28,10 +30,15 @@ public enum ErrorCode {
     INVALID_NAME("VALID_004", "Invalid Name", HttpStatus.BAD_REQUEST),
     INVALID_VERIFICATION_CODE("VALID_006", "Invalid Verification Code", HttpStatus.BAD_REQUEST),
     INVALID_REFRESH_TOKEN("VALID_007", "Invalid Refresh Token", HttpStatus.BAD_REQUEST),
+
 //   5. Server Errors
-    FAIL_SENDING_EMAIL("SERVER_001", "Failed to send Email", HttpStatus.INTERNAL_SERVER_ERROR);
+    INTERNAL_SERVER_ERROR("SERVER_000", "INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR),
+    FAIL_SENDING_EMAIL("SERVER_001", "Failed to send Email", HttpStatus.INTERNAL_SERVER_ERROR),
+
 //    Rate Limiting & Resource Limits
+
 //    I/O & Networks
+    FAIL_IO("IO_001", "Failed I/O", HttpStatus.INTERNAL_SERVER_ERROR);
 //
 
     private final String code;

@@ -1,13 +1,14 @@
 package com.forum.project.presentation.dtos.comment;
 
-import com.forum.project.domain.entity.Comment;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@Getter
-@RequiredArgsConstructor
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ResponseCommentDto {
     private Long id;
 
@@ -18,17 +19,4 @@ public class ResponseCommentDto {
     private LocalDateTime createdDate;
 
     private Long likeCount;
-
-    public ResponseCommentDto(Long id, String content, String userId, LocalDateTime localDateTime, Long likeCount) {
-        this.id = id;
-        this.content = content;
-        this.userId = userId;
-        this.createdDate = localDateTime;
-        this.likeCount = likeCount;
-    }
-
-    public static ResponseCommentDto toDto(Comment comment) {
-        return new ResponseCommentDto(comment.getId(), comment.getContent(), comment.getUserId(), comment.getCreatedDate(),
-            comment.getLikeCount());
-    }
 }

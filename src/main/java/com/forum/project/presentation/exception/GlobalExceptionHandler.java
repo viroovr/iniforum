@@ -37,23 +37,18 @@ public class GlobalExceptionHandler {
         return exceptionResponseUtil.createInvalidResponse(errorMessage, request);
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleUserNotFoundException(UserNotFoundException ex) {
-        return exceptionResponseUtil.createErrorResponse("USER_NOT_FOUND", ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
-
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<Map<String, String>> handleApplicationException(ApplicationException ex, WebRequest request) {
         log.error("Application Error occurred: {}", ex.getMessage());
         ErrorCode errorCode = ex.getErrorCode();
-        return exceptionResponseUtil.createErrorResponsev2(errorCode.getCode(), errorCode.getMessage(), errorCode.getStatus(), request);
+        return exceptionResponseUtil.createErrorResponse(errorCode.getCode(), errorCode.getMessage(), errorCode.getStatus(), request);
     }
 
     @ExceptionHandler(CustomDatabaseException.class)
     public ResponseEntity<Map<String, String >> handleCustomDatabaseException(CustomDatabaseException ex, WebRequest request) {
         log.error("CustomDatabase Error occurred: {}", ex.getMessage());
         ErrorCode errorCode = ex.getErrorCode();
-        return exceptionResponseUtil.createErrorResponsev2(errorCode.getCode(), errorCode.getMessage(), errorCode.getStatus(), request);
+        return exceptionResponseUtil.createErrorResponse(errorCode.getCode(), errorCode.getMessage(), errorCode.getStatus(), request);
     }
 
     @ExceptionHandler(DataAccessException.class)
@@ -63,7 +58,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
-        return exceptionResponseUtil.createErrorResponse("INTERNAL_SERVER_ERROR", ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<Map<String, String>> handleGenericException(Exception ex, WebRequest request) {
+        ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
+        return exceptionResponseUtil.createErrorResponse(errorCode.getCode(), ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 }

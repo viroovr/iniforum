@@ -9,7 +9,7 @@ import com.forum.project.domain.exception.ErrorCode;
 import com.forum.project.domain.repository.QuestionRepository;
 import com.forum.project.domain.repository.TotalCountRepository;
 import com.forum.project.domain.repository.UserRepository;
-import com.forum.project.presentation.dtos.question.QuestionDtoConverter;
+import com.forum.project.application.converter.QuestionDtoConverter;
 import com.forum.project.presentation.dtos.question.RequestQuestionDto;
 import com.forum.project.presentation.dtos.question.ResponseQuestionDto;
 import org.junit.jupiter.api.Test;
@@ -185,8 +185,8 @@ class QuestionServiceTest {
         int size = 10;
 
         List<Question> questions = List.of(
-                new Question(1L, "Test title 1", "testUserId1", "Content1", "tag1", dateTime),
-                new Question(2L, "Test title 2", "testUserId2", "Content2", "tag2", dateTime)
+                new Question(1L, "Test title 1", "testUserId1", "Content1", "tag1", dateTime, 0),
+                new Question(2L, "Test title 2", "testUserId2", "Content2", "tag2", dateTime, 0)
         );
 
         when(totalCountRepository.getTotalCount()).thenReturn((long) questions.size());
@@ -212,8 +212,8 @@ class QuestionServiceTest {
         String keyword = "test";
 
         List<Question> questions = List.of(
-                new Question(1L, "Test title 1", "testUserId1", "Content1", "tag1", dateTime),
-                new Question(2L, "Test title 2", "testUserId2", "Content2", "tag2", dateTime)
+                new Question(1L, "Test title 1", "testUserId1", "Content1", "tag1", dateTime, 0),
+                new Question(2L, "Test title 2", "testUserId2", "Content2", "tag2", dateTime, 0)
         );
 
         when(totalCountRepository.getTotalCount()).thenReturn((long) questions.size());

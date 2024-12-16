@@ -3,6 +3,7 @@ package com.forum.project.presentation.config;
 import com.forum.project.application.auth.CustomUserDetailsService;
 import com.forum.project.application.security.jwt.JwtAuthFilter;
 import com.forum.project.application.security.jwt.TokenService;
+import com.forum.project.presentation.exception.ExceptionResponseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -18,7 +19,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @TestConfiguration
 @Slf4j
-@EnableWebSecurity
 @RequiredArgsConstructor
 public class TestSecurityConfig {
 
@@ -33,21 +33,6 @@ public class TestSecurityConfig {
             "/api/users/**","/h2-console/**", "/auth/**"
     };
 
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        log.info("Test security Filter Chain Start");
-//        http
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .cors(Customizer.withDefaults())
-//                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(
-//                        SessionCreationPolicy.STATELESS
-//                ))
-//                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-//                .formLogin(AbstractHttpConfigurer::disable)
-//                .httpBasic(AbstractHttpConfigurer::disable);
-//
-//        return http.build();
-//    }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         log.info("Test security Filter Chain Start");
@@ -68,4 +53,8 @@ public class TestSecurityConfig {
         return http.build();
     }
 
+    @Bean
+    public ExceptionResponseUtil exceptionResponseUtil() {
+        return new ExceptionResponseUtil();
+    }
 }

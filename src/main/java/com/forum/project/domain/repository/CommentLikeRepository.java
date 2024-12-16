@@ -1,8 +1,10 @@
 package com.forum.project.domain.repository;
 
+import com.forum.project.domain.entity.Comment;
 import com.forum.project.domain.entity.CommentLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> {
-    boolean existsByCommentIdAndUserId(Long commentId, String userId);
+public interface CommentLikeRepository {
+    boolean existsByCommentIdAndUserId(Long commentId, Long userId);
+    CommentLike save(CommentLike commentLike);
 }

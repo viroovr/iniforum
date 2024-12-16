@@ -1,6 +1,8 @@
-package com.forum.project.presentation.dtos.question;
+package com.forum.project.application.converter;
 
 import com.forum.project.domain.entity.Question;
+import com.forum.project.presentation.dtos.question.RequestQuestionDto;
+import com.forum.project.presentation.dtos.question.ResponseQuestionDto;
 import org.springframework.stereotype.Component;
 
 @Component

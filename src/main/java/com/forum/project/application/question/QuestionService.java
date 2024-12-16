@@ -8,7 +8,7 @@ import com.forum.project.domain.exception.ErrorCode;
 import com.forum.project.domain.repository.QuestionRepository;
 import com.forum.project.domain.repository.TotalCountRepository;
 import com.forum.project.domain.repository.UserRepository;
-import com.forum.project.presentation.dtos.question.QuestionDtoConverter;
+import com.forum.project.application.converter.QuestionDtoConverter;
 import com.forum.project.presentation.dtos.question.RequestQuestionDto;
 import com.forum.project.presentation.dtos.question.ResponseQuestionDto;
 import lombok.RequiredArgsConstructor;

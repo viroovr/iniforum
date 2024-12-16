@@ -1,70 +1,49 @@
 package com.forum.project.application.user;
 
+import com.forum.project.application.converter.UserDtoConverter;
+import com.forum.project.application.security.UserPasswordService;
 import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.entity.User;
 import com.forum.project.domain.exception.ApplicationException;
 import com.forum.project.domain.exception.ErrorCode;
 import com.forum.project.domain.repository.UserRepository;
-import com.forum.project.domain.exception.InvalidPasswordException;
 import com.forum.project.presentation.dtos.user.UserInfoDto;
 import com.forum.project.presentation.dtos.user.UserRequestDto;
 import com.forum.project.presentation.dtos.user.UserResponseDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final TokenService tokenService;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final String uploadDir = "src/main/resources/static/profile-images/";
-
-    @Autowired
-    public UserService(TokenService tokenService, UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.tokenService = tokenService;
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+    private final UserPasswordService passwordService;
+    private final UserDtoConverter userDtoConverter;
 
     public UserInfoDto getUserProfile(String token) {
-        String jwt = tokenService.extractTokenByHeader(token);
-        Long id = tokenService.getId(jwt);
-        User user = userRepository.findById(id).orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
+        Long id = tokenService.getId(token);
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
 
         return UserInfoDto.toDto(user);
     }
 
-    public UserResponseDto updateUserProfile(String token, UserRequestDto userRequestDto, MultipartFile file) throws IOException {
-        String jwt = tokenService.extractTokenByHeader(token);
-        User user = userRepository.findById(tokenService.getId(jwt)).orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));;
-        checkPassword(userRequestDto, user);
+    public UserResponseDto updateUserProfile(String token, UserRequestDto userRequestDto, String uploadDir) throws IOException {
+        Long id = tokenService.getId(token);
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));;
+        passwordService.validatePassword(userRequestDto.getPassword(), user.getPassword());
 
-        String newPassword = passwordEncoder.encode(userRequestDto.getNewPassword());
-        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-        File destinationFile = new File(uploadDir + filename);
-        try {
-            file.transferTo(destinationFile);
-        } catch (IOException e) {
-            throw new IOException("Failed to transfer the file: " + e.getMessage(), e);
-        }
+        String newPassword = passwordService.encode(userRequestDto.getNewPassword());
 
         user.setPassword(newPassword);
         user.setNickname(userRequestDto.getNickname());
-        user.setProfileImagePath("/profile-images/" + filename);
+        user.setProfileImagePath(uploadDir);
 
-        return UserResponseDto.toDto(userRepository.update(user));
-    }
-
-    private void checkPassword(UserRequestDto userRequestDto, User user) {
-        if (!passwordEncoder.matches(userRequestDto.getPassword(), user.getPassword())) {
-            throw new InvalidPasswordException("비밀번호가 일치하지 않습니다.");
-        }
+        return userDtoConverter.toUserResponseDto(userRepository.update(user));
     }
 }

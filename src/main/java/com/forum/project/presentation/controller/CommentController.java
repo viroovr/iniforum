@@ -1,89 +1,75 @@
 package com.forum.project.presentation.controller;
 
 import com.forum.project.application.question.CommentService;
+import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.presentation.dtos.comment.RequestCommentDto;
 import com.forum.project.presentation.dtos.comment.ResponseCommentDto;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/q")
+@RequestMapping(value = "/api/v1/comments")
 @RequiredArgsConstructor
 public class CommentController {
+
     private final CommentService commentService;
 
-    @RequestMapping(value = "/{questionId}/comments", method= RequestMethod.POST)
+    private final TokenService tokenService;
+
+    @PostMapping(value = "/{questionId}")
     public ResponseEntity<ResponseCommentDto> addComment(
+            @RequestHeader(value = "Authorization") String header,
             @PathVariable Long questionId,
             @RequestBody RequestCommentDto requestCommentDto
     ) {
-        ResponseCommentDto responseCommentDto = commentService.addComment(questionId, requestCommentDto);
-        return ResponseEntity.ok(responseCommentDto);
+        String accessToken = tokenService.extractTokenByHeader(header);
+        ResponseCommentDto responseCommentDto = commentService.addComment(questionId, requestCommentDto, accessToken);
+        return ResponseEntity.status(HttpStatus.OK).body(responseCommentDto);
     }
 
-    @RequestMapping(value = "/{questionId}/comments", method = RequestMethod.GET)
+    @GetMapping(value = "/{questionId}")
     public ResponseEntity<List<ResponseCommentDto>> getComments(
             @PathVariable Long questionId
     ) {
         List<ResponseCommentDto> comments = commentService.getCommentsByQuestionId(questionId);
-        return ResponseEntity.ok(comments);
+        return ResponseEntity.status(HttpStatus.OK).body(comments);
     }
 
-    @RequestMapping(value = "/{questionId}/comments/{id}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     public ResponseEntity<ResponseCommentDto> updateComment(
-            @RequestHeader(value = "Authorization") String token,
-            @PathVariable Long id,
+            @RequestHeader(value = "Authorization") String header,
+            @PathVariable("id") Long commentId,
             @RequestBody RequestCommentDto requestCommentDto
     ) {
-        try {
-            String jwt = extractToken(token);
-            ResponseCommentDto responseCommentDto = commentService.updateComment(id, requestCommentDto, jwt);
-            return ResponseEntity.ok(responseCommentDto);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        String jwt = tokenService.extractTokenByHeader(header);
+        ResponseCommentDto responseCommentDto = commentService.updateComment(commentId, requestCommentDto, jwt);
+        return ResponseEntity.status(HttpStatus.OK).body(responseCommentDto);
     }
 
-    @RequestMapping(value = "/{questionId}/comments/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<String> deleteComment(
-            @PathVariable Long id,
-            @RequestHeader(value = "Authorization") String token
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    public ResponseEntity<Map<String, String>> deleteComment(
+            @RequestHeader(value = "Authorization") String header,
+            @PathVariable Long id
     ) {
-        try {
-            String jwt = extractToken(token);
-            commentService.deleteComment(id, jwt);
-            return ResponseEntity.ok("Comment deleted successfully.");
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Comment not found.");
-        }
+        String jwt = tokenService.extractTokenByHeader(header);
+        commentService.deleteComment(id, jwt);
+        Map<String, String> response = Map.of("message", "Comment deleted successfully.");
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    private String extractToken(String authorizationHeader) {
-        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            return authorizationHeader.substring(7);
-        }
-        throw new IllegalArgumentException("Invalid Authorization header");
-    }
-
-    @RequestMapping(value = "/comments/{id}/like", method = RequestMethod.POST)
-    public ResponseEntity<?> likeComment(
-            @PathVariable Long id,
-            @RequestHeader(value = "Authorization") String token
+    @RequestMapping(value = "/{id}/like", method = RequestMethod.POST)
+    public ResponseEntity<Map<String, String>> likeComment(
+            @RequestHeader(value = "Authorization") String header,
+            @PathVariable Long id
     ) {
-        try {
-            String jwt = extractToken(token);
-            commentService.likeComment(id, jwt);
-            return ResponseEntity.ok("Comment liked successfully");
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Comment not found");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        String jwt = tokenService.extractTokenByHeader(header);
+        commentService.likeComment(id, jwt);
+        Map<String, String> response = Map.of("message", "Comment liked successfully.");
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-
 }

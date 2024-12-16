@@ -317,5 +317,4 @@ class EmailServiceTest {
             verify(redisTemplate.opsForValue()).get(REDIS_PREFIX + fromEmail);
         }
     }
-
 }

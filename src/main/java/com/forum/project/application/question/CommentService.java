@@ -1,22 +1,20 @@
 package com.forum.project.application.question;
 
+import com.forum.project.application.converter.CommentDtoConverter;
 import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.entity.Comment;
 import com.forum.project.domain.entity.CommentLike;
-import com.forum.project.domain.entity.Question;
+import com.forum.project.domain.exception.ApplicationException;
+import com.forum.project.domain.exception.ErrorCode;
 import com.forum.project.domain.repository.CommentLikeRepository;
 import com.forum.project.domain.repository.CommentRepository;
 import com.forum.project.presentation.dtos.comment.RequestCommentDto;
 import com.forum.project.presentation.dtos.comment.ResponseCommentDto;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @RequiredArgsConstructor
@@ -24,79 +22,60 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final TokenService tokenService;
+    private final CommentDtoConverter converter;
 
-    public ResponseCommentDto addComment(Long questionId, RequestCommentDto requestCommentDto) {
-        Question question = new Question();
-        question.setId(questionId);
+    @Transactional
+    public ResponseCommentDto addComment(Long questionId, RequestCommentDto requestCommentDto, String accessToken) {
+        String userId = tokenService.getUserId(accessToken);
+        Comment comment = converter.fromRequestDtoToEntity(requestCommentDto);
 
-        Comment comment = RequestCommentDto.toEntity(requestCommentDto);
-        comment.setQuestion(question);
-        comment.setLikeCount(0L);
+        comment.setQuestionId(questionId);
+        comment.setUserId(userId);
 
-        return ResponseCommentDto.toDto(commentRepository.save(comment));
+        return converter.toResponseCommentDto(commentRepository.save(comment));
     }
 
     public List<ResponseCommentDto> getCommentsByQuestionId(Long questionId) {
         return commentRepository.findByQuestionId(questionId)
-                .stream().map(ResponseCommentDto::toDto).toList();
+                .stream().map(converter::toResponseCommentDto).toList();
     }
 
     @Transactional
-    public void deleteComment(Long id, String token) {
-
+    public void deleteComment(Long commentId, String token) {
         String currentUserId = tokenService.getUserId(token);
-        Optional<Comment> existingComment = commentRepository.findById(id);
+        Comment existingComment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_NOT_FOUND));
 
-        if(existingComment.isPresent()) {
-            Comment existing = existingComment.get();
-            if(!existing.getUserId().equals(currentUserId)) {
-                throw new BadCredentialsException("You are not authorized");
-            }
-            commentRepository.delete(existing);
-            return ;
+        if(!existingComment.getUserId().equals(currentUserId)) {
+            throw new ApplicationException(ErrorCode.AUTH_BAD_CREDENTIAL);
         }
-
-        throw new EntityNotFoundException("Comment not found.");
-
-
+        commentRepository.deleteById(commentId);
     }
 
     @Transactional
     public ResponseCommentDto updateComment(Long id, RequestCommentDto requestCommentDto, String token) {
         String currentUserId = tokenService.getUserId(token);
-        Optional<Comment> existingComment = commentRepository.findById(id);
+        Comment existingComment = commentRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_NOT_FOUND));;
 
-        if (existingComment.isPresent()) {
-            Comment existing = existingComment.get();
-
-            if(!existing.getUserId().equals(currentUserId)) {
-                throw new BadCredentialsException("You are not authorized");
-            }
-
-            existing.setContent(requestCommentDto.getContent());
-            return ResponseCommentDto.toDto(commentRepository.save(existing));
-        } else {
-            throw new EntityNotFoundException("Comment not found.");
-
+        if(!existingComment.getUserId().equals(currentUserId)) {
+            throw new ApplicationException(ErrorCode.AUTH_BAD_CREDENTIAL);
         }
+
+        existingComment.setContent(requestCommentDto.getContent());
+        return converter.toResponseCommentDto(commentRepository.save(existingComment));
     }
 
     @Transactional
     public void likeComment(Long commentId, String token) {
-        String userId = tokenService.getUserId(token);
+        Long userId = tokenService.getId(token);
 
         if(commentLikeRepository.existsByCommentIdAndUserId(commentId, userId))
-            throw new IllegalArgumentException("Already recommend");
+            throw new ApplicationException(ErrorCode.LIKE_ALREADY_EXISTS);
 
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new EntityNotFoundException("Comment not found"));
+                .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_NOT_FOUND));
 
-        commentLikeRepository.save(new CommentLike(userId, comment));
-
-        AtomicLong atomicLong = new AtomicLong(comment.getLikeCount());
-        comment.setLikeCount(atomicLong.addAndGet(1));
-
-        commentRepository.save(comment);
+        commentLikeRepository.save(new CommentLike(userId, commentId));
     }
-
 }

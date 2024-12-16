@@ -1,8 +1,9 @@
 package com.forum.project.infrastructure;
 
 import com.forum.project.domain.entity.User;
+import com.forum.project.domain.exception.ApplicationException;
+import com.forum.project.domain.exception.ErrorCode;
 import com.forum.project.domain.repository.UserRepository;
-import com.forum.project.domain.exception.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
@@ -61,7 +62,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     public User update(User user) {
         if (!userIdExists(user.getUserId())) {
-            throw new UserNotFoundException("존재하지 않는 아이디입니다.");
+            throw new ApplicationException(ErrorCode.USER_NOT_FOUND);
         }
         String sql = "UPDATE users SET password = :password, profile_image_path = :profileImagePath," +
                 "nickname = :nickname WHERE id = :id";
