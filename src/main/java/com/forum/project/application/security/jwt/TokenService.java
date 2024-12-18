@@ -1,12 +1,12 @@
 package com.forum.project.application.security.jwt;
 
+import com.forum.project.application.user.UserRole;
 import com.forum.project.presentation.dtos.user.UserInfoDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -42,15 +42,20 @@ public class TokenService {
         return parseClaims(token).get("id", Long.class);
     }
 
-    public String getUserId(String token) {
-        return parseClaims(token).get("userId", String.class);
+    public String getLoginId(String token) {
+        return parseClaims(token).get("loginId", String.class);
+    }
+
+    public UserRole getRole(String token) {
+        return parseClaims(token).get("role", UserRole.class);
     }
 
     private String createToken(UserInfoDto member, long expireTime) {
         Claims claims = Jwts.claims();
         claims.put("id", member.getId());
-        claims.put("userId", member.getUserId());
+        claims.put("loginId", member.getLoginId());
         claims.put("email", member.getEmail());
+        claims.put("role", member.getRole());
 
         ZonedDateTime now = ZonedDateTime.now();
         ZonedDateTime tokenValidity = now.plusSeconds(expireTime);
@@ -76,7 +81,7 @@ public class TokenService {
         return expiration.getTime() - System.currentTimeMillis() / 1000;
     }
 
-    public boolean validateToken(String token) {
+    public boolean isValidToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
@@ -102,11 +107,12 @@ public class TokenService {
 
     public String regenerateAccessToken(String refreshToken) {
         Claims claims = parseClaims(refreshToken);
-        UserInfoDto userInfoDto = new UserInfoDto(
-                claims.get("id", Long.class),
-                claims.get("userId", String.class),
-                claims.get("email", String.class)
-        );
+        UserInfoDto userInfoDto = UserInfoDto.builder()
+                .id(claims.get("id", Long.class))
+                .loginId(claims.get("loginId", String.class))
+                .email(claims.get("email", String.class))
+                .role(claims.get("role", UserRole.class))
+                .build();
 
         return createAccessToken(userInfoDto);
 

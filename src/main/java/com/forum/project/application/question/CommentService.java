@@ -1,6 +1,6 @@
 package com.forum.project.application.question;
 
-import com.forum.project.application.converter.CommentDtoConverter;
+import com.forum.project.application.converter.CommentDtoConverterFactory;
 import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.entity.Comment;
 import com.forum.project.domain.entity.CommentLike;
@@ -22,31 +22,30 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final TokenService tokenService;
-    private final CommentDtoConverter converter;
 
     @Transactional
     public ResponseCommentDto addComment(Long questionId, RequestCommentDto requestCommentDto, String accessToken) {
-        String userId = tokenService.getUserId(accessToken);
-        Comment comment = converter.fromRequestDtoToEntity(requestCommentDto);
+        Long userId = tokenService.getId(accessToken);
+        Comment comment = CommentDtoConverterFactory.fromRequestDtoToEntity(requestCommentDto);
 
         comment.setQuestionId(questionId);
         comment.setUserId(userId);
 
-        return converter.toResponseCommentDto(commentRepository.save(comment));
+        return CommentDtoConverterFactory.toResponseCommentDto(commentRepository.save(comment));
     }
 
     public List<ResponseCommentDto> getCommentsByQuestionId(Long questionId) {
         return commentRepository.findByQuestionId(questionId)
-                .stream().map(converter::toResponseCommentDto).toList();
+                .stream().map(CommentDtoConverterFactory::toResponseCommentDto).toList();
     }
 
     @Transactional
     public void deleteComment(Long commentId, String token) {
-        String currentUserId = tokenService.getUserId(token);
+        String currentLoginId = tokenService.getLoginId(token);
         Comment existingComment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_NOT_FOUND));
 
-        if(!existingComment.getUserId().equals(currentUserId)) {
+        if(!existingComment.getLoginId().equals(currentLoginId)) {
             throw new ApplicationException(ErrorCode.AUTH_BAD_CREDENTIAL);
         }
         commentRepository.deleteById(commentId);
@@ -54,16 +53,16 @@ public class CommentService {
 
     @Transactional
     public ResponseCommentDto updateComment(Long id, RequestCommentDto requestCommentDto, String token) {
-        String currentUserId = tokenService.getUserId(token);
+        String currentUserId = tokenService.getLoginId(token);
         Comment existingComment = commentRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_NOT_FOUND));;
 
-        if(!existingComment.getUserId().equals(currentUserId)) {
+        if(!existingComment.getLoginId().equals(currentUserId)) {
             throw new ApplicationException(ErrorCode.AUTH_BAD_CREDENTIAL);
         }
 
         existingComment.setContent(requestCommentDto.getContent());
-        return converter.toResponseCommentDto(commentRepository.save(existingComment));
+        return CommentDtoConverterFactory.toResponseCommentDto(commentRepository.save(existingComment));
     }
 
     @Transactional
@@ -73,9 +72,9 @@ public class CommentService {
         if(commentLikeRepository.existsByCommentIdAndUserId(commentId, userId))
             throw new ApplicationException(ErrorCode.LIKE_ALREADY_EXISTS);
 
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_NOT_FOUND));
-
-        commentLikeRepository.save(new CommentLike(userId, commentId));
+        commentLikeRepository.save(CommentLike.builder()
+                        .userId(userId)
+                        .commentId(commentId)
+                .build());
     }
 }

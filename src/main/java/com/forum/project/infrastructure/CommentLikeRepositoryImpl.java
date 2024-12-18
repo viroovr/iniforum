@@ -27,7 +27,6 @@ public class CommentLikeRepositoryImpl implements CommentLikeRepository {
         return Boolean.TRUE.equals(exists);
     }
 
-
     @Override
     public CommentLike save(CommentLike commentLike) {
         String sql = "INSERT INTO likes (user_id, comment_id) VALUES (:userId, :commentId)";

@@ -45,7 +45,7 @@ public class QuestionController {
             @PathVariable("id") Long questionId,
             @RequestBody RequestQuestionDto requestQuestionDto,
             @RequestHeader(value = "Authorization") String header
-            ) {
+    ) {
         String accessToken = tokenService.extractTokenByHeader(header);
         ResponseQuestionDto responseQuestionDto = questionService.updateQuestion(questionId, requestQuestionDto, accessToken);
         return ResponseEntity.status(HttpStatus.OK).body(responseQuestionDto);

@@ -1,6 +1,6 @@
 package com.forum.project.application.user;
 
-import com.forum.project.application.converter.UserDtoConverter;
+import com.forum.project.application.converter.UserDtoConverterFactory;
 import com.forum.project.application.security.UserPasswordService;
 import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.entity.User;
@@ -13,8 +13,6 @@ import com.forum.project.presentation.dtos.user.UserResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -22,17 +20,16 @@ public class UserService {
     private final TokenService tokenService;
     private final UserRepository userRepository;
     private final UserPasswordService passwordService;
-    private final UserDtoConverter userDtoConverter;
 
     public UserInfoDto getUserProfile(String token) {
         Long id = tokenService.getId(token);
         User user = userRepository.findById(id).orElseThrow(
                 () -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
 
-        return UserInfoDto.toDto(user);
+        return UserDtoConverterFactory.toUserInfoDto(user);
     }
 
-    public UserResponseDto updateUserProfile(String token, UserRequestDto userRequestDto, String uploadDir) throws IOException {
+    public UserResponseDto updateUserProfile(String token, UserRequestDto userRequestDto, String uploadDir) {
         Long id = tokenService.getId(token);
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));;
@@ -44,6 +41,6 @@ public class UserService {
         user.setNickname(userRequestDto.getNickname());
         user.setProfileImagePath(uploadDir);
 
-        return userDtoConverter.toUserResponseDto(userRepository.update(user));
+        return UserDtoConverterFactory.toUserResponseDto(userRepository.update(user));
     }
 }

@@ -4,7 +4,7 @@ import com.forum.project.domain.entity.User;
 import com.forum.project.domain.exception.ApplicationException;
 import com.forum.project.domain.exception.ErrorCode;
 import com.forum.project.domain.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -14,43 +14,41 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
 @Repository
+@RequiredArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-    @Autowired
-    public UserRepositoryImpl(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
-        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
-    }
+    private final Clock clock;
 
     @Override
     public Optional<User> findById(Long id) {
-        String sql = "SELECT * FROM users WHERE id = :id";
+        String sql = "SELECT 1 FROM users WHERE id = :id";
         SqlParameterSource namedParameters = new MapSqlParameterSource("id", id);
-        return namedParameterJdbcTemplate
-                .query(sql, namedParameters, new BeanPropertyRowMapper<>(User.class))
-                .stream()
-                .findFirst();
+        return Optional.ofNullable(namedParameterJdbcTemplate
+                .queryForObject(sql, namedParameters, new BeanPropertyRowMapper<>(User.class)));
     }
 
     @Override
-    public Optional<User> findByUserId(String userId) {
-        String sql = "SELECT * FROM users WHERE user_id = :userId";
-        SqlParameterSource namedParameters = new MapSqlParameterSource("userId", userId);
-        return namedParameterJdbcTemplate
-                .query(sql, namedParameters, new BeanPropertyRowMapper<>(User.class))
-                .stream()
-                .findFirst();
+    public Optional<User> findByUserLoginId(String loginId) {
+        String sql = "SELECT 1 FROM users WHERE login_id = :loginId";
+        SqlParameterSource namedParameters = new MapSqlParameterSource("loginId", loginId);
+        return Optional.ofNullable(namedParameterJdbcTemplate
+                .queryForObject(sql, namedParameters, new BeanPropertyRowMapper<>(User.class)));
     }
 
     @Override
     public User save(User user) {
-        String sql = "INSERT INTO users (user_id, email, password, name, nickname, created_date) " +
-                "VALUES (:userId, :email, :password, :name, :nickname, :createdDate)";
+        if (user.getCreatedDate() == null) {
+            user.setCreatedDate(LocalDateTime.now(clock));
+        }
+        String sql = "INSERT INTO users (login_id, email, password, name, nickname, created_date) " +
+                "VALUES (:loginId, :email, :password, :name, :nickname, :createdDate)";
         SqlParameterSource namedParameters = new BeanPropertySqlParameterSource(user);
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -61,9 +59,6 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     public User update(User user) {
-        if (!userIdExists(user.getUserId())) {
-            throw new ApplicationException(ErrorCode.USER_NOT_FOUND);
-        }
         String sql = "UPDATE users SET password = :password, profile_image_path = :profileImagePath," +
                 "nickname = :nickname WHERE id = :id";
         MapSqlParameterSource parameterSource = new MapSqlParameterSource();
@@ -77,16 +72,16 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     public boolean emailExists(String email) {
-        String sql = "SELECT COUNT(*) FROM users WHERE email = :email";
+        String sql = "SELECT EXISTS (SELECT 1 FROM users WHERE email = :email)";
         SqlParameterSource namedParameters = new MapSqlParameterSource("email", email);
-        Integer count = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
-        return count != null && count > 0;
+        Boolean exists = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Boolean.class);
+        return Boolean.TRUE.equals(exists);
     }
 
-    public boolean userIdExists(String userId) {
-        String sql = "SELECT COUNT(*) FROM users WHERE user_id = :userId";
-        SqlParameterSource namedParameters = new MapSqlParameterSource("userId", userId);
-        Integer count = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
-        return count != null && count > 0;
+    public boolean userLoginIdExists(String loginId) {
+        String sql = "SELECT EXISTS (SELECT 1 FROM users WHERE login_id = :loginId)";
+        SqlParameterSource namedParameters = new MapSqlParameterSource("loginId", loginId);
+        Boolean exists = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Boolean.class);
+        return Boolean.TRUE.equals(exists);
     }
 }

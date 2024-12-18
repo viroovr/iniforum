@@ -5,7 +5,6 @@ import com.forum.project.domain.exception.ErrorCode;
 import com.forum.project.presentation.dtos.user.UserInfoDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
@@ -15,25 +14,21 @@ import java.util.concurrent.TimeUnit;
 public class AccessTokenService {
 
     private final RedisTemplate<String, Object> redisTemplate;
-
+    private static final String REDIS_PREFIX = "blacklist:accessToken:";
     private final TokenService tokenService;
 
-    public void validateToken(String accessToken) {
+    public void checkTokenValidity(String accessToken) {
+        if (tokenService.isValidToken(accessToken)) {
+            throw new ApplicationException(ErrorCode.AUTH_INVALID_TOKEN);
+        }
         if (isBlacklisted(accessToken)) {
             throw new ApplicationException(ErrorCode.AUTH_BLACKLISTED_REFRESH_TOKEN);
         }
-        if (tokenService.validateToken(accessToken)) {
-            throw new ApplicationException(ErrorCode.AUTH_INVALID_TOKEN);
-        }
     }
 
-    public void invalidateToken(String token) {
-        long expirationTime = tokenService.getExpirationTime(token);;
-        redisTemplate.opsForValue().set(token, true, expirationTime, TimeUnit.SECONDS);
-    }
-
-    public Object getBlackList(String key) {
-        return redisTemplate.opsForValue().get(key);
+    public void revokeToken(String token) {
+        long expirationTime = tokenService.getExpirationTime(token);
+        redisTemplate.opsForValue().set(REDIS_PREFIX + token, true, expirationTime, TimeUnit.SECONDS);
     }
 
     public boolean isBlacklisted(String key) {
@@ -43,9 +38,4 @@ public class AccessTokenService {
     public String createAccessToken(UserInfoDto userInfoDto) {
         return tokenService.createAccessToken(userInfoDto);
     }
-
-    public String extractTokenByHeader(String header) {
-        return tokenService.extractTokenByHeader(header);
-    }
-
 }

@@ -8,13 +8,10 @@ import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.domain.exception.ApplicationException;
 import com.forum.project.domain.exception.ErrorCode;
 import com.forum.project.presentation.config.TestSecurityConfig;
-import com.forum.project.presentation.dtos.auth.LoginRequestDto;
-import com.forum.project.presentation.dtos.auth.SignupRequestDto;
-import com.forum.project.presentation.dtos.auth.SignupResponseDto;
+import com.forum.project.presentation.dtos.auth.*;
 import com.forum.project.presentation.dtos.token.TokenResponseDto;
-import com.forum.project.presentation.exception.ExceptionResponseUtil;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,13 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.context.request.WebRequest;
-
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -56,27 +49,37 @@ class AuthControllerUnitTest {
     @MockBean
     private EmailService emailService;
 
-    private final String requestSignupUriPath = "/api/v1/auth/signup";
-    private final String requestLoginUriPath = "/api/v1/auth/login";
-    private final String requestVerificationCodeUriPath = "/api/v1/auth/send-email";
-    private final String requestVerifyEmailUriPath = "/api/v1/auth/verify-email";
-    private final SignupRequestDto signupRequestDto = new SignupRequestDto("user1", "email@example.com", "password1_", "홍길동");
-    private final SignupResponseDto signupResponseDto = new SignupResponseDto("user1", "email@example.com", "홍길동");
-    private final LoginRequestDto loginRequestDto = new LoginRequestDto("user1", "password1_");
-    private final TokenResponseDto tokens = new TokenResponseDto("access-token", "refresh-token");
+    private final String signupUriPath = "/api/v1/auth/signup";
+    private final String loginUriPath = "/api/v1/auth/login";
+    private final String sendEmailUriPath = "/api/v1/auth/send-email";
+    private final String verifyEmailUriPath = "/api/v1/auth/verify-email";
+    private final String logoutUriPath = "/api/v1/auth/logout";
+    private EmailRequestDto emailRequestDto;
+    private SignupRequestDto signupRequestDto;
+    private SignupResponseDto signupResponseDto;
+    private LoginRequestDto loginRequestDto;
+    private TokenResponseDto tokenResponseDto;
+
+    @BeforeEach
+    void setUp() {
+        emailRequestDto = TestDtoFactory.createEmailRequestDto();
+        signupRequestDto = TestDtoFactory.createSignupRequestDto();
+        signupResponseDto = TestDtoFactory.createSignupResponseDto();
+        loginRequestDto = TestDtoFactory.createLoginRequestDto();
+        tokenResponseDto = TestDtoFactory.createTokenResponseDto();
+    }
 
     @Test
     void testSendEmail_Success() throws Exception {
-        String email = "receiver@example.com";
-        doNothing().when(emailService).sendVerificationCode(email);
-        Map<String, String> request = Map.of("email", email);
+        String email = emailRequestDto.getEmail();
 
-        mockMvc.perform(post(requestVerificationCodeUriPath)
+        doNothing().when(emailService).sendVerificationCode(email);
+
+        mockMvc.perform(post(sendEmailUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(request)))
-                .andExpect(status().isOk())
+                        .content(new ObjectMapper().writeValueAsString(emailRequestDto)))
                 .andDo(print())
-                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Verification email sent"));
 
         verify(emailService).sendVerificationCode(email);
@@ -84,17 +87,16 @@ class AuthControllerUnitTest {
 
     @Test
     void testVerifyEmail_Success() throws Exception {
-        String email = "receiver@example.com";
-        String code = "123456";
-        doNothing().when(emailService).verifyCode(email, code);
-        Map<String, String> request = Map.of("email", email, "code", code);
+        String email = emailRequestDto.getEmail();
+        String code = emailRequestDto.getCode();
 
-        mockMvc.perform(post(requestVerifyEmailUriPath)
+        doNothing().when(emailService).verifyCode(email, code);
+
+        mockMvc.perform(post(verifyEmailUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(request)))
-                .andExpect(status().isOk())
+                        .content(new ObjectMapper().writeValueAsString(emailRequestDto)))
                 .andDo(print())
-                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Email verified successfully"));
 
         verify(emailService).verifyCode(email, code);
@@ -105,21 +107,83 @@ class AuthControllerUnitTest {
         when(authService.createUser(signupRequestDto)).thenReturn(signupResponseDto);
         doNothing().when(emailService).verifyEmail(signupRequestDto.getEmail());
 
-        mockMvc.perform(post(requestSignupUriPath)
+        mockMvc.perform(post(signupUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(signupRequestDto)))
-                .andExpect(status().isOk())
                 .andDo(print())
-                .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.userId").value("user1"))
-                .andExpect(jsonPath("$.email").value("email@example.com"))
-                .andExpect(jsonPath("$.name").value("홍길동"));
+                .andExpect(status().isOk())
+                .andExpect(content().json(new ObjectMapper().writeValueAsString(signupResponseDto)));
 
-        verify(authService, times(1)).createUser(any(SignupRequestDto.class));
+        verify(authService).createUser(signupRequestDto);
+        verify(emailService).verifyEmail(signupRequestDto.getEmail());
+    }
+
+    @Test
+    void testRequestLogin_Success() throws Exception {
+        String refreshToken = tokenResponseDto.getRefreshToken();
+
+        when(authService.loginUserWithTokens(loginRequestDto)).thenReturn(tokenResponseDto);
+        when(cookieService.createRefreshTokenCookie(refreshToken))
+                .thenReturn(new Cookie("refreshToken", refreshToken));
+
+        mockMvc.perform(post(loginUriPath)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(loginRequestDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(new ObjectMapper().writeValueAsString(tokenResponseDto)))
+                .andExpect(cookie().value("refreshToken", refreshToken));
+
+        verify(authService).loginUserWithTokens(loginRequestDto);
+        verify(cookieService).createRefreshTokenCookie(refreshToken);
+    }
+
+    @Test
+    public void testLogout_Success() throws Exception {
+        String header = "Bearer jwt-token";
+        String refreshToken = "refresh-token";
+        String accessToken = "access-token";
+
+        when(tokenService.extractTokenByHeader(header)).thenReturn(accessToken);
+        when(cookieService.getRefreshTokenFromCookies(any(HttpServletRequest.class)))
+                .thenReturn(refreshToken);
+        doNothing().when(authService).logout(accessToken, refreshToken);
+
+        mockMvc.perform(post(logoutUriPath)
+                        .cookie(new Cookie("refreshToken", refreshToken))
+                        .header("Authorization", header))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Logged out successfully"))
+                .andExpect(cookie().value("refreshToken", ""));
+
+        verify(tokenService).extractTokenByHeader(header);
+        verify(authService).logout(accessToken, refreshToken);
+        verify(cookieService).getRefreshTokenFromCookies(any(HttpServletRequest.class));
+    }
+
+    @Test
+    public void testRefreshAccessToken_Success() throws Exception {
+        String refreshToken = "refresh-token";
+        String refreshUriPath = "/api/v1/auth/refresh";
+        tokenResponseDto.setAccessToken(null);
+
+        when(cookieService.getRefreshTokenFromCookies(any(HttpServletRequest.class))).thenReturn(refreshToken);
+        when(authService.refreshAccessToken(refreshToken)).thenReturn(tokenResponseDto);
+
+        mockMvc.perform(post(refreshUriPath)
+                        .cookie(new Cookie("refreshToken", refreshToken)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(new ObjectMapper().writeValueAsString(tokenResponseDto)));
+
+        verify(authService).refreshAccessToken(eq(refreshToken));
+        verify(cookieService).getRefreshTokenFromCookies(any(HttpServletRequest.class));
     }
 
     private void verifyErrorResponse(ResultActions resultActions, ErrorCode errorCode, String uriPath) throws Exception {
         resultActions
+                .andExpect(status().is(errorCode.getStatus().value()))
                 .andExpect(jsonPath("$.error").value(errorCode.getCode()))
                 .andExpect(jsonPath("$.message").value(errorCode.getMessage()))
                 .andExpect(jsonPath("$.path").value(uriPath));
@@ -127,149 +191,87 @@ class AuthControllerUnitTest {
 
     @Test
     void testSendEmail_FailureSendingEmailException() throws Exception {
-        String email = "receiver@example.com";
-        Map<String, String> request = Map.of("email", email);
+        ErrorCode errorCode = ErrorCode.FAIL_SENDING_EMAIL;
+        String email = emailRequestDto.getEmail();
 
-        doThrow(new ApplicationException(ErrorCode.FAIL_SENDING_EMAIL))
+        doThrow(new ApplicationException(errorCode))
                 .when(emailService).sendVerificationCode(email);
 
-        ResultActions result = mockMvc.perform(post(requestVerificationCodeUriPath)
+        ResultActions result = mockMvc.perform(post(sendEmailUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isInternalServerError());
+                        .content(new ObjectMapper().writeValueAsString(emailRequestDto)));
 
-        verifyErrorResponse(result, ErrorCode.FAIL_SENDING_EMAIL, requestVerificationCodeUriPath);
+        verify(emailService).sendVerificationCode(email);
+        verifyErrorResponse(result, errorCode, sendEmailUriPath);
     }
 
     @Test
     void testSendEmail_InvalidSendingEmailException() throws Exception {
-        String email = "receiver@example.com";
-        String code = "123456";
-        Map<String, String> request = Map.of("email", email, "code", code);
+        ErrorCode errorCode = ErrorCode.INVALID_VERIFICATION_CODE;
+        String email = emailRequestDto.getEmail();
+        String code = emailRequestDto.getCode();
 
-        doThrow(new ApplicationException(ErrorCode.INVALID_VERIFICATION_CODE))
-                .when(emailService).verifyCode(email, code);
+        doThrow(new ApplicationException(errorCode)).when(emailService).verifyCode(email, code);
 
-        ResultActions result = mockMvc.perform(post(requestVerifyEmailUriPath)
+        ResultActions result = mockMvc.perform(post(verifyEmailUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
+                        .content(new ObjectMapper().writeValueAsString(emailRequestDto)));
 
-        verifyErrorResponse(result, ErrorCode.INVALID_VERIFICATION_CODE, requestVerifyEmailUriPath);
+        verifyErrorResponse(result, errorCode, verifyEmailUriPath);
     }
-
 
     @Test
     void testRequestSignup_UserIdAlreadyExistsException() throws Exception {
-        when(authService.createUser(any(SignupRequestDto.class)))
-                .thenThrow(new ApplicationException(ErrorCode.USER_ID_ALREADY_EXISTS));
+        ErrorCode errorCode = ErrorCode.LOGIN_ID_ALREADY_EXISTS;
 
-        ResultActions result = mockMvc.perform(post(requestSignupUriPath)
+        when(authService.createUser(signupRequestDto)).thenThrow(new ApplicationException(errorCode));
+
+        ResultActions result = mockMvc.perform(post(signupUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(signupRequestDto)))
-                .andDo(print())
-                .andExpect(status().isConflict());
+                        .content(new ObjectMapper().writeValueAsString(signupRequestDto)));
 
-        verifyErrorResponse(result, ErrorCode.USER_ID_ALREADY_EXISTS, requestSignupUriPath);
+        verifyErrorResponse(result, errorCode, signupUriPath);
     }
 
     @Test
     void testRequestSignup_EmailAlreadyExistsException() throws Exception {
-        when(authService.createUser(any(SignupRequestDto.class)))
-                .thenThrow(new ApplicationException(ErrorCode.EMAIL_ALREADY_EXISTS));
+        ErrorCode errorCode = ErrorCode.EMAIL_ALREADY_EXISTS;
 
-        ResultActions result = mockMvc.perform(post(requestSignupUriPath)
+        when(authService.createUser(signupRequestDto))
+                .thenThrow(new ApplicationException(errorCode));
+
+        ResultActions result = mockMvc.perform(post(signupUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(signupRequestDto)))
-                .andExpect(status().isConflict());
+                        .content(new ObjectMapper().writeValueAsString(signupRequestDto)));
 
-        verifyErrorResponse(result, ErrorCode.EMAIL_ALREADY_EXISTS, requestSignupUriPath);
+        verifyErrorResponse(result, errorCode, signupUriPath);
     }
 
     @Test
     void testRequestSignup_EmailNotValidated() throws Exception {
-        doThrow(new ApplicationException(ErrorCode.FAIL_SENDING_EMAIL))
+        ErrorCode errorCode = ErrorCode.FAIL_SENDING_EMAIL;
+
+        doThrow(new ApplicationException(errorCode))
                 .when(emailService).verifyEmail(signupRequestDto.getEmail());
 
-        ResultActions result = mockMvc.perform(post(requestSignupUriPath)
+        ResultActions result = mockMvc.perform(post(signupUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(signupRequestDto)))
-                .andDo(print())
-                .andExpect(status().isInternalServerError());
+                        .content(new ObjectMapper().writeValueAsString(signupRequestDto)));
 
-        verifyErrorResponse(result, ErrorCode.FAIL_SENDING_EMAIL, requestSignupUriPath);
-    }
-
-    @Test
-    void testRequestLogin_Success() throws Exception {
-        when(authService.loginUserWithTokens(any(LoginRequestDto.class))).thenReturn(tokens);
-        when(cookieService.createRefreshTokenCookie("refresh-token")).thenReturn(new Cookie("refreshToken", "refresh-token"));
-
-        mockMvc.perform(post(requestLoginUriPath)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(loginRequestDto)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(new ObjectMapper().writeValueAsString(tokens)))
-                .andExpect(cookie().value("refreshToken", "refresh-token"));
-
-        verify(authService, times(1)).loginUserWithTokens(any(LoginRequestDto.class));
-        verify(cookieService, times(1)).createRefreshTokenCookie(any());
+        verifyErrorResponse(result, errorCode, signupUriPath);
     }
 
     @Test
     void testRequestLogin_InvalidPasswordException() throws Exception {
-        when(authService.loginUserWithTokens(any(LoginRequestDto.class)))
-                .thenThrow(new ApplicationException(ErrorCode.AUTH_INVALID_PASSWORD));
+        ErrorCode errorCode = ErrorCode.AUTH_INVALID_PASSWORD;
 
-        ResultActions result = mockMvc.perform(post(requestLoginUriPath)
+        when(authService.loginUserWithTokens(loginRequestDto))
+                .thenThrow(new ApplicationException(errorCode));
+
+        ResultActions result = mockMvc.perform(post(loginUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(loginRequestDto)))
-                .andExpect(status().isConflict());
+                        .content(new ObjectMapper().writeValueAsString(loginRequestDto)));
 
-        verifyErrorResponse(result, ErrorCode.AUTH_INVALID_PASSWORD, requestLoginUriPath);
-
-        verify(authService, times(1)).loginUserWithTokens(any(LoginRequestDto.class));
-        verify(cookieService, never()).createRefreshTokenCookie(any());
-    }
-
-    @Test
-    public void testLogout() throws Exception {
-        String logoutUriPath = "/api/v1/auth/logout";
-        String jwt = "Bearer jwt-token";
-        String refreshToken = "refresh-token";
-
-        when(cookieService.getRefreshTokenFromCookies(any())).thenReturn(refreshToken);
-        doNothing().when(authService).logout(eq(jwt), eq(refreshToken));
-        doCallRealMethod().when(cookieService).clearRefreshToken(any(HttpServletResponse.class));
-
-        mockMvc.perform(post(logoutUriPath)
-                        .header("Authorization", jwt))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Logged out successfully"))
-                .andExpect(cookie().value("refreshToken", ""));
-
-        verify(authService, times(1)).logout(eq(jwt), eq(refreshToken));
-        verify(cookieService, times(1)).clearRefreshToken(any(HttpServletResponse.class));
-        verify(cookieService, times(1)).getRefreshTokenFromCookies(any());
-    }
-
-    @Test
-    public void testRefreshAccessToken() throws Exception {
-        String refreshToken = "refresh-token";
-        TokenResponseDto tokenResponseDto = new TokenResponseDto("access-token", null);
-
-        when(cookieService.getRefreshTokenFromCookies(any())).thenReturn(refreshToken);
-        when(authService.refreshAccessToken(refreshToken)).thenReturn(tokenResponseDto);
-
-        mockMvc.perform(post("/api/v1/auth/refresh"))
-                .andExpect(status().isOk())
-                .andExpect(content().json(new ObjectMapper().writeValueAsString(tokenResponseDto)));
-
-        verify(authService, times(1)).refreshAccessToken(eq(refreshToken));
-        verify(cookieService, times(1)).getRefreshTokenFromCookies(any());
+        verifyErrorResponse(result, errorCode, loginUriPath);
     }
 }

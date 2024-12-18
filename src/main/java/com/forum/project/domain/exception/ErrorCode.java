@@ -20,7 +20,7 @@ public enum ErrorCode {
 
 //  3. Conflict & Duplication
     EMAIL_ALREADY_EXISTS("EMAIL_ALREADY_EXISTS", "Email already exists", HttpStatus.CONFLICT),
-    USER_ID_ALREADY_EXISTS("USER_ID_ALREADY_EXISTS", "User ID already exists", HttpStatus.CONFLICT),
+    LOGIN_ID_ALREADY_EXISTS("LOGIN_ID_ALREADY_EXISTS", "Login ID already exists", HttpStatus.CONFLICT),
     LIKE_ALREADY_EXISTS("LIKE_ALREADY_EXISTS", "Like already exists", HttpStatus.CONFLICT),
 
 //  4. Validation

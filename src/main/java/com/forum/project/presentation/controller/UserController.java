@@ -1,12 +1,15 @@
 package com.forum.project.presentation.controller;
 
 import com.forum.project.application.io.FileService;
+import com.forum.project.application.question.QuestionService;
 import com.forum.project.application.security.jwt.TokenService;
 import com.forum.project.application.user.UserService;
+import com.forum.project.presentation.dtos.question.ResponseQuestionDto;
 import com.forum.project.presentation.dtos.user.UserInfoDto;
 import com.forum.project.presentation.dtos.user.UserRequestDto;
 import com.forum.project.presentation.dtos.user.UserResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +28,8 @@ public class UserController {
     private final TokenService tokenService;
 
     private final FileService fileService;
+
+    private final QuestionService questionService;
 
     @GetMapping(value = "/profile")
     public ResponseEntity<UserInfoDto> getUserProfile(
@@ -45,5 +50,15 @@ public class UserController {
         String token = tokenService.extractTokenByHeader(header);
         UserResponseDto userResponseDto = userService.updateUserProfile(token, userRequestDto, uploadDir);
         return ResponseEntity.status(HttpStatus.OK).body(userResponseDto);
+    }
+
+    @GetMapping(value = "/questions")
+    public Page<ResponseQuestionDto> getQuestionsByUserId(
+            @RequestHeader(value = "Authorization") String header,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        String accessToken = tokenService.extractTokenByHeader(header);
+        return questionService.getQuestionsByUser(page, size, accessToken);
     }
 }

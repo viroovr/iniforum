@@ -1,5 +1,6 @@
 package com.forum.project.application.auth;
 
+import com.forum.project.application.converter.UserDtoConverterFactory;
 import com.forum.project.domain.entity.User;
 import com.forum.project.domain.exception.ApplicationException;
 import com.forum.project.domain.exception.ErrorCode;
@@ -22,7 +23,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findById(Long.parseLong(id))
                 .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
 
-        UserInfoDto userInfoDto = UserInfoDto.toDto(user);
+        UserInfoDto userInfoDto = UserDtoConverterFactory.toUserInfoDto(user);
         return new CustomUserDetails(userInfoDto);
     }
 }

@@ -26,16 +26,16 @@ public class RefreshTokenService {
         redisTemplate.opsForValue().set(refreshToken, String.valueOf(userId), ttl, TimeUnit.SECONDS);
     }
 
-    public void validateToken(String refreshToken) {
+    public void checkTokenValidity(String refreshToken) {
         if (isBlacklistedRefreshToken(refreshToken)) {
             throw new ApplicationException(ErrorCode.AUTH_BLACKLISTED_REFRESH_TOKEN);
         }
-        if (tokenService.validateToken(refreshToken)) {
+        if (tokenService.isValidToken(refreshToken)) {
             throw new ApplicationException(ErrorCode.AUTH_INVALID_TOKEN);
         }
     }
 
-    public void invalidateToken(String refreshToken) {
+    public void revokeToken(String refreshToken) {
         redisTemplate.delete(refreshToken);
     }
 

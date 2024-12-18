@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Profile;
 public class MemcachedConfig {
 
     @Bean
+    @Profile("dev")
     public MemcachedClient memcachedClient() throws Exception {
         return new XMemcachedClientBuilder("localhost:11211").build();
     }

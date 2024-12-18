@@ -1,5 +1,6 @@
 package com.forum.project.application.auth;
 
+import com.forum.project.application.converter.UserDtoConverterFactory;
 import com.forum.project.application.security.jwt.AccessTokenService;
 import com.forum.project.application.security.jwt.RefreshTokenService;
 import com.forum.project.application.security.UserPasswordService;
@@ -22,23 +23,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UserRepository userRepository;
-
     private final UserPasswordService userPasswordService;
-
-    private final RefreshTokenService refreshTokenService;
-
-    private final AccessTokenService accessTokenService;
-
     private final TokenService tokenService;
+    private final RefreshTokenService refreshTokenService;
+    private final AccessTokenService accessTokenService;
 
     private User prepareUser(SignupRequestDto signupRequestDto) {
         String rawPassword = signupRequestDto.getPassword();
         String encodedPassword = userPasswordService.encode(rawPassword);
 
-        User user = SignupRequestDto.toUser(signupRequestDto);
+        User user = UserDtoConverterFactory.fromSignupRequestDtoToEntity(signupRequestDto);
 
         user.setPassword(encodedPassword);
-        user.setNickname(signupRequestDto.getUserId());
+        user.setNickname(signupRequestDto.getLoginId());
 
         return user;
     }
@@ -49,28 +46,28 @@ public class AuthService {
         if (userRepository.emailExists(signupRequestDto.getEmail())) {
             throw new ApplicationException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
-        if (userRepository.userIdExists(signupRequestDto.getUserId())) {
-            throw new ApplicationException(ErrorCode.USER_ID_ALREADY_EXISTS);
+        if (userRepository.userLoginIdExists(signupRequestDto.getLoginId())) {
+            throw new ApplicationException(ErrorCode.LOGIN_ID_ALREADY_EXISTS);
         }
 
         User preparedUser = prepareUser(signupRequestDto);
 
         User committedUser = userRepository.save(preparedUser);
 
-        return SignupResponseDto.toDto(committedUser);
+        return UserDtoConverterFactory.toSignupResponseDto(committedUser);
     }
 
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public TokenResponseDto loginUserWithTokens(LoginRequestDto loginRequestDto) {
-        String userId = loginRequestDto.getUserId();
+        String loginId = loginRequestDto.getLoginId();
         String password = loginRequestDto.getPassword();
 
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findByUserLoginId(loginId)
                     .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
 
-        UserInfoDto userInfoDto = UserInfoDto.toDto(user);
+        userPasswordService.validatePassword(password, user.getPassword());
 
-        userPasswordService.validatePassword(password, userInfoDto.getPassword());
+        UserInfoDto userInfoDto = UserDtoConverterFactory.toUserInfoDto(user);
 
         return new TokenResponseDto(
                 accessTokenService.createAccessToken(userInfoDto),
@@ -79,24 +76,22 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(String authHeader, String refreshToken) {
-        String accessToken = accessTokenService.extractTokenByHeader(authHeader);
+    public void logout(String accessToken, String refreshToken) {
+        refreshTokenService.checkTokenValidity(refreshToken);
+        accessTokenService.checkTokenValidity(accessToken);
 
-        refreshTokenService.validateToken(refreshToken);
-        accessTokenService.validateToken(accessToken);
-
-        accessTokenService.invalidateToken(accessToken);
-        refreshTokenService.invalidateToken(refreshToken);
+        refreshTokenService.revokeToken(refreshToken);
+        accessTokenService.revokeToken(accessToken);
     }
 
     public TokenResponseDto refreshAccessToken(String refreshToken) {
-        refreshTokenService.validateToken(refreshToken);
+        refreshTokenService.checkTokenValidity(refreshToken);
 
         String accessToken = tokenService.regenerateAccessToken(refreshToken);
 
-        return new TokenResponseDto(
-                accessToken,
-                null
-        );
+        return TokenResponseDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 }

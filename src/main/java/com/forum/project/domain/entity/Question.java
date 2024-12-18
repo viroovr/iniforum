@@ -1,32 +1,27 @@
 package com.forum.project.domain.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.forum.project.application.question.QuestionStatus;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
-@Getter
-@Setter
-@Table(name = "questions")
-@Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Question {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private Long userId;
+    private String loginId;
     private String title;
-
-    private String userId;
-
     private String content;
-
-    private String tag;
-
+    private QuestionStatus status;
+    private Long viewCount;
+    private Long upVotedCount;
+    private Long downVotedCount;
     private LocalDateTime createdDate;
-
-    private Integer viewCount;
+    private LocalDateTime lastModifiedDate;
 }

@@ -17,4 +17,8 @@ public interface QuestionRepository {
 
     List<Question> searchQuestions(String keyword, int page, int size);
     void updateViewCount(Long questionId, Integer viewCount);
+
+    Long getTotalUserQuestionCount(Long id);
+
+    List<Question> searchQuestionsByUser(Long id, int page, int size);
 }

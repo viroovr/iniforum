@@ -1,13 +1,16 @@
 package com.forum.project.presentation.dtos.token;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.forum.project.presentation.dtos.BaseResponseDto;
+import lombok.*;
 
 import java.util.Map;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @AllArgsConstructor
-public class TokenResponseDto {
+@NoArgsConstructor
+@Builder
+public class TokenResponseDto extends BaseResponseDto {
     private String accessToken;
     private String refreshToken;
 }

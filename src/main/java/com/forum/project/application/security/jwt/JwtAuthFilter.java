@@ -29,14 +29,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.info("JwtAuthFilter doFilterInternal Start");
         String authorizationHeader = request.getHeader("Authorization");
 
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7);
 
             try{
-                if(tokenService.validateToken(token)) {
+                if(tokenService.isValidToken(token)) {
                     Long userId = tokenService.getId(token);
                     UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId.toString());
 

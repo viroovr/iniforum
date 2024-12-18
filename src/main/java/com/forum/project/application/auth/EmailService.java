@@ -7,6 +7,7 @@ import com.forum.project.presentation.dtos.EmailVerification;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
@@ -25,13 +27,12 @@ public class EmailService {
 
     @Value("${spring.mail.username}")
     private String fromEmail;
-
-    private static final String REDIS_PREFIX = "verified:";
+    private static final String SERVICE_NAME = "QAForum@qaforum.com";
+    private static final String REDIS_PREFIX = "emailVerified:";
 
     public void sendVerificationCode(String to) {
         String code = RandomStringGenerator.generateRandomString(6);
         storeVerificationCode(to, code);
-
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         String subject = "Verification Email";
         String body = "<h1>Hello!</h1><p>Verification Code : " + code + "</p>";
@@ -42,9 +43,10 @@ public class EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(body, true);
-            helper.setFrom(fromEmail);
+            helper.setFrom(SERVICE_NAME);
 
             mailSender.send(mimeMessage);
+            log.debug("preparing message send done");
         } catch (MessagingException e) {
             throw new ApplicationException(ErrorCode.FAIL_SENDING_EMAIL);
         }

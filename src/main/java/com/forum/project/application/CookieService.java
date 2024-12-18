@@ -33,12 +33,4 @@ public class CookieService {
                 .findFirst()
                 .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_REFRESH_TOKEN));
     }
-
-    public void clearRefreshToken(HttpServletResponse response) {
-        Cookie cookie = new Cookie("refreshToken", "");
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
-    }
 }

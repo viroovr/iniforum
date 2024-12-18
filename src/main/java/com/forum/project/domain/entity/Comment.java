@@ -1,36 +1,29 @@
 package com.forum.project.domain.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.forum.project.application.question.CommentStatus;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Comment {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private Long userId;
+    private String loginId;
     private String content;
-
-    private String userId;
-
-    private LocalDateTime createdDate;
-    //    @ManyToOne
-    //    @JoinColumn(name = "question_id", nullable = false)
     private Long questionId;
-
-    private Long likeCount;
-//    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<CommentLike> likes = new ArrayList<>();
-
-    public Comment(String content, String userId) {
-        this.content = content;
-        this.userId = userId;
-    }
+    private Long upVotedCount;
+    private Long downVotedCount;
+    private CommentStatus status;
+    private Long parentCommentId;
+    private Long reportCount;
+    private Boolean isEdited;
+    private LocalDateTime createdDate;
+    private LocalDateTime lastModifiedDate;
 }
