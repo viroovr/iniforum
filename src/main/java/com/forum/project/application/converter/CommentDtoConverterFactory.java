@@ -1,21 +1,21 @@
 package com.forum.project.application.converter;
 
-import com.forum.project.domain.entity.Comment;
-import com.forum.project.presentation.dtos.comment.RequestCommentDto;
-import com.forum.project.presentation.dtos.comment.ResponseCommentDto;
+import com.forum.project.domain.comment.Comment;
+import com.forum.project.presentation.comment.CommentRequestDto;
+import com.forum.project.presentation.comment.CommentResponseDto;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CommentDtoConverterFactory {
 
-    public static Comment fromRequestDtoToEntity(RequestCommentDto requestCommentDto) {
+    public static Comment fromRequestDtoToEntity(CommentRequestDto commentRequestDto) {
         return Comment.builder()
-                .content(requestCommentDto.getContent())
+                .content(commentRequestDto.getContent())
                 .build();
     }
 
-    public static ResponseCommentDto toResponseCommentDto(Comment comment) {
-        return ResponseCommentDto.builder()
+    public static CommentResponseDto toResponseCommentDto(Comment comment) {
+        return CommentResponseDto.builder()
                 .content(comment.getContent())
                 .createdDate(comment.getCreatedDate())
                 .likeCount(comment.getUpVotedCount())

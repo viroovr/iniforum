@@ -2,12 +2,12 @@
 //
 //import com.forum.project.application.converter.CommentDtoConverterFactory;
 //import com.forum.project.application.security.jwt.TokenService;
-//import com.forum.project.domain.entity.Comment;
-//import com.forum.project.domain.entity.CommentLike;
-//import com.forum.project.domain.repository.CommentLikeRepository;
-//import com.forum.project.domain.repository.CommentRepository;
-//import com.forum.project.presentation.dtos.comment.RequestCommentDto;
-//import com.forum.project.presentation.dtos.comment.ResponseCommentDto;
+//import com.forum.project.domain.comment.Comment;
+//import com.forum.project.domain.like.CommentLike;
+//import com.forum.project.domain.like.CommentLikeRepository;
+//import com.forum.project.domain.comment.CommentRepository;
+//import com.forum.project.presentation.comment.RequestCommentDto;
+//import com.forum.project.presentation.comment.ResponseCommentDto;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;
 //import org.junit.jupiter.api.extension.ExtendWith;

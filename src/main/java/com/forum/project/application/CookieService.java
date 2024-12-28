@@ -1,11 +1,10 @@
 package com.forum.project.application;
 
-import com.forum.project.application.security.jwt.TokenService;
-import com.forum.project.domain.exception.ApplicationException;
-import com.forum.project.domain.exception.ErrorCode;
+import com.forum.project.application.jwt.TokenService;
+import com.forum.project.application.exception.ApplicationException;
+import com.forum.project.application.exception.ErrorCode;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

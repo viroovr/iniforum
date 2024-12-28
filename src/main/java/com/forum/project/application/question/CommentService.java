@@ -1,15 +1,15 @@
 package com.forum.project.application.question;
 
 import com.forum.project.application.converter.CommentDtoConverterFactory;
-import com.forum.project.application.security.jwt.TokenService;
-import com.forum.project.domain.entity.Comment;
-import com.forum.project.domain.entity.CommentLike;
-import com.forum.project.domain.exception.ApplicationException;
-import com.forum.project.domain.exception.ErrorCode;
-import com.forum.project.domain.repository.CommentLikeRepository;
-import com.forum.project.domain.repository.CommentRepository;
-import com.forum.project.presentation.dtos.comment.RequestCommentDto;
-import com.forum.project.presentation.dtos.comment.ResponseCommentDto;
+import com.forum.project.application.jwt.TokenService;
+import com.forum.project.domain.comment.Comment;
+import com.forum.project.domain.commentlike.CommentLike;
+import com.forum.project.application.exception.ApplicationException;
+import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.domain.commentlike.CommentLikeRepository;
+import com.forum.project.domain.comment.CommentRepository;
+import com.forum.project.presentation.comment.CommentRequestDto;
+import com.forum.project.presentation.comment.CommentResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +24,9 @@ public class CommentService {
     private final TokenService tokenService;
 
     @Transactional
-    public ResponseCommentDto addComment(Long questionId, RequestCommentDto requestCommentDto, String accessToken) {
+    public CommentResponseDto addComment(Long questionId, CommentRequestDto commentRequestDto, String accessToken) {
         Long userId = tokenService.getId(accessToken);
-        Comment comment = CommentDtoConverterFactory.fromRequestDtoToEntity(requestCommentDto);
+        Comment comment = CommentDtoConverterFactory.fromRequestDtoToEntity(commentRequestDto);
 
         comment.setQuestionId(questionId);
         comment.setUserId(userId);
@@ -34,7 +34,7 @@ public class CommentService {
         return CommentDtoConverterFactory.toResponseCommentDto(commentRepository.save(comment));
     }
 
-    public List<ResponseCommentDto> getCommentsByQuestionId(Long questionId) {
+    public List<CommentResponseDto> getCommentsByQuestionId(Long questionId) {
         return commentRepository.findByQuestionId(questionId)
                 .stream().map(CommentDtoConverterFactory::toResponseCommentDto).toList();
     }
@@ -52,7 +52,7 @@ public class CommentService {
     }
 
     @Transactional
-    public ResponseCommentDto updateComment(Long id, RequestCommentDto requestCommentDto, String token) {
+    public CommentResponseDto updateComment(Long id, CommentRequestDto commentRequestDto, String token) {
         String currentUserId = tokenService.getLoginId(token);
         Comment existingComment = commentRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_NOT_FOUND));;
@@ -61,7 +61,7 @@ public class CommentService {
             throw new ApplicationException(ErrorCode.AUTH_BAD_CREDENTIAL);
         }
 
-        existingComment.setContent(requestCommentDto.getContent());
+        existingComment.setContent(commentRequestDto.getContent());
         return CommentDtoConverterFactory.toResponseCommentDto(commentRepository.save(existingComment));
     }
 

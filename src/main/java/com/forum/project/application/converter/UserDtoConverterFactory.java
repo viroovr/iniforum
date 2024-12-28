@@ -1,10 +1,10 @@
 package com.forum.project.application.converter;
 
-import com.forum.project.domain.entity.User;
-import com.forum.project.presentation.dtos.auth.SignupRequestDto;
-import com.forum.project.presentation.dtos.auth.SignupResponseDto;
-import com.forum.project.presentation.dtos.user.UserInfoDto;
-import com.forum.project.presentation.dtos.user.UserResponseDto;
+import com.forum.project.domain.user.User;
+import com.forum.project.presentation.auth.SignupRequestDto;
+import com.forum.project.presentation.auth.SignupResponseDto;
+import com.forum.project.presentation.user.UserInfoDto;
+import com.forum.project.presentation.user.UserResponseDto;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -50,10 +50,13 @@ public class UserDtoConverterFactory {
         return UserInfoDto.builder()
                 .id(user.getId())
                 .loginId(user.getLoginId())
+                .password(user.getPassword())
                 .email(user.getEmail())
                 .lastName(user.getLastName())
                 .firstName(user.getFirstName())
                 .role(user.getRole())
+                .status(user.getStatus())
+                .passwordLastModifiedDate(user.getPasswordLastModifiedDate())
                 .build();
     }
 }

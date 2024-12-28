@@ -3,19 +3,18 @@ package com.forum.project.presentation.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.forum.project.application.CookieService;
 import com.forum.project.application.auth.AuthService;
-import com.forum.project.application.auth.EmailService;
-import com.forum.project.application.security.jwt.TokenService;
-import com.forum.project.domain.exception.ApplicationException;
-import com.forum.project.domain.exception.ErrorCode;
+import com.forum.project.application.email.EmailVerificationService;
+import com.forum.project.application.jwt.TokenService;
+import com.forum.project.application.exception.ApplicationException;
+import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.presentation.auth.*;
 import com.forum.project.presentation.config.TestSecurityConfig;
-import com.forum.project.presentation.dtos.auth.*;
-import com.forum.project.presentation.dtos.token.TokenResponseDto;
+import com.forum.project.presentation.dtos.TestDtoFactory;
+import com.forum.project.presentation.dtos.TokenResponseDto;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -30,7 +29,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
 @WebMvcTest(controllers = AuthController.class)
 @Import(TestSecurityConfig.class)
 class AuthControllerUnitTest {
@@ -47,7 +45,7 @@ class AuthControllerUnitTest {
     private CookieService cookieService;
 
     @MockBean
-    private EmailService emailService;
+    private EmailVerificationService emailVerificationService;
 
     private final String signupUriPath = "/api/v1/auth/signup";
     private final String loginUriPath = "/api/v1/auth/login";
@@ -73,7 +71,7 @@ class AuthControllerUnitTest {
     void testSendEmail_Success() throws Exception {
         String email = emailRequestDto.getEmail();
 
-        doNothing().when(emailService).sendVerificationCode(email);
+        doNothing().when(emailVerificationService).sendVerificationCode(email);
 
         mockMvc.perform(post(sendEmailUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -82,7 +80,7 @@ class AuthControllerUnitTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Verification email sent"));
 
-        verify(emailService).sendVerificationCode(email);
+        verify(emailVerificationService).sendVerificationCode(email);
     }
 
     @Test
@@ -90,7 +88,7 @@ class AuthControllerUnitTest {
         String email = emailRequestDto.getEmail();
         String code = emailRequestDto.getCode();
 
-        doNothing().when(emailService).verifyCode(email, code);
+        doNothing().when(emailVerificationService).verifyCode(email, code);
 
         mockMvc.perform(post(verifyEmailUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -99,13 +97,13 @@ class AuthControllerUnitTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Email verified successfully"));
 
-        verify(emailService).verifyCode(email, code);
+        verify(emailVerificationService).verifyCode(email, code);
     }
 
     @Test
     void testRequestSignup_Success() throws Exception {
         when(authService.createUser(signupRequestDto)).thenReturn(signupResponseDto);
-        doNothing().when(emailService).verifyEmail(signupRequestDto.getEmail());
+        doNothing().when(emailVerificationService).verifyEmail(signupRequestDto.getEmail());
 
         mockMvc.perform(post(signupUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -115,7 +113,7 @@ class AuthControllerUnitTest {
                 .andExpect(content().json(new ObjectMapper().writeValueAsString(signupResponseDto)));
 
         verify(authService).createUser(signupRequestDto);
-        verify(emailService).verifyEmail(signupRequestDto.getEmail());
+        verify(emailVerificationService).verifyEmail(signupRequestDto.getEmail());
     }
 
     @Test
@@ -195,13 +193,13 @@ class AuthControllerUnitTest {
         String email = emailRequestDto.getEmail();
 
         doThrow(new ApplicationException(errorCode))
-                .when(emailService).sendVerificationCode(email);
+                .when(emailVerificationService).sendVerificationCode(email);
 
         ResultActions result = mockMvc.perform(post(sendEmailUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(emailRequestDto)));
 
-        verify(emailService).sendVerificationCode(email);
+        verify(emailVerificationService).sendVerificationCode(email);
         verifyErrorResponse(result, errorCode, sendEmailUriPath);
     }
 
@@ -211,7 +209,7 @@ class AuthControllerUnitTest {
         String email = emailRequestDto.getEmail();
         String code = emailRequestDto.getCode();
 
-        doThrow(new ApplicationException(errorCode)).when(emailService).verifyCode(email, code);
+        doThrow(new ApplicationException(errorCode)).when(emailVerificationService).verifyCode(email, code);
 
         ResultActions result = mockMvc.perform(post(verifyEmailUriPath)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -252,7 +250,7 @@ class AuthControllerUnitTest {
         ErrorCode errorCode = ErrorCode.FAIL_SENDING_EMAIL;
 
         doThrow(new ApplicationException(errorCode))
-                .when(emailService).verifyEmail(signupRequestDto.getEmail());
+                .when(emailVerificationService).verifyEmail(signupRequestDto.getEmail());
 
         ResultActions result = mockMvc.perform(post(signupUriPath)
                         .contentType(MediaType.APPLICATION_JSON)

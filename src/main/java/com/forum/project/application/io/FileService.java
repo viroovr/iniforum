@@ -1,7 +1,7 @@
 package com.forum.project.application.io;
 
-import com.forum.project.domain.exception.ApplicationException;
-import com.forum.project.domain.exception.ErrorCode;
+import com.forum.project.application.exception.ApplicationException;
+import com.forum.project.application.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

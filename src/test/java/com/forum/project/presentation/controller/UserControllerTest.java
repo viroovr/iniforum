@@ -1,11 +1,13 @@
 package com.forum.project.presentation.controller;
 
 import com.forum.project.application.io.FileService;
-import com.forum.project.application.security.jwt.TokenService;
-import com.forum.project.application.user.UserService;
+import com.forum.project.application.jwt.TokenService;
+import com.forum.project.application.auth.UserService;
+import com.forum.project.application.question.QuestionService;
 import com.forum.project.presentation.config.TestSecurityConfig;
-import com.forum.project.presentation.dtos.user.UserRequestDto;
-import com.forum.project.presentation.dtos.user.UserResponseDto;
+import com.forum.project.presentation.user.UserRequestDto;
+import com.forum.project.presentation.user.UserResponseDto;
+import com.forum.project.presentation.user.UserController;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +36,13 @@ class UserControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private FileService fileService;
-
-    @MockBean
     private TokenService tokenService;
 
     @MockBean
     private UserService userService;
+
+    @MockBean
+    private QuestionService questionService;
 
     private final UserRequestDto userRequestDto = new UserRequestDto("oldPassword", "newPassword", "newNickname");
     private final UserResponseDto userResponseDto = new UserResponseDto(null, "test/upload/path", "newNickname");
@@ -61,15 +63,13 @@ class UserControllerTest {
         );
 
         // Mocking service calls
-        when(fileService.uploadFile(any(MultipartFile.class))).thenReturn(uploadDir);
-        when(tokenService.extractTokenByHeader(eq(tokenHeader))).thenReturn(extractedToken);
-        when(userService.updateUserProfile(eq(extractedToken), any(UserRequestDto.class), eq(uploadDir)))
+        when(userService.updateUserProfileByHeader(eq(tokenHeader), any(UserRequestDto.class), eq(profileImage)))
                 .thenReturn(userResponseDto);
 
         // Perform request
         mockMvc.perform(MockMvcRequestBuilders.multipart("/api/v1/user/profile")
                         .file(profileImage)
-                        .param("nickname", "NewNickname")
+                        .param("nickname", "newNickname")
                         .param("password", "oldPassword")
                         .param("newPassword", "newPassword")
                         .header("Authorization", tokenHeader)
@@ -80,12 +80,10 @@ class UserControllerTest {
                         }))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.nickname").value("NewNickname"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.nickname").value("newNickname"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.profileImagePath").value(uploadDir));
 
         // Verify interactions
-        Mockito.verify(fileService).uploadFile(any(MultipartFile.class));
-        Mockito.verify(tokenService).extractTokenByHeader(eq(tokenHeader));
-        Mockito.verify(userService).updateUserProfile(eq(extractedToken), any(UserRequestDto.class), eq(uploadDir));
+        Mockito.verify(userService).updateUserProfileByHeader(eq(extractedToken), any(UserRequestDto.class), eq(profileImage));
     }
 }

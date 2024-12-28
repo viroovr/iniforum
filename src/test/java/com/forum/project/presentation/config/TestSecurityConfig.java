@@ -1,9 +1,8 @@
 package com.forum.project.presentation.config;
 
 import com.forum.project.application.auth.CustomUserDetailsService;
-import com.forum.project.application.security.jwt.JwtAuthFilter;
-import com.forum.project.application.security.jwt.TokenService;
-import com.forum.project.presentation.exception.ExceptionResponseUtil;
+import com.forum.project.application.jwt.JwtAuthFilter;
+import com.forum.project.common.utils.ExceptionResponseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -11,7 +10,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;

@@ -1,12 +1,10 @@
 package com.forum.project.infrastructure;
 
-import com.forum.project.domain.exception.CustomDatabaseException;
-import com.forum.project.domain.repository.TotalCountRepository;
+import com.forum.project.application.exception.CustomDatabaseException;
+import com.forum.project.domain.TotalCountRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rubyeye.xmemcached.MemcachedClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 

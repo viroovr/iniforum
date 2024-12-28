@@ -2,16 +2,16 @@
 //
 //import com.forum.project.application.converter.QuestionDtoConverterFactory;
 //import com.forum.project.application.security.jwt.TokenService;
-//import com.forum.project.domain.entity.Question;
-//import com.forum.project.domain.entity.User;
+//import com.forum.project.domain.question.Question;
+//import com.forum.project.domain.user.User;
 //import com.forum.project.domain.exception.ApplicationException;
 //import com.forum.project.domain.exception.CustomDatabaseException;
 //import com.forum.project.domain.exception.ErrorCode;
-//import com.forum.project.domain.repository.QuestionRepository;
-//import com.forum.project.domain.repository.TotalCountRepository;
-//import com.forum.project.domain.repository.UserRepository;
-//import com.forum.project.presentation.dtos.question.RequestQuestionDto;
-//import com.forum.project.presentation.dtos.question.ResponseQuestionDto;
+//import com.forum.project.domain.question.QuestionRepository;
+//import com.forum.project.domain.TotalCountRepository;
+//import com.forum.project.domain.user.UserRepository;
+//import com.forum.project.presentation.question.RequestQuestionDto;
+//import com.forum.project.presentation.question.ResponseQuestionDto;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;
 //import org.junit.jupiter.api.extension.ExtendWith;

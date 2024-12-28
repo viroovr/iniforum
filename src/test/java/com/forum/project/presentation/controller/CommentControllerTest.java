@@ -2,10 +2,11 @@ package com.forum.project.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.forum.project.application.question.CommentService;
-import com.forum.project.application.security.jwt.TokenService;
+import com.forum.project.application.jwt.TokenService;
+import com.forum.project.presentation.comment.CommentController;
 import com.forum.project.presentation.config.TestSecurityConfig;
-import com.forum.project.presentation.dtos.comment.RequestCommentDto;
-import com.forum.project.presentation.dtos.comment.ResponseCommentDto;
+import com.forum.project.presentation.comment.CommentRequestDto;
+import com.forum.project.presentation.comment.CommentResponseDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -37,8 +38,8 @@ class CommentControllerTest {
     private TokenService tokenService;
 
     private final LocalDateTime dateTime = LocalDateTime.of(2024, 12, 16, 12, 30, 0);
-    private final RequestCommentDto requestCommentDto = new RequestCommentDto("testContent");
-    private final ResponseCommentDto responseCommentDto = new ResponseCommentDto(1L, "testContent", "testId", dateTime, 0L);
+    private final CommentRequestDto commentRequestDto = new CommentRequestDto("testContent");
+    private final CommentResponseDto commentResponseDto = new CommentResponseDto(1L, "testContent", "testId", dateTime, 0L);
 
     @Test
     @WithMockUser
@@ -47,28 +48,28 @@ class CommentControllerTest {
         String header = "Bearer " + accessToken;
         Long questionId = 1L;
         when(tokenService.extractTokenByHeader(header)).thenReturn(accessToken);
-        when(commentService.addComment(questionId, requestCommentDto, accessToken)).thenReturn(responseCommentDto);
+        when(commentService.addComment(questionId, commentRequestDto, accessToken)).thenReturn(commentResponseDto);
 
         mockMvc.perform(post("/api/v1/comments/{questionId}", questionId)
                     .header("Authorization", header)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(new ObjectMapper().writeValueAsString(requestCommentDto)))
+                    .content(new ObjectMapper().writeValueAsString(commentRequestDto)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(responseCommentDto.getId()))
-                .andExpect(jsonPath("$.content").value(responseCommentDto.getContent()));
+                .andExpect(jsonPath("$.id").value(commentResponseDto.getId()))
+                .andExpect(jsonPath("$.content").value(commentResponseDto.getContent()));
 
         verify(tokenService).extractTokenByHeader(header);
-        verify(commentService).addComment(questionId, requestCommentDto, accessToken);
+        verify(commentService).addComment(questionId, commentRequestDto, accessToken);
     }
 
     @Test
     @WithMockUser
     void testGetComments_Success() throws Exception{
         Long questionId = 1L;
-        List<ResponseCommentDto> comments = List.of(
-                responseCommentDto,
-                new ResponseCommentDto(2L, "testContent2", "testId2", dateTime, 0L)
+        List<CommentResponseDto> comments = List.of(
+                commentResponseDto,
+                new CommentResponseDto(2L, "testContent2", "testId2", dateTime, 0L)
         );
         when(commentService.getCommentsByQuestionId(questionId)).thenReturn(comments);
 
@@ -90,18 +91,18 @@ class CommentControllerTest {
         String header = "Bearer " + accessToken;
         Long commentId = 1L;
         when(tokenService.extractTokenByHeader(header)).thenReturn(accessToken);
-        when(commentService.updateComment(commentId, requestCommentDto, accessToken)).thenReturn(responseCommentDto);
+        when(commentService.updateComment(commentId, commentRequestDto, accessToken)).thenReturn(commentResponseDto);
 
         mockMvc.perform(put("/api/v1/comments/{commentId}", commentId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(requestCommentDto))
+                        .content(new ObjectMapper().writeValueAsString(commentRequestDto))
                         .header("Authorization", header))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").value(requestCommentDto.getContent()));
+                .andExpect(jsonPath("$.content").value(commentRequestDto.getContent()));
     
         verify(tokenService).extractTokenByHeader(header);
-        verify(commentService).updateComment(commentId, requestCommentDto, accessToken);
+        verify(commentService).updateComment(commentId, commentRequestDto, accessToken);
     }
 
     @Test

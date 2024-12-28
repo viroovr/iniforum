@@ -1,18 +1,20 @@
 package com.forum.project.application.auth;
 
 import com.forum.project.application.converter.UserDtoConverterFactory;
-import com.forum.project.application.security.jwt.AccessTokenService;
-import com.forum.project.application.security.jwt.RefreshTokenService;
-import com.forum.project.application.security.UserPasswordService;
-import com.forum.project.application.security.jwt.TokenService;
-import com.forum.project.domain.entity.User;
-import com.forum.project.domain.exception.*;
-import com.forum.project.presentation.dtos.token.TokenResponseDto;
-import com.forum.project.presentation.dtos.user.UserInfoDto;
-import com.forum.project.presentation.dtos.auth.LoginRequestDto;
-import com.forum.project.presentation.dtos.auth.SignupRequestDto;
-import com.forum.project.domain.repository.UserRepository;
-import com.forum.project.presentation.dtos.auth.SignupResponseDto;
+import com.forum.project.application.exception.ApplicationException;
+import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.application.jwt.AccessTokenBlacklistService;
+import com.forum.project.application.jwt.RefreshTokenBlacklistService;
+import com.forum.project.application.jwt.TokenService;
+import com.forum.project.domain.user.User;
+import com.forum.project.domain.user.UserRepository;
+import com.forum.project.domain.user.UserRole;
+import com.forum.project.domain.user.UserStatus;
+import com.forum.project.presentation.auth.LoginRequestDto;
+import com.forum.project.presentation.auth.SignupRequestDto;
+import com.forum.project.presentation.auth.SignupResponseDto;
+import com.forum.project.presentation.dtos.TokenResponseDto;
+import com.forum.project.presentation.user.UserInfoDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -25,8 +27,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final UserPasswordService userPasswordService;
     private final TokenService tokenService;
-    private final RefreshTokenService refreshTokenService;
-    private final AccessTokenService accessTokenService;
+    private final RefreshTokenBlacklistService refreshTokenBlacklistService;
+    private final AccessTokenBlacklistService accessTokenBlacklistService;
 
     private User prepareUser(SignupRequestDto signupRequestDto) {
         String rawPassword = signupRequestDto.getPassword();
@@ -36,13 +38,14 @@ public class AuthService {
 
         user.setPassword(encodedPassword);
         user.setNickname(signupRequestDto.getLoginId());
+        user.setRole(UserRole.USER.name());
+        user.setStatus(UserStatus.ACTIVE.name());
 
         return user;
     }
 
     @Transactional
     public SignupResponseDto createUser(SignupRequestDto signupRequestDto) {
-
         if (userRepository.emailExists(signupRequestDto.getEmail())) {
             throw new ApplicationException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
@@ -70,28 +73,33 @@ public class AuthService {
         UserInfoDto userInfoDto = UserDtoConverterFactory.toUserInfoDto(user);
 
         return new TokenResponseDto(
-                accessTokenService.createAccessToken(userInfoDto),
-                refreshTokenService.createRefreshToken(userInfoDto)
+                tokenService.createAccessToken(userInfoDto),
+                tokenService.createRefreshToken(userInfoDto)
         );
     }
 
     @Transactional
     public void logout(String accessToken, String refreshToken) {
-        refreshTokenService.checkTokenValidity(refreshToken);
-        accessTokenService.checkTokenValidity(accessToken);
-
-        refreshTokenService.revokeToken(refreshToken);
-        accessTokenService.revokeToken(accessToken);
+        if (!tokenService.isValidToken(refreshToken) || !tokenService.isValidToken(accessToken)) {
+            throw new ApplicationException(ErrorCode.AUTH_INVALID_TOKEN);
+        }
+        refreshTokenBlacklistService.blacklistToken(refreshToken);
+        accessTokenBlacklistService.blacklistToken(accessToken);
     }
 
     public TokenResponseDto refreshAccessToken(String refreshToken) {
-        refreshTokenService.checkTokenValidity(refreshToken);
+        if (refreshTokenBlacklistService.isBlacklistedToken(refreshToken)) {
+            throw new ApplicationException(ErrorCode.AUTH_BLACKLISTED_REFRESH_TOKEN);
+        }
+
+        if (!tokenService.isValidToken(refreshToken)) {
+            throw new ApplicationException(ErrorCode.AUTH_INVALID_TOKEN);
+        }
 
         String accessToken = tokenService.regenerateAccessToken(refreshToken);
 
         return TokenResponseDto.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
                 .build();
     }
 }

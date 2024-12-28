@@ -1,7 +1,7 @@
 //package com.forum.project.infrastructure;
 //
-//import com.forum.project.domain.entity.Question;
-//import com.forum.project.domain.repository.QuestionRepository;
+//import com.forum.project.domain.question.Question;
+//import com.forum.project.domain.question.QuestionRepository;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;
 //import org.junit.jupiter.api.extension.ExtendWith;

@@ -4,9 +4,9 @@
 //import com.forum.project.application.question.QuestionService;
 //import com.forum.project.application.security.jwt.TokenService;
 //import com.forum.project.presentation.config.TestSecurityConfig;
-//import com.forum.project.presentation.dtos.question.RequestQuestionDto;
-//import com.forum.project.presentation.dtos.question.ResponseQuestionDto;
-//import com.forum.project.presentation.exception.ExceptionResponseUtil;
+//import com.forum.project.presentation.question.RequestQuestionDto;
+//import com.forum.project.presentation.question.ResponseQuestionDto;
+//import com.forum.project.common.utils.ExceptionResponseUtil;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;
 //import org.junit.jupiter.api.extension.ExtendWith;
