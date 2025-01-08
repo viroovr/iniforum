@@ -25,8 +25,7 @@ public class QuestionController {
             @RequestBody QuestionRequestDto questionRequestDto,
             @RequestHeader(value = "Authorization") String header
     ) {
-        String accessToken = tokenService.extractTokenByHeader(header);
-        QuestionResponseDto questionResponseDto = questionService.createQuestion(questionRequestDto, accessToken);
+        QuestionResponseDto questionResponseDto = questionService.createQuestion(questionRequestDto, header);
         return ResponseEntity.status(HttpStatus.CREATED).body(questionResponseDto);
     }
 

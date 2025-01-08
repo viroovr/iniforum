@@ -6,8 +6,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum QuestionStatus {
-    ACTIVE("Active"),
-    INACTIVE("Inactive"),
+    OPEN("Active"),
+    CLOSED("Inactive"),
+    RESOLVED("Deleted"),
     DELETED("Deleted");
 
     private final String status;

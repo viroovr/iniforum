@@ -1,6 +1,6 @@
 //package com.forum.project.application.question;
 //
-//import com.forum.project.application.converter.QuestionDtoConverterFactory;
+//import com.forum.project.application.question.QuestionDtoConverterFactory;
 //import com.forum.project.application.security.jwt.TokenService;
 //import com.forum.project.domain.question.Question;
 //import com.forum.project.domain.user.User;
@@ -8,8 +8,8 @@
 //import com.forum.project.domain.exception.CustomDatabaseException;
 //import com.forum.project.domain.exception.ErrorCode;
 //import com.forum.project.domain.question.QuestionRepository;
-//import com.forum.project.domain.TotalCountRepository;
-//import com.forum.project.domain.user.UserRepository;
+//import com.forum.project.domain.question.TotalCountRepository;
+//import com.forum.project.infrastructure.persistence.user.UserRepository;
 //import com.forum.project.presentation.question.RequestQuestionDto;
 //import com.forum.project.presentation.question.ResponseQuestionDto;
 //import org.junit.jupiter.api.BeforeEach;

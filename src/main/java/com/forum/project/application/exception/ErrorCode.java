@@ -15,13 +15,22 @@ public enum ErrorCode {
 //  2. Resource Management
     DATABASE_ERROR("INTERNAL_SERVER_ERROR", "Internal Server error", HttpStatus.INTERNAL_SERVER_ERROR),
     USER_NOT_FOUND("USER_NOT_FOUND", "User not found", HttpStatus.NOT_FOUND),
+    EMAIL_NOT_FOUND("EMAIL_NOT_FOUND", "Email not found", HttpStatus.NOT_FOUND),
     QUESTION_NOT_FOUND("QUESTION_NOT_FOUND", "Question not found", HttpStatus.NOT_FOUND),
     COMMENT_NOT_FOUND("COMMENT_NOT_FOUND", "Comment not found", HttpStatus.NOT_FOUND),
+    TAG_NOT_FOUND("TAG_NOT_FOUND", "Tag not found", HttpStatus.NOT_FOUND),
 
 //  3. Conflict & Duplication
     EMAIL_ALREADY_EXISTS("EMAIL_ALREADY_EXISTS", "Email already exists", HttpStatus.CONFLICT),
     LOGIN_ID_ALREADY_EXISTS("LOGIN_ID_ALREADY_EXISTS", "Login ID already exists", HttpStatus.CONFLICT),
     LIKE_ALREADY_EXISTS("LIKE_ALREADY_EXISTS", "Like already exists", HttpStatus.CONFLICT),
+    DISLIKE_ALREADY_EXISTS("DISLIKE_ALREADY_EXISTS", "Dislike already exists", HttpStatus.CONFLICT),
+    ACCOUNT_ALREADY_ACTIVE("CONFLICT_004", "Account already active", HttpStatus.CONFLICT),
+    USER_ALREADY_ACTIVE("USER_001", "User is already active", HttpStatus.CONFLICT),
+    USER_ALREADY_INACTIVE("USER_002", "User is already inactive", HttpStatus.CONFLICT),
+    USER_ALREADY_SUSPENDED("USER_003", "User is already suspended", HttpStatus.CONFLICT),
+    TAG_ALREADY_EXISTS("DUP_008", "Tag already exists", HttpStatus.CONFLICT),
+    COMMENT_ALREADY_DELETED("DUP_009", "Comment already deleted", HttpStatus.CONFLICT),
 
 //  4. Validation
     INVALID_USER_ID("VALID_001", "Invalid user ID", HttpStatus.BAD_REQUEST),
@@ -32,6 +41,9 @@ public enum ErrorCode {
     INVALID_REFRESH_TOKEN("VALID_007", "Invalid Refresh Token", HttpStatus.BAD_REQUEST),
     INVALID_AUTH_HEADER("VALID_008", "Invalid Authorization Header", HttpStatus.BAD_REQUEST),
     INVALID_USER_ROLE("VALID_009", "Invalid user role", HttpStatus.BAD_REQUEST),
+    INVALID_LOGIN_ID("VALID_010", "Login ID must not be empty", HttpStatus.BAD_REQUEST),
+    INVALID_NEW_PASSWORD("VALID_011", "New password must not be empty or too short", HttpStatus.BAD_REQUEST),
+    INVALID_COMMENT_CONTENT("VALID_012", "Invalid comment content", HttpStatus.BAD_REQUEST),
 
 //   5. Server Errors
     INTERNAL_SERVER_ERROR("SERVER_000", "INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR),

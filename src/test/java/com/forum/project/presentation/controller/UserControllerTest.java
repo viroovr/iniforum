@@ -1,8 +1,7 @@
 package com.forum.project.presentation.controller;
 
-import com.forum.project.application.io.FileService;
 import com.forum.project.application.jwt.TokenService;
-import com.forum.project.application.auth.UserService;
+import com.forum.project.application.user.UserFacade;
 import com.forum.project.application.question.QuestionService;
 import com.forum.project.presentation.config.TestSecurityConfig;
 import com.forum.project.presentation.user.UserRequestDto;
@@ -20,7 +19,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.web.multipart.MultipartFile;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -39,7 +37,7 @@ class UserControllerTest {
     private TokenService tokenService;
 
     @MockBean
-    private UserService userService;
+    private UserFacade userFacade;
 
     @MockBean
     private QuestionService questionService;
@@ -63,7 +61,7 @@ class UserControllerTest {
         );
 
         // Mocking service calls
-        when(userService.updateUserProfileByHeader(eq(tokenHeader), any(UserRequestDto.class), eq(profileImage)))
+        when(userFacade.updateUserProfileByHeader(eq(tokenHeader), any(UserRequestDto.class), eq(profileImage)))
                 .thenReturn(userResponseDto);
 
         // Perform request
@@ -84,6 +82,6 @@ class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.profileImagePath").value(uploadDir));
 
         // Verify interactions
-        Mockito.verify(userService).updateUserProfileByHeader(eq(extractedToken), any(UserRequestDto.class), eq(profileImage));
+        Mockito.verify(userFacade).updateUserProfileByHeader(eq(extractedToken), any(UserRequestDto.class), eq(profileImage));
     }
 }

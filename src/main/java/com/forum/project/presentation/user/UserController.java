@@ -1,9 +1,12 @@
 package com.forum.project.presentation.user;
 
-import com.forum.project.application.auth.UserService;
+import com.forum.project.application.user.UserFacade;
 import com.forum.project.application.jwt.TokenService;
 import com.forum.project.application.question.QuestionService;
+import com.forum.project.presentation.auth.EmailRequestDto;
+import com.forum.project.presentation.dtos.BaseResponseDto;
 import com.forum.project.presentation.question.QuestionResponseDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -19,7 +22,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    private final UserFacade userFacade;
     private final TokenService tokenService;
     private final QuestionService questionService;
 
@@ -27,7 +30,7 @@ public class UserController {
     public ResponseEntity<UserInfoDto> getUserProfile(
             @RequestHeader("Authorization") String header
     ) {
-        UserInfoDto user = userService.getUserProfileByHeader(header);
+        UserInfoDto user = userFacade.getUserProfileByHeader(header);
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 
@@ -37,7 +40,7 @@ public class UserController {
             @ModelAttribute UserRequestDto userRequestDto,
             @RequestParam(value = "profileImage", required = false) MultipartFile file
     ) throws IOException{
-        UserResponseDto userResponseDto = userService.updateUserProfileByHeader(header, userRequestDto, file);
+        UserResponseDto userResponseDto = userFacade.updateUserProfileByHeader(header, userRequestDto, file);
         return ResponseEntity.status(HttpStatus.OK).body(userResponseDto);
     }
 
@@ -50,4 +53,24 @@ public class UserController {
         String accessToken = tokenService.extractTokenByHeader(header);
         return questionService.getQuestionsByUser(page, size, accessToken);
     }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<BaseResponseDto> resetPassword(
+            @RequestParam("token") String token,
+            @RequestBody ResetPasswordRequestDto request
+    ) {
+        userFacade.resetPassword(token, request.getPassword());
+        BaseResponseDto responseDto = new BaseResponseDto("Password reset successfully");
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping("/send/reset-password")
+    public ResponseEntity<BaseResponseDto> requestResetPassword(
+            @Valid @RequestBody EmailRequestDto request
+    ) {
+        userFacade.requestPasswordReset(request.getEmail());
+        BaseResponseDto responseDto = new BaseResponseDto("Reset password send successfully");
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
 }

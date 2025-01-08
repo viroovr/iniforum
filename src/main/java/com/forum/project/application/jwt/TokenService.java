@@ -3,8 +3,8 @@ package com.forum.project.application.jwt;
 import com.forum.project.domain.user.UserRole;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.infrastructure.jwt.JwtUtils;
 import com.forum.project.presentation.user.UserInfoDto;
-import io.jsonwebtoken.Claims;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,18 +25,22 @@ public class TokenService {
     private final long accessTokenExpTime;
     @Getter
     private final long refreshTokenExpTime;
+    @Getter
+    private final long passwordResetTokenExpTime;
 
 
     public TokenService(
             JwtUtils jwtUtils,
             Clock clock,
             @Value("${jwt.access_token_expiration_time}") long accessTokenExpTime,
-            @Value("${jwt.refresh_token_expiration_time}") long refreshTokenExpTime
+            @Value("${jwt.refresh_token_expiration_time}") long refreshTokenExpTime,
+            @Value("${jwt.password_reset_token_expiration_time}") long passwordResetTokenExpTime
     ) {
         this.jwtUtils = jwtUtils;
         this.clock = clock;
         this.accessTokenExpTime = accessTokenExpTime;
         this.refreshTokenExpTime = refreshTokenExpTime;
+        this.passwordResetTokenExpTime = passwordResetTokenExpTime;
     }
 
     public Long getId(String token) {
@@ -51,22 +55,28 @@ public class TokenService {
         return jwtUtils.parseClaims(token).get("role", UserRole.class);
     }
 
-    public String createAccessToken(UserInfoDto member) {
+    private Map<String, Object> makeMapClaims(UserInfoDto member) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", member.getId());
         claims.put("loginId", member.getLoginId());
         claims.put("email", member.getEmail());
         claims.put("role", member.getRole());
+        return claims;
+    }
+
+    public String createAccessToken(UserInfoDto member) {
+        Map<String, Object> claims = makeMapClaims(member);
         return jwtUtils.createToken(claims, accessTokenExpTime);
     }
 
     public String createRefreshToken(UserInfoDto member) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("id", member.getId());
-        claims.put("loginId", member.getLoginId());
-        claims.put("email", member.getEmail());
-        claims.put("role", member.getRole());
+        Map<String, Object> claims = makeMapClaims(member);
         return jwtUtils.createToken(claims, refreshTokenExpTime);
+    }
+
+    public String createPasswordResetToken(UserInfoDto member) {
+        Map<String, Object> claims = makeMapClaims(member);
+        return jwtUtils.createToken(claims, passwordResetTokenExpTime);
     }
 
     public long getExpirationTime(String token) {
@@ -80,14 +90,7 @@ public class TokenService {
     }
 
     public String regenerateAccessToken(String refreshToken) {
-        Claims claims = jwtUtils.parseClaims(refreshToken);
-        UserInfoDto userInfoDto = UserInfoDto.builder()
-                .id(claims.get("id", Long.class))
-                .loginId(claims.get("loginId", String.class))
-                .email(claims.get("email", String.class))
-                .role(claims.get("role", String.class))
-                .build();
-
+        UserInfoDto userInfoDto = jwtUtils.extractUserInfo(refreshToken);
         return createAccessToken(userInfoDto);
     }
 

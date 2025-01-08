@@ -9,6 +9,5 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class ValidationService {
     public <T> void validate(@Valid T object) {
-
     }
 }

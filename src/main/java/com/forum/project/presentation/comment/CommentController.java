@@ -1,7 +1,9 @@
 package com.forum.project.presentation.comment;
 
-import com.forum.project.application.question.CommentService;
+import com.forum.project.application.comment.CommentService;
 import com.forum.project.application.jwt.TokenService;
+import com.forum.project.domain.commentlike.CommentReportRequestDto;
+import com.forum.project.presentation.dtos.BaseResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,16 +19,13 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    private final TokenService tokenService;
-
     @PostMapping(value = "/{questionId}")
     public ResponseEntity<CommentResponseDto> addComment(
             @RequestHeader(value = "Authorization") String header,
             @PathVariable Long questionId,
             @RequestBody CommentRequestDto commentRequestDto
     ) {
-        String accessToken = tokenService.extractTokenByHeader(header);
-        CommentResponseDto commentResponseDto = commentService.addComment(questionId, commentRequestDto, accessToken);
+        CommentResponseDto commentResponseDto = commentService.addComment(questionId, commentRequestDto, header);
         return ResponseEntity.status(HttpStatus.OK).body(commentResponseDto);
     }
 
@@ -44,8 +43,7 @@ public class CommentController {
             @PathVariable("id") Long commentId,
             @RequestBody CommentRequestDto commentRequestDto
     ) {
-        String jwt = tokenService.extractTokenByHeader(header);
-        CommentResponseDto commentResponseDto = commentService.updateComment(commentId, commentRequestDto, jwt);
+        CommentResponseDto commentResponseDto = commentService.updateComment(commentId, commentRequestDto, header);
         return ResponseEntity.status(HttpStatus.OK).body(commentResponseDto);
     }
 
@@ -54,20 +52,48 @@ public class CommentController {
             @RequestHeader(value = "Authorization") String header,
             @PathVariable Long id
     ) {
-        String jwt = tokenService.extractTokenByHeader(header);
-        commentService.deleteComment(id, jwt);
+        commentService.deleteComment(id, header);
         Map<String, String> response = Map.of("message", "Comment deleted successfully.");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @RequestMapping(value = "/{id}/like", method = RequestMethod.POST)
-    public ResponseEntity<Map<String, String>> likeComment(
+    public ResponseEntity<BaseResponseDto> likeComment(
             @RequestHeader(value = "Authorization") String header,
             @PathVariable Long id
     ) {
-        String jwt = tokenService.extractTokenByHeader(header);
-        commentService.likeComment(id, jwt);
-        Map<String, String> response = Map.of("message", "Comment liked successfully.");
+        commentService.likeComment(id, header);
+        BaseResponseDto response = new BaseResponseDto("Comment liked successfully.");
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @RequestMapping(value = "/{id}/dislike", method = RequestMethod.POST)
+    public ResponseEntity<BaseResponseDto> dislikeComment(
+            @RequestHeader(value = "Authorization") String header,
+            @PathVariable Long id
+    ) {
+        commentService.dislikeComment(id, header);
+        BaseResponseDto response = new BaseResponseDto("Comment disliked successfully.");
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @RequestMapping(value = "/{id}/report", method = RequestMethod.POST)
+    public ResponseEntity<BaseResponseDto> reportComment(
+            @RequestBody CommentReportRequestDto dto,
+            @RequestHeader(value = "Authorization") String header,
+            @PathVariable Long id
+    ) {
+        commentService.reportComment(id, header, dto);
+        BaseResponseDto response = new BaseResponseDto("Comment reported successfully.");
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @RequestMapping(value = "/{userId}", method = RequestMethod.GET)
+    public ResponseEntity<List<CommentResponseDto>> reportComment(
+            @RequestHeader(value = "Authorization") String header,
+            @PathVariable Long userId
+    ) {
+        List<CommentResponseDto> response = commentService.getUserComments(userId, header);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

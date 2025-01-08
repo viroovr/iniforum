@@ -1,12 +1,14 @@
 package com.forum.project.application.auth;
 
-import com.forum.project.application.jwt.AccessTokenBlacklistService;
-import com.forum.project.application.jwt.RefreshTokenBlacklistService;
+import com.forum.project.application.user.auth.AuthService;
+import com.forum.project.application.user.auth.UserPasswordService;
+import com.forum.project.infrastructure.jwt.AccessRedisTokenBlacklistHandler;
+import com.forum.project.infrastructure.jwt.RefreshRedisTokenBlacklistHandler;
 import com.forum.project.application.jwt.TokenService;
 import com.forum.project.domain.user.User;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.domain.user.UserRepository;
+import com.forum.project.infrastructure.persistence.user.UserRepository;
 import com.forum.project.presentation.dtos.TestDtoFactory;
 import com.forum.project.presentation.auth.LoginRequestDto;
 import com.forum.project.presentation.auth.SignupRequestDto;
@@ -35,9 +37,9 @@ class AuthServiceTest {
     @Mock
     private TokenService tokenService;
     @Mock
-    private RefreshTokenBlacklistService refreshTokenBlacklistService;
+    private RefreshRedisTokenBlacklistHandler refreshTokenBlacklistService;
     @Mock
-    private AccessTokenBlacklistService accessTokenBlacklistService;
+    private AccessRedisTokenBlacklistHandler accessTokenBlacklistService;
 
     @InjectMocks
     private AuthService authService;
@@ -126,13 +128,14 @@ class AuthServiceTest {
         String accessToken = "access-token";
 
         when(tokenService.isValidToken(any(String.class))).thenReturn(true);
-        doNothing().when(accessTokenBlacklistService).blacklistToken(accessToken);
-        doNothing().when(refreshTokenBlacklistService).blacklistToken(refreshToken);
+        when(tokenService.getExpirationTime(anyString())).thenReturn(100L);
+        doNothing().when(accessTokenBlacklistService).blacklistToken(accessToken, 100L);
+        doNothing().when(refreshTokenBlacklistService).blacklistToken(refreshToken, 100L);
 
         authService.logout(accessToken, refreshToken);
 
-        verify(accessTokenBlacklistService).blacklistToken(accessToken);
-        verify(refreshTokenBlacklistService).blacklistToken(refreshToken);
+        verify(accessTokenBlacklistService).blacklistToken(accessToken, 100L);
+        verify(refreshTokenBlacklistService).blacklistToken(refreshToken, 100L);
         verify(tokenService, times(2)).isValidToken(any(String.class));
     }
 

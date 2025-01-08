@@ -18,6 +18,7 @@ public class UserInfoDto {
     private String email;
     private String lastName;
     private String firstName;
+    private String nickname;
     private String role;
     private String status;
     private LocalDateTime passwordLastModifiedDate;

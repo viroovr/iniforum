@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -17,4 +18,5 @@ public class QuestionResponseDto {
     private String loginId;
     private String content;
     private LocalDateTime createdDate;
+    private List<String> tags;
 }

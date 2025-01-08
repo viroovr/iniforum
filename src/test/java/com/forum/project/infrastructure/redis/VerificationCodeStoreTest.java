@@ -1,6 +1,7 @@
 package com.forum.project.infrastructure.redis;
 
 import com.forum.project.domain.email.EmailVerification;
+import com.forum.project.infrastructure.persistence.email.VerificationCodeStore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

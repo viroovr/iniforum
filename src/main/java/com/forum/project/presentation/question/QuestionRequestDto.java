@@ -10,11 +10,8 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class QuestionRequestDto {
-
     @NotNull
     private String title;
-
     private String content;
-
-    private List<String> tag;
+    private List<Long> tagIds;
 }

@@ -1,7 +1,7 @@
 package com.forum.project.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.forum.project.application.question.CommentService;
+import com.forum.project.application.comment.CommentService;
 import com.forum.project.application.jwt.TokenService;
 import com.forum.project.presentation.comment.CommentController;
 import com.forum.project.presentation.config.TestSecurityConfig;
