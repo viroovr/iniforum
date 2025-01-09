@@ -1,4 +1,4 @@
-package com.forum.project.application.auth;
+package com.forum.project.application.user.auth;
 
 import com.forum.project.application.user.auth.AuthService;
 import com.forum.project.application.user.auth.UserPasswordService;

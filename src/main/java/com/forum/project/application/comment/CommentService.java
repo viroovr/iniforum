@@ -102,9 +102,7 @@ public class CommentService {
                 .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_NOT_FOUND));
 
         commentReportService.saveReportComment(commentId, userId, dto.getReason());
-
-        comment.increaseReportCount();
-        commentRepository.update(comment);
+        commentReportService.notifyAdminIfHighReports(commentId);
     }
 
     @AuthCheck

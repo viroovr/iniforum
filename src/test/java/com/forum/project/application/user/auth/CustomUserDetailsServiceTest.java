@@ -1,8 +1,7 @@
-package com.forum.project.application.auth;
+package com.forum.project.application.user.auth;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.application.user.auth.CustomUserDetailsService;
 import com.forum.project.domain.user.User;
 import com.forum.project.infrastructure.persistence.user.UserRepository;
 import com.forum.project.presentation.dtos.TestDtoFactory;

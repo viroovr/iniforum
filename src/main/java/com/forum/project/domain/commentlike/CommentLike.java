@@ -13,6 +13,12 @@ public class CommentLike {
     private String status;
     private String ipAddress;
 
+    public void initialize(Long userId, Long commentId) {
+        this.userId = userId;
+        this.commentId = commentId;
+        this.status = CommentLikeStatus.NONE.name();
+    }
+
     public void like() {
         this.status = CommentLikeStatus.LIKE.name();
     }

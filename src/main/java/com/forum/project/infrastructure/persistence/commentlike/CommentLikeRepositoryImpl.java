@@ -9,7 +9,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -39,5 +41,25 @@ public class CommentLikeRepositoryImpl implements CommentLikeRepository {
 
         commentLike.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
         return commentLike;
+    }
+
+    @Override
+    public Optional<CommentLike> findByCommentIdAndUserId(Long commentId, Long userId) {
+        return Optional.empty();
+    }
+
+    @Override
+    public void delete(CommentLike existingLike) {
+
+    }
+
+    @Override
+    public List<Long> findCommentIdsByUserIdAndStatus(Long userId, String name) {
+        return List.of();
+    }
+
+    @Override
+    public int update(CommentLike existingLike) {
+        return 0;
     }
 }

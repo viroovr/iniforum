@@ -88,4 +88,9 @@ public class CommentRepositoryImpl implements CommentRepository {
         SqlParameterSource namedParameters = new MapSqlParameterSource("id", id);
         namedParameterJdbcTemplate.update(sql, namedParameters);
     }
+
+    @Override
+    public void hideComment(Long commentId) {
+
+    }
 }

@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Data
 @NoArgsConstructor
@@ -58,6 +59,10 @@ public class Comment {
         this.status = CommentStatus.ACTIVE.name();
     }
 
+    public void pending() {
+        this.status = CommentStatus.PENDING.name();
+    }
+
     public void increaseReportCount() {
         this.reportCount++;
     }
@@ -71,7 +76,7 @@ public class Comment {
     }
 
     public boolean isDeleted() {
-        return this.status == CommentStatus.DELETED.name();
+        return Objects.equals(this.status, CommentStatus.DELETED.name());
     }
 
     public boolean isReply() {
