@@ -14,15 +14,15 @@ public class VerificationCodeStore {
     private final RedisTemplate<String, Object> redisTemplate;
     private static final String REDIS_PREFIX = "verified:email:";
 
-    public void saveVerificationCode(String email, EmailVerification verification, long duration) {
+    public void save(String email, EmailVerification verification, long duration) {
         redisTemplate.opsForValue().set(REDIS_PREFIX + email, verification, duration, TimeUnit.MINUTES);
     }
 
-    public EmailVerification getVerificationCode(String email) {
+    public EmailVerification getValue(String email) {
         return (EmailVerification) redisTemplate.opsForValue().get(REDIS_PREFIX + email);
     }
 
-    public void updateVerificationCode(String email, EmailVerification verification, long duration) {
-        saveVerificationCode(email, verification, duration);
+    public void update(String email, EmailVerification verification, long duration) {
+        save(email, verification, duration);
     }
 }

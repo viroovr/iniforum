@@ -2,6 +2,7 @@ package com.forum.project.infrastructure.security;
 
 import com.forum.project.application.user.auth.CustomUserDetailsService;
 import com.forum.project.application.jwt.TokenService;
+import com.forum.project.infrastructure.jwt.JwtUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -26,7 +27,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final CustomUserDetailsService customUserDetailsService;
 
-    private final TokenService tokenService;
+    private final JwtUtils jwtUtils;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -36,8 +37,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = authorizationHeader.substring(7);
 
             try{
-                if(tokenService.isValidToken(token)) {
-                    Long userId = tokenService.getId(token);
+                if(jwtUtils.isValidToken(token)) {
+                    Long userId = jwtUtils.parseClaims(token).get("id", Long.class);
                     UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId.toString());
 
                     if(userDetails != null) {

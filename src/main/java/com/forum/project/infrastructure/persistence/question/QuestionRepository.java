@@ -1,4 +1,6 @@
-package com.forum.project.domain.question;
+package com.forum.project.infrastructure.persistence.question;
+
+import com.forum.project.domain.question.Question;
 
 import java.util.List;
 import java.util.Optional;

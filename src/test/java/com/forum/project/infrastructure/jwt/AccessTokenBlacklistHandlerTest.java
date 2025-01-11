@@ -1,4 +1,4 @@
-package com.forum.project.application.jwt;
+package com.forum.project.infrastructure.jwt;
 
 import com.forum.project.infrastructure.jwt.AccessRedisTokenBlacklistHandler;
 import org.junit.jupiter.api.Test;

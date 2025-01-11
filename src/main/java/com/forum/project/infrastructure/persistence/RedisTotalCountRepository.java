@@ -1,6 +1,6 @@
 package com.forum.project.infrastructure.persistence;
 
-import com.forum.project.domain.question.TotalCountRepository;
+import com.forum.project.infrastructure.persistence.question.TotalCountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.StringRedisTemplate;

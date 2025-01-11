@@ -36,6 +36,7 @@ public enum ErrorCode {
     COMMENT_ALREADY_REPORTED("DUP_010", "Comment already reported", HttpStatus.CONFLICT),
 
 //  4. Validation
+    INVALID_REQUEST("VALID_000", "Invalid Request", HttpStatus.BAD_REQUEST),
     INVALID_USER_ID("VALID_001", "Invalid user ID", HttpStatus.BAD_REQUEST),
     INVALID_EMAIL("VALID_002", "Invalid Email", HttpStatus.BAD_REQUEST),
     INVALID_PASSWORD("VALID_003", "Invalid Password", HttpStatus.BAD_REQUEST),

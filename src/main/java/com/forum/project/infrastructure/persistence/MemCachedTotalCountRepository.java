@@ -1,6 +1,6 @@
 package com.forum.project.infrastructure.persistence;
 
-import com.forum.project.domain.question.TotalCountRepository;
+import com.forum.project.infrastructure.persistence.question.TotalCountRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.rubyeye.xmemcached.MemcachedClient;

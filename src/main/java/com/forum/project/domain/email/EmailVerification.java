@@ -8,8 +8,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EmailVerification {
-
     private String verificationCode;
-
     private boolean verified;
+
+    public void verify() {
+        this.verified = true;
+    }
 }

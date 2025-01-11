@@ -2,10 +2,9 @@ package com.forum.project.application.comment;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.application.user.admin.AdminNotificationService;
+import com.forum.project.application.email.EmailAdminService;
 import com.forum.project.domain.comment.CommentReport;
 import com.forum.project.infrastructure.persistence.comment.CommentReportRepository;
-import com.forum.project.infrastructure.persistence.comment.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommentReportService {
     private final CommentReportRepository commentReportRepository;
-    private final AdminNotificationService adminNotificationService;
+    private final EmailAdminService emailAdminService;
 
     private static final long REPORT_THRESHOLD = 10;
 
@@ -32,7 +31,7 @@ public class CommentReportService {
     public void notifyAdminIfHighReports(Long commentId) {
         Long reportCount = commentReportRepository.countByCommentId(commentId);
         if (reportCount >= REPORT_THRESHOLD) {
-            adminNotificationService.sendNotification(
+            emailAdminService.sendEmail(
                     "다중 신고 댓글 알림",
                     "Comment ID " + commentId + " 신고가 " + reportCount + "회 이상 접수되었습니다.");
         }

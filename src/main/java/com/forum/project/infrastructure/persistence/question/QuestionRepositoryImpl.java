@@ -1,7 +1,6 @@
 package com.forum.project.infrastructure.persistence.question;
 
 import com.forum.project.domain.question.Question;
-import com.forum.project.domain.question.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;

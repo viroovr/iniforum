@@ -2,7 +2,7 @@ package com.forum.project.presentation.auth;
 
 import com.forum.project.infrastructure.security.CookieManager;
 import com.forum.project.application.user.auth.AuthService;
-import com.forum.project.application.email.EmailService;
+import com.forum.project.application.email.EmailVerificationService;
 import com.forum.project.application.jwt.TokenService;
 import com.forum.project.presentation.dtos.BaseResponseDto;
 import com.forum.project.presentation.dtos.TokenResponseDto;
@@ -22,14 +22,14 @@ public class AuthController {
 
     private final AuthService authService;
     private final CookieManager cookieManager;
-    private final EmailService emailService;
+    private final EmailVerificationService emailVerificationService;
     private final TokenService tokenService;
 
     @PostMapping("/send-email")
     public ResponseEntity<BaseResponseDto> sendVerificationEmail(
             @Valid @RequestBody EmailRequestDto emailRequestDto
     ) {
-        emailService.sendVerificationCode(emailRequestDto.getEmail());
+        emailVerificationService.sendVerificationCode(emailRequestDto.getEmail());
 
         BaseResponseDto response = new BaseResponseDto("Verification email sent");
 
@@ -43,7 +43,7 @@ public class AuthController {
         String email = emailRequestDto.getEmail();
         String code = emailRequestDto.getCode();
 
-        emailService.verifyCode(email, code);
+        emailVerificationService.verifyEmailCode(email, code);
 
         BaseResponseDto responseBody = new BaseResponseDto("Email verified successfully");
 
@@ -54,7 +54,7 @@ public class AuthController {
     public ResponseEntity<SignupResponseDto> requestSignup(
             @Valid @RequestBody SignupRequestDto signupRequestDto
     ) {
-        emailService.verifyEmail(signupRequestDto.getEmail());
+        emailVerificationService.validateEmailCode(signupRequestDto.getEmail());
 
         SignupResponseDto responseBody = authService.createUser(signupRequestDto);
         responseBody.setMessage("Signup successfully");
@@ -102,11 +102,15 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponseDto> refreshAccessToken(
-            HttpServletRequest request
+            @RequestHeader("Authorization") String header,
+            HttpServletRequest request,
+            HttpServletResponse response
     ) {
         String refreshToken = cookieManager.getRefreshTokenFromCookies(request);
 
-        TokenResponseDto responseDto = authService.refreshAccessToken(refreshToken);
+        TokenResponseDto responseDto = authService.refreshAccessToken(refreshToken, header);
+        Cookie refreshTokenCookie = cookieManager.createRefreshTokenCookie(responseDto.getRefreshToken());
+        response.addCookie(refreshTokenCookie);
         responseDto.setMessage("Refresh access token successfully");
 
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);

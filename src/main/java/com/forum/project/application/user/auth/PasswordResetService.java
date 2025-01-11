@@ -1,7 +1,8 @@
 package com.forum.project.application.user.auth;
 
+import com.forum.project.application.email.EmailUserService;
 import com.forum.project.application.user.UserDtoConverterFactory;
-import com.forum.project.application.email.EmailService;
+import com.forum.project.application.email.EmailVerificationService;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.application.jwt.TokenService;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Service;
 public class PasswordResetService {
     private final UserRepository userRepository;
     private final TokenService tokenService;
-    private final EmailService emailService;
+    private final EmailUserService emailUserService;
     private final UserPasswordService passwordService;
 
     public void requestPasswordReset(String email) {
@@ -25,7 +26,7 @@ public class PasswordResetService {
         UserInfoDto userInfoDto = UserDtoConverterFactory.toUserInfoDto(user);
 
         String resetToken = tokenService.createPasswordResetToken(userInfoDto);
-        emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+        emailUserService.sendPasswordResetEmail(user.getEmail(), resetToken);
     }
 
     public void resetPassword(String token, String newPassword) {

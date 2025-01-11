@@ -1,9 +1,11 @@
 package com.forum.project.infrastructure.web;
 
 import com.forum.project.application.exception.ApplicationException;
+import com.forum.project.common.utils.LogHelper;
 import com.forum.project.infrastructure.persistence.CustomDatabaseException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.common.utils.ExceptionResponseUtil;
+import com.forum.project.presentation.error.ErrorResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -13,6 +15,7 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
 import java.util.Map;
@@ -41,10 +44,16 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ApplicationException.class)
-    public ResponseEntity<Map<String, String>> handleApplicationException(ApplicationException ex, WebRequest request) {
-        log.error("Application Error occurred: {}", ex.getMessage());
+    public ResponseEntity<ErrorResponseDto> handleApplicationException(ApplicationException ex, WebRequest request) {
+        String path = request.getDescription(false).replace("uri=", "");
+        String method = ((ServletWebRequest) request).getHttpMethod().name();
         ErrorCode errorCode = ex.getErrorCode();
-        return exceptionResponseUtil.createErrorResponse(errorCode.getCode(), errorCode.getMessage(), errorCode.getStatus(), request);
+
+        log.error(LogHelper.formatLogMessage(path, method, errorCode, ex.getDetails()));
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(new ErrorResponseDto(errorCode));
     }
 
     @ExceptionHandler(CustomDatabaseException.class)

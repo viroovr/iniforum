@@ -7,8 +7,8 @@
 //import com.forum.project.domain.exception.ApplicationException;
 //import com.forum.project.domain.exception.CustomDatabaseException;
 //import com.forum.project.domain.exception.ErrorCode;
-//import com.forum.project.domain.question.QuestionRepository;
-//import com.forum.project.domain.question.TotalCountRepository;
+//import com.forum.project.infrastructure.persistence.question.QuestionRepository;
+//import com.forum.project.infrastructure.persistence.question.TotalCountRepository;
 //import com.forum.project.infrastructure.persistence.user.UserRepository;
 //import com.forum.project.presentation.question.RequestQuestionDto;
 //import com.forum.project.presentation.question.ResponseQuestionDto;

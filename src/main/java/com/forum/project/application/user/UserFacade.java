@@ -1,5 +1,6 @@
 package com.forum.project.application.user;
 
+import com.forum.project.application.email.EmailUserService;
 import com.forum.project.application.user.auth.AuthenticationService;
 import com.forum.project.application.user.auth.PasswordResetService;
 import com.forum.project.domain.user.User;
@@ -20,7 +21,7 @@ public class UserFacade {
 
     private final AuthenticationService authenticationService;
     private final UserProfileService userProfileService;
-    private final UserNotificationService userNotificationService;
+    private final EmailUserService emailUserService;
     private final UserManagementService userManagementService;
     private final PasswordResetService passwordResetService;
     private final UserActivityService userActivityService;
@@ -59,6 +60,6 @@ public class UserFacade {
 
     public void sendProfileUpdateNotification(Long userId) {
         User user = authenticationService.validateUser(userId);
-        userNotificationService.sendProfileUpdateNotification(user);
+        emailUserService.sendProfileUpdateEmail(user);
     }
 }

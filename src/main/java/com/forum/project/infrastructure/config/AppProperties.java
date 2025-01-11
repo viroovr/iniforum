@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "app")
 @Getter
-@Setter
 public class AppProperties {
     private String url;
+    private String adminEmail;
 }

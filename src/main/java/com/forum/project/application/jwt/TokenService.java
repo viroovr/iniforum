@@ -1,14 +1,14 @@
 package com.forum.project.application.jwt;
 
-import com.forum.project.domain.user.UserRole;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.domain.user.UserRole;
 import com.forum.project.infrastructure.jwt.JwtUtils;
 import com.forum.project.presentation.user.UserInfoDto;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.util.Date;
@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-@Component
+@Service
 public class TokenService {
 
     private final JwtUtils jwtUtils;
@@ -55,6 +55,10 @@ public class TokenService {
         return jwtUtils.parseClaims(token).get("role", UserRole.class);
     }
 
+    public <T> T getClaim(String token, String claimKey, Class<T> claimType) {
+        return jwtUtils.parseClaims(token).get(claimKey, claimType);
+    }
+
     private Map<String, Object> makeMapClaims(UserInfoDto member) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", member.getId());
@@ -89,9 +93,19 @@ public class TokenService {
         return jwtUtils.isValidToken(token);
     }
 
+    /**
+        Refresh Token Rotation:
+        Refresh Token을 사용할 때마다 새로운 Refresh Token을 발급하며,
+         이전 Refresh Token은 즉시 만료 처리합니다.
+     */
     public String regenerateAccessToken(String refreshToken) {
         UserInfoDto userInfoDto = jwtUtils.extractUserInfo(refreshToken);
         return createAccessToken(userInfoDto);
+    }
+
+    public String regenerateRefreshToken(String refreshToken) {
+        UserInfoDto userInfoDto = jwtUtils.extractUserInfo(refreshToken);
+        return createRefreshToken(userInfoDto);
     }
 
     public String extractTokenByHeader(String authorizationHeader) {

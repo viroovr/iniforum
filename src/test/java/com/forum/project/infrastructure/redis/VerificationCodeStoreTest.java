@@ -22,10 +22,10 @@ class VerificationCodeStoreTest {
     private static final String CODE = "123456";
 
     @Test
-    void shouldSaveVerificationCodeSuccessfully_whenValidArgumentProvided() {
+    void shouldSaveSuccessfully_whenValidArgumentProvided() {
         EmailVerification verification = new EmailVerification(CODE, false);
 
-        verificationCodeStore.saveVerificationCode(EMAIL, verification, 3);
+        verificationCodeStore.save(EMAIL, verification, 3);
 
         EmailVerification storedVerification =
                 (EmailVerification) redisTemplate.opsForValue().get("verified:email:" + EMAIL);
@@ -38,10 +38,10 @@ class VerificationCodeStoreTest {
     void shouldReturnVerificationCode_whenValidEmailProvided() {
         // Given
         EmailVerification verification = new EmailVerification(CODE, false);
-        verificationCodeStore.saveVerificationCode(EMAIL, verification, 3);
+        verificationCodeStore.save(EMAIL, verification, 3);
 
         // When
-        EmailVerification retrievedVerification = verificationCodeStore.getVerificationCode(EMAIL);
+        EmailVerification retrievedVerification = verificationCodeStore.getValue(EMAIL);
 
         // Then
         assertNotNull(retrievedVerification);
@@ -50,12 +50,12 @@ class VerificationCodeStoreTest {
     }
 
     @Test
-    void shouldUpdateVerificationCodeSuccessfully() {
+    void shouldUpdateSuccessfully() {
         EmailVerification verification = new EmailVerification(CODE, false);
-        verificationCodeStore.saveVerificationCode(EMAIL, verification, 3);
+        verificationCodeStore.save(EMAIL, verification, 3);
 
         verification.setVerified(true);
-        verificationCodeStore.updateVerificationCode(EMAIL, verification, 5);
+        verificationCodeStore.update(EMAIL, verification, 5);
 
         EmailVerification updatedVerification =
                 (EmailVerification) redisTemplate.opsForValue().get("verified:email:" + EMAIL);

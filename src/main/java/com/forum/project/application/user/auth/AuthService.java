@@ -1,13 +1,16 @@
 package com.forum.project.application.user.auth;
 
-import com.forum.project.application.user.UserDtoConverterFactory;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.application.jwt.TokenService;
+import com.forum.project.application.user.UserDtoConverterFactory;
+import com.forum.project.application.user.UserFacade;
+import com.forum.project.domain.user.User;
+import com.forum.project.domain.user.UserAction;
+import com.forum.project.domain.user.UserRole;
+import com.forum.project.domain.user.UserStatus;
 import com.forum.project.infrastructure.jwt.AccessRedisTokenBlacklistHandler;
 import com.forum.project.infrastructure.jwt.RefreshRedisTokenBlacklistHandler;
-import com.forum.project.application.jwt.TokenService;
-import com.forum.project.application.user.UserFacade;
-import com.forum.project.domain.user.*;
 import com.forum.project.infrastructure.persistence.user.UserRepository;
 import com.forum.project.presentation.auth.LoginRequestDto;
 import com.forum.project.presentation.auth.SignupRequestDto;
@@ -90,7 +93,7 @@ public class AuthService {
         accessTokenBlacklistService.blacklistToken(accessToken, accessTokenTtl);
     }
 
-    public TokenResponseDto refreshAccessToken(String refreshToken) {
+    public TokenResponseDto refreshAccessToken(String refreshToken, String header) {
         if (refreshTokenBlacklistService.isBlacklistedToken(refreshToken)) {
             throw new ApplicationException(ErrorCode.AUTH_BLACKLISTED_REFRESH_TOKEN);
         }
@@ -99,10 +102,15 @@ public class AuthService {
             throw new ApplicationException(ErrorCode.AUTH_INVALID_TOKEN);
         }
 
-        String accessToken = tokenService.regenerateAccessToken(refreshToken);
+        String oldAccessToken = tokenService.extractTokenByHeader(header);
+        String refreshedAccessToken = tokenService.regenerateAccessToken(refreshToken);
+        String newRefreshToken = tokenService.regenerateRefreshToken(refreshToken);
+        refreshTokenBlacklistService.blacklistToken(refreshToken, tokenService.getExpirationTime(refreshToken));
+        accessTokenBlacklistService.blacklistToken(oldAccessToken, tokenService.getExpirationTime(oldAccessToken));
 
-        return TokenResponseDto.builder()
-                .accessToken(accessToken)
-                .build();
+        return new TokenResponseDto(
+                refreshedAccessToken,
+                newRefreshToken
+        );
     }
 }

@@ -1,6 +1,8 @@
 package com.forum.project.application.comment;
 
-import com.forum.project.application.user.admin.AdminNotificationService;
+import com.forum.project.application.email.EmailAdminService;
+import com.forum.project.application.exception.ApplicationException;
+import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.domain.comment.CommentReport;
 import com.forum.project.infrastructure.persistence.comment.CommentReportRepository;
 import org.junit.jupiter.api.Test;
@@ -22,7 +24,7 @@ class CommentReportServiceTest {
     private CommentReportRepository commentReportRepository;
 
     @Mock
-    private AdminNotificationService adminNotificationService;
+    private EmailAdminService emailAdminService;
 
     @InjectMocks
     private CommentReportService commentReportService;
@@ -47,17 +49,59 @@ class CommentReportServiceTest {
     }
 
     @Test
+    void testSaveReportComment_throwCommentAlreadyReported() {
+        Long commentId = 1L;
+        Long userId = 1L;
+        String reason = "스팸";
+
+        when(commentReportRepository.existsByCommentIdAndUserId(commentId, userId)).thenReturn(true);
+
+        ApplicationException exception = assertThrows(ApplicationException.class,
+                () -> commentReportService.saveReportComment(commentId, userId, reason));
+
+        assertEquals(exception.getErrorCode(), ErrorCode.COMMENT_ALREADY_REPORTED);
+    }
+
+    @Test
+    void throwInvalidCommentReport_whenReasonIsEmpty() {
+        Long commentId = 1L;
+        Long userId = 1L;
+        String reason = "";
+
+        when(commentReportRepository.existsByCommentIdAndUserId(commentId, userId)).thenReturn(false);
+
+        ApplicationException exception = assertThrows(ApplicationException.class,
+                () -> commentReportService.saveReportComment(commentId, userId, reason));
+
+        assertEquals(exception.getErrorCode(), ErrorCode.INVALID_COMMENT_REPORT);
+    }
+
+    @Test
+    void throwInvalidCommentReport_whenReasonNotInRange() {
+        Long commentId = 1L;
+        Long userId = 1L;
+        String reason = "없는 신고 사유";
+
+        when(commentReportRepository.existsByCommentIdAndUserId(commentId, userId)).thenReturn(false);
+
+        ApplicationException exception = assertThrows(ApplicationException.class,
+                () -> commentReportService.saveReportComment(commentId, userId, reason));
+
+        assertEquals(exception.getErrorCode(), ErrorCode.INVALID_COMMENT_REPORT);
+    }
+
+    @Test
     void testNotifyAdminIfHighReports_success() {
         Long commentId = 1L;
         Long reportCount = 11L;
 
         when(commentReportRepository.countByCommentId(commentId)).thenReturn(reportCount);
-        doNothing().when(adminNotificationService).sendNotification(anyString(), anyString());
+        doNothing().when(emailAdminService).sendEmail(anyString(), anyString());
 
         commentReportService.notifyAdminIfHighReports(commentId);
 
         verify(commentReportRepository).countByCommentId(commentId);
-        verify(adminNotificationService).sendNotification(anyString(), anyString());
+        verify(emailAdminService).sendEmail(anyString(), anyString());
     }
 
     @Test
@@ -70,7 +114,7 @@ class CommentReportServiceTest {
         commentReportService.notifyAdminIfHighReports(commentId);
 
         verify(commentReportRepository).countByCommentId(commentId);
-        verify(adminNotificationService, never()).sendNotification(anyString(), anyString());
+        verify(emailAdminService, never()).sendEmail(anyString(), anyString());
     }
 
     @Test

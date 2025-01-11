@@ -1,11 +1,9 @@
 package com.forum.project.application.comment;
 
-import com.forum.project.application.jwt.TokenService;
 import com.forum.project.application.user.auth.AuthenticationService;
 import com.forum.project.domain.comment.Comment;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.domain.commentlike.CommentLikeRepository;
 import com.forum.project.infrastructure.persistence.comment.CommentRepository;
 import com.forum.project.domain.commentlike.CommentReportRequestDto;
 import com.forum.project.infrastructure.security.auth.AuthCheck;
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor

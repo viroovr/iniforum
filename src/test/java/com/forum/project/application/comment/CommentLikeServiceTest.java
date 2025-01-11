@@ -1,7 +1,7 @@
 package com.forum.project.application.comment;
 
 import com.forum.project.domain.commentlike.CommentLike;
-import com.forum.project.domain.commentlike.CommentLikeRepository;
+import com.forum.project.infrastructure.persistence.commentlike.CommentLikeRepository;
 import com.forum.project.domain.commentlike.CommentLikeStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
