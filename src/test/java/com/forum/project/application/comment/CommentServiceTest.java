@@ -5,7 +5,7 @@ import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.application.user.auth.AuthenticationService;
 import com.forum.project.domain.comment.Comment;
 import com.forum.project.domain.commentlike.CommentReportRequestDto;
-import com.forum.project.infrastructure.persistence.comment.CommentRepository;
+import com.forum.project.domain.comment.CommentRepository;
 import com.forum.project.presentation.comment.CommentRequestDto;
 import com.forum.project.presentation.comment.CommentResponseDto;
 import org.junit.jupiter.api.Test;

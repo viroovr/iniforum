@@ -1,13 +1,14 @@
 package com.forum.project.infrastructure.persistence.comment;
 
 import com.forum.project.domain.comment.CommentReport;
+import com.forum.project.domain.comment.CommentReportRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class CommentReportJdbcImpl implements CommentReportRepository{
+public class CommentReportJdbcImpl implements CommentReportRepository {
     @Override
     public CommentReport save(CommentReport commentReport) {
         return null;

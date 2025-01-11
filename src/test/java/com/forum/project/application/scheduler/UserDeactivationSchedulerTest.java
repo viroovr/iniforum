@@ -2,7 +2,7 @@ package com.forum.project.application.scheduler;
 
 import com.forum.project.application.user.UserDeactivationScheduler;
 import com.forum.project.domain.user.User;
-import com.forum.project.infrastructure.persistence.user.UserRepository;
+import com.forum.project.domain.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,7 +1,7 @@
 package com.forum.project.infrastructure.user;
 
 import com.forum.project.domain.user.User;
-import com.forum.project.infrastructure.persistence.user.UserRepository;
+import com.forum.project.domain.user.UserRepository;
 import com.forum.project.domain.user.UserRole;
 import com.forum.project.domain.user.UserStatus;
 import com.forum.project.infrastructure.persistence.user.UserRepositoryJdbcImpl;

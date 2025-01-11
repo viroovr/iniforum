@@ -1,6 +1,7 @@
 package com.forum.project.infrastructure.persistence.tag;
 
 import com.forum.project.domain.tag.Tag;
+import com.forum.project.domain.tag.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
@@ -17,7 +18,7 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class TagRepositoryJdbcImpl implements TagRepository{
+public class TagRepositoryJdbcImpl implements TagRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override

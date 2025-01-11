@@ -2,12 +2,11 @@ package com.forum.project.application.user.auth;
 
 import com.forum.project.application.email.EmailUserService;
 import com.forum.project.application.user.UserDtoConverterFactory;
-import com.forum.project.application.email.EmailVerificationService;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.application.jwt.TokenService;
 import com.forum.project.domain.user.User;
-import com.forum.project.infrastructure.persistence.user.UserRepository;
+import com.forum.project.domain.user.UserRepository;
 import com.forum.project.presentation.user.UserInfoDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,7 +32,7 @@ public class PasswordResetService {
         if (token == null || !tokenService.isValidToken(token)) {
             throw new ApplicationException(ErrorCode.AUTH_INVALID_TOKEN);
         }
-        Long userId = tokenService.getId(token);
+        Long userId = tokenService.getUserId(token);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
 

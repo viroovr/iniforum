@@ -8,10 +8,10 @@ import com.forum.project.domain.tag.Tag;
 import com.forum.project.domain.user.User;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.infrastructure.persistence.question.QuestionRepository;
-import com.forum.project.infrastructure.persistence.question.TotalCountRepository;
-import com.forum.project.infrastructure.persistence.tag.QuestionTagRepository;
-import com.forum.project.infrastructure.persistence.tag.TagRepository;
+import com.forum.project.domain.question.QuestionRepository;
+import com.forum.project.domain.question.TotalCountRepository;
+import com.forum.project.domain.tag.QuestionTagRepository;
+import com.forum.project.domain.tag.TagRepository;
 import com.forum.project.presentation.question.QuestionRequestDto;
 import com.forum.project.presentation.question.QuestionResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -97,14 +97,16 @@ public class QuestionService {
     }
 
     @Transactional
-    public void deleteQuestion(Long questionId, String accessToken) {
+    public void deleteQuestion(Long questionId, String header) {
+        String accessToken = authenticationService.extractTokenByHeader(header);
         validateQuestion(questionId, accessToken);
         questionRepository.deleteById(questionId);
         totalCountRepository.decrementTotalCount();
     }
 
     @Transactional
-    public QuestionResponseDto updateQuestion(Long questionId, QuestionRequestDto questionRequestDto, String accessToken) {
+    public QuestionResponseDto updateQuestion(Long questionId, QuestionRequestDto questionRequestDto, String header) {
+        String accessToken = authenticationService.extractTokenByHeader(header);
         Question question = validateQuestion(questionId, accessToken);
 
         question.setTitle(questionRequestDto.getTitle());
@@ -148,8 +150,9 @@ public class QuestionService {
         return new PageImpl<>(questionResponseDtos, pageable, total);
     }
 
-    public Page<QuestionResponseDto> getQuestionsByUser(int page, int size, String accessToken) {
-        Long id = tokenService.getId(accessToken);
+    public Page<QuestionResponseDto> getQuestionsByUser(int page, int size, String header) {
+        String accessToken = authenticationService.extractTokenByHeader(header);
+        Long id = tokenService.getUserId(accessToken);
         Long total = questionRepository.getTotalUserQuestionCount(id);
         List<Question> questionPage = questionRepository.searchQuestionsByUser(id, page, size);
 

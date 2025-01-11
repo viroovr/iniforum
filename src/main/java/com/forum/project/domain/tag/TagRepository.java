@@ -1,6 +1,4 @@
-package com.forum.project.infrastructure.persistence.tag;
-
-import com.forum.project.domain.tag.Tag;
+package com.forum.project.domain.tag;
 
 import java.util.List;
 import java.util.Optional;

@@ -74,7 +74,7 @@ public class TestDtoFactory {
 
     public static UserInfoDto createUserInfoDto() {
         return UserInfoDto.builder()
-                .id(1L)
+                .userId(1L)
                 .loginId("testUser")
                 .email("test@test.com")
                 .password("testPassword1!")

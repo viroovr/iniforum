@@ -5,7 +5,7 @@ import com.forum.project.domain.user.CustomUserDetails;
 import com.forum.project.domain.user.User;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.infrastructure.persistence.user.UserRepository;
+import com.forum.project.domain.user.UserRepository;
 import com.forum.project.presentation.user.UserInfoDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

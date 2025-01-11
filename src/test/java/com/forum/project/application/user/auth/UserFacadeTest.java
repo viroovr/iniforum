@@ -6,8 +6,8 @@
 //import com.forum.project.application.jwt.TokenService;
 //import com.forum.project.application.user.UserFacade;
 //import com.forum.project.domain.user.*;
-//import com.forum.project.infrastructure.persistence.user.UserActivityLogRepository;
-//import com.forum.project.infrastructure.persistence.user.UserRepository;
+//import com.forum.project.domain.user.UserActivityLogRepository;
+//import com.forum.project.domain.user.UserRepository;
 //import com.forum.project.presentation.user.UserInfoDto;
 //import com.forum.project.presentation.user.UserRequestDto;
 //import com.forum.project.presentation.user.UserResponseDto;

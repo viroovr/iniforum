@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class UserInfoDto {
-    private Long id;
+    private Long userId;
     private String loginId;
     private String password;
     private String email;

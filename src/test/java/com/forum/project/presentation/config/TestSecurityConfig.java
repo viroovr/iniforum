@@ -28,10 +28,10 @@ public class TestSecurityConfig {
     @MockBean
     private ExceptionResponseUtil exceptionResponseUtil;
     @MockBean
-    private AuthenticationManager authenticationManager;  // 인증 매니저 Mock
+    private AuthenticationManager authenticationManager;
 
     @MockBean
-    private CustomUserDetailsService customUserDetailsService; // 사용자 세부 정보 서비스 Mock
+    private CustomUserDetailsService customUserDetailsService;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         log.info("test security filter chain start");

@@ -1,4 +1,4 @@
-package com.forum.project.infrastructure.persistence.question;
+package com.forum.project.domain.question;
 
 public interface TotalCountRepository {
     Long getTotalCount();

@@ -1,6 +1,6 @@
 package com.forum.project.application.question;
 
-import com.forum.project.infrastructure.persistence.question.QuestionRepository;
+import com.forum.project.domain.question.QuestionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;

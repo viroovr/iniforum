@@ -1,6 +1,4 @@
-package com.forum.project.infrastructure.persistence.commentlike;
-
-import com.forum.project.domain.commentlike.CommentLike;
+package com.forum.project.domain.commentlike;
 
 import java.util.List;
 import java.util.Optional;

@@ -2,7 +2,7 @@ package com.forum.project.application.user.admin;
 
 import com.forum.project.application.user.UserDtoConverterFactory;
 import com.forum.project.domain.user.User;
-import com.forum.project.infrastructure.persistence.user.UserRepository;
+import com.forum.project.domain.user.UserRepository;
 import com.forum.project.presentation.user.UserInfoDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

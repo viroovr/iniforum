@@ -1,6 +1,7 @@
 package com.forum.project.infrastructure.persistence.comment;
 
 import com.forum.project.domain.comment.Comment;
+import com.forum.project.domain.comment.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;

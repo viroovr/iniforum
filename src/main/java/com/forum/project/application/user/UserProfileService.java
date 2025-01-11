@@ -3,7 +3,7 @@ package com.forum.project.application.user;
 import com.forum.project.application.user.auth.UserPasswordService;
 import com.forum.project.application.user.io.FileService;
 import com.forum.project.domain.user.User;
-import com.forum.project.infrastructure.persistence.user.UserRepository;
+import com.forum.project.domain.user.UserRepository;
 import com.forum.project.presentation.user.UserRequestDto;
 import com.forum.project.presentation.user.UserResponseDto;
 import lombok.RequiredArgsConstructor;

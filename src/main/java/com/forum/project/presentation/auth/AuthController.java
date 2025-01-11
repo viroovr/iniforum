@@ -86,14 +86,13 @@ public class AuthController {
 
     @PostMapping(value = "/logout")
     public ResponseEntity<BaseResponseDto> logout(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader("Authorization") String header,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        String accessToken = tokenService.extractTokenByHeader(authHeader);
         String refreshToken = cookieManager.getRefreshTokenFromCookies(request);
 
-        authService.logout(accessToken,refreshToken);
+        authService.logout(refreshToken, header);
         clearRefreshToken(response);
 
         BaseResponseDto responseDto = new BaseResponseDto("Logged out successfully");

@@ -3,7 +3,7 @@ package com.forum.project.application.user;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.domain.user.User;
-import com.forum.project.infrastructure.persistence.user.UserRepository;
+import com.forum.project.domain.user.UserRepository;
 import com.forum.project.domain.user.UserRole;
 import com.forum.project.domain.user.UserStatus;
 import lombok.RequiredArgsConstructor;

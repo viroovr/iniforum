@@ -1,8 +1,6 @@
 package com.forum.project.domain.user;
 
 import com.forum.project.application.user.UserFacade;
-import com.forum.project.infrastructure.persistence.user.UserActivityLogRepository;
-import com.forum.project.infrastructure.persistence.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

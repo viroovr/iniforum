@@ -60,13 +60,13 @@ class CustomUserDetailsTest {
 
     @Test
     void shouldGetUserNameSuccessfully() {
-        when(mockUserInfoDto.getId()).thenReturn(123L);
+        when(mockUserInfoDto.getUserId()).thenReturn(123L);
 
         String username = customUserDetails.getUsername();
 
         assertThat(username).isEqualTo("123");
 
-        verify(mockUserInfoDto, times(1)).getId();
+        verify(mockUserInfoDto, times(1)).getUserId();
     }
 
     @Test

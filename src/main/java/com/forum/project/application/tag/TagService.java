@@ -3,7 +3,7 @@ package com.forum.project.application.tag;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.domain.tag.Tag;
-import com.forum.project.infrastructure.persistence.tag.TagRepository;
+import com.forum.project.domain.tag.TagRepository;
 import com.forum.project.presentation.tag.TagRequestDto;
 import com.forum.project.presentation.tag.TagResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

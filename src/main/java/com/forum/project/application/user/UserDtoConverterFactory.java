@@ -48,7 +48,7 @@ public class UserDtoConverterFactory {
 
     public static UserInfoDto toUserInfoDto(User user) {
         return UserInfoDto.builder()
-                .id(user.getId())
+                .userId(user.getId())
                 .loginId(user.getLoginId())
                 .password(user.getPassword())
                 .email(user.getEmail())

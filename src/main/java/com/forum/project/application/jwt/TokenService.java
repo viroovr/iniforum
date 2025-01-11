@@ -3,7 +3,9 @@ package com.forum.project.application.jwt;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.domain.user.UserRole;
+import com.forum.project.infrastructure.jwt.ClaimRequestDto;
 import com.forum.project.infrastructure.jwt.JwtUtils;
+import com.forum.project.infrastructure.jwt.TokenCacheHandler;
 import com.forum.project.presentation.user.UserInfoDto;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -12,13 +14,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Service
 public class TokenService {
 
+    private final TokenCacheHandler tokenCacheHandler;
     private final JwtUtils jwtUtils;
     private final Clock clock;
     @Getter
@@ -28,14 +29,15 @@ public class TokenService {
     @Getter
     private final long passwordResetTokenExpTime;
 
-
     public TokenService(
+            TokenCacheHandler tokenCacheHandler,
             JwtUtils jwtUtils,
             Clock clock,
             @Value("${jwt.access_token_expiration_time}") long accessTokenExpTime,
             @Value("${jwt.refresh_token_expiration_time}") long refreshTokenExpTime,
             @Value("${jwt.password_reset_token_expiration_time}") long passwordResetTokenExpTime
     ) {
+        this.tokenCacheHandler = tokenCacheHandler;
         this.jwtUtils = jwtUtils;
         this.clock = clock;
         this.accessTokenExpTime = accessTokenExpTime;
@@ -43,75 +45,60 @@ public class TokenService {
         this.passwordResetTokenExpTime = passwordResetTokenExpTime;
     }
 
-    public Long getId(String token) {
-        return jwtUtils.parseClaims(token).get("id", Long.class);
+    private <T> T extractClaim(String token, String claimKey, Class<T> claimType) {
+        return tokenCacheHandler.extractClaim(token, claimKey, claimType);
+    }
+
+    public Long getUserId(String token) {
+        return extractClaim(token, ClaimRequestDto.USER_ID_CLAIM_KEY, Long.class);
     }
 
     public String getLoginId(String token) {
-        return jwtUtils.parseClaims(token).get("loginId", String.class);
+        return extractClaim(token,ClaimRequestDto.LOGIN_ID_CLAIM_KEY, String.class);
     }
 
-    public UserRole getUserRole(String token) {
-        return jwtUtils.parseClaims(token).get("role", UserRole.class);
-    }
-
-    public <T> T getClaim(String token, String claimKey, Class<T> claimType) {
-        return jwtUtils.parseClaims(token).get(claimKey, claimType);
-    }
-
-    private Map<String, Object> makeMapClaims(UserInfoDto member) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("id", member.getId());
-        claims.put("loginId", member.getLoginId());
-        claims.put("email", member.getEmail());
-        claims.put("role", member.getRole());
-        return claims;
-    }
-
-    public String createAccessToken(UserInfoDto member) {
-        Map<String, Object> claims = makeMapClaims(member);
-        return jwtUtils.createToken(claims, accessTokenExpTime);
-    }
-
-    public String createRefreshToken(UserInfoDto member) {
-        Map<String, Object> claims = makeMapClaims(member);
-        return jwtUtils.createToken(claims, refreshTokenExpTime);
-    }
-
-    public String createPasswordResetToken(UserInfoDto member) {
-        Map<String, Object> claims = makeMapClaims(member);
-        return jwtUtils.createToken(claims, passwordResetTokenExpTime);
+    public String getUserRole(String token) {
+        return extractClaim(token,ClaimRequestDto.USER_ROLE_CLAIM_KEY, String.class);
     }
 
     public long getExpirationTime(String token) {
-        Date expiration = jwtUtils.parseClaims(token).getExpiration();
+        Date expiration = tokenCacheHandler.getExpirationDate(token);
         long currentMillis = clock.millis();
         return (expiration.getTime() - currentMillis) / 1000;
+    }
+
+    public boolean hasRole(String token, UserRole role) {
+        String tokenRole = getUserRole(token);
+        return role.name().equals(tokenRole);
     }
 
     public boolean isValidToken(String token) {
         return jwtUtils.isValidToken(token);
     }
 
-    /**
-        Refresh Token Rotation:
-        Refresh Token을 사용할 때마다 새로운 Refresh Token을 발급하며,
-         이전 Refresh Token은 즉시 만료 처리합니다.
-     */
+    private String createToken(ClaimRequestDto dto, long expirationTime) {
+        return jwtUtils.createToken(dto.toMap(), expirationTime);
+    }
+
+    public String createAccessToken(UserInfoDto member) {
+        return createToken(new ClaimRequestDto(member), accessTokenExpTime);
+    }
+
+    public String createRefreshToken(UserInfoDto member) {
+        return createToken(new ClaimRequestDto(member), refreshTokenExpTime);
+    }
+
+    public String createPasswordResetToken(UserInfoDto member) {
+        return createToken(new ClaimRequestDto(member), passwordResetTokenExpTime);
+    }
+
     public String regenerateAccessToken(String refreshToken) {
-        UserInfoDto userInfoDto = jwtUtils.extractUserInfo(refreshToken);
-        return createAccessToken(userInfoDto);
+        ClaimRequestDto dto = tokenCacheHandler.extractClaimsByToken(refreshToken);
+        return createToken(dto, accessTokenExpTime);
     }
 
     public String regenerateRefreshToken(String refreshToken) {
-        UserInfoDto userInfoDto = jwtUtils.extractUserInfo(refreshToken);
-        return createRefreshToken(userInfoDto);
-    }
-
-    public String extractTokenByHeader(String authorizationHeader) {
-        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            return authorizationHeader.substring(7);
-        }
-        throw new ApplicationException(ErrorCode.INVALID_AUTH_HEADER);
+        ClaimRequestDto dto = tokenCacheHandler.extractClaimsByToken(refreshToken);
+        return createToken(dto, refreshTokenExpTime);
     }
 }

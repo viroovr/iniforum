@@ -1,6 +1,4 @@
-package com.forum.project.infrastructure.persistence.comment;
-
-import com.forum.project.domain.comment.Comment;
+package com.forum.project.domain.comment;
 
 import java.util.List;
 import java.util.Optional;

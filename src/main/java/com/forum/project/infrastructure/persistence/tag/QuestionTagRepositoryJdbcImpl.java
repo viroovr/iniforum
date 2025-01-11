@@ -1,6 +1,7 @@
 package com.forum.project.infrastructure.persistence.tag;
 
 import com.forum.project.domain.tag.QuestionTag;
+import com.forum.project.domain.tag.QuestionTagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;

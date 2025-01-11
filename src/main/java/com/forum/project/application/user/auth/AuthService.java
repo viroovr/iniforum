@@ -11,7 +11,7 @@ import com.forum.project.domain.user.UserRole;
 import com.forum.project.domain.user.UserStatus;
 import com.forum.project.infrastructure.jwt.AccessRedisTokenBlacklistHandler;
 import com.forum.project.infrastructure.jwt.RefreshRedisTokenBlacklistHandler;
-import com.forum.project.infrastructure.persistence.user.UserRepository;
+import com.forum.project.domain.user.UserRepository;
 import com.forum.project.presentation.auth.LoginRequestDto;
 import com.forum.project.presentation.auth.SignupRequestDto;
 import com.forum.project.presentation.auth.SignupResponseDto;
@@ -31,6 +31,7 @@ public class AuthService {
     private final TokenService tokenService;
     private final RefreshRedisTokenBlacklistHandler refreshTokenBlacklistService;
     private final AccessRedisTokenBlacklistHandler accessTokenBlacklistService;
+    private final AuthenticationService authenticationService;
     private final UserFacade userFacade;
 
     private User prepareUser(SignupRequestDto signupRequestDto) {
@@ -83,7 +84,8 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(String accessToken, String refreshToken) {
+    public void logout(String refreshToken, String header) {
+        String accessToken = authenticationService.extractTokenByHeader(header);
         if (refreshToken == null || !tokenService.isValidToken(accessToken)) {
             throw new ApplicationException(ErrorCode.AUTH_INVALID_TOKEN);
         }
@@ -102,7 +104,7 @@ public class AuthService {
             throw new ApplicationException(ErrorCode.AUTH_INVALID_TOKEN);
         }
 
-        String oldAccessToken = tokenService.extractTokenByHeader(header);
+        String oldAccessToken = authenticationService.extractTokenByHeader(header);
         String refreshedAccessToken = tokenService.regenerateAccessToken(refreshToken);
         String newRefreshToken = tokenService.regenerateRefreshToken(refreshToken);
         refreshTokenBlacklistService.blacklistToken(refreshToken, tokenService.getExpirationTime(refreshToken));

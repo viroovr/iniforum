@@ -1,6 +1,5 @@
-package com.forum.project.infrastructure.persistence.tag;
+package com.forum.project.domain.tag;
 
-import com.forum.project.domain.tag.QuestionTag;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

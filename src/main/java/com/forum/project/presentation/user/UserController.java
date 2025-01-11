@@ -50,8 +50,7 @@ public class UserController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        String accessToken = tokenService.extractTokenByHeader(header);
-        return questionService.getQuestionsByUser(page, size, accessToken);
+        return questionService.getQuestionsByUser(page, size, header);
     }
 
     @PostMapping("/reset-password")

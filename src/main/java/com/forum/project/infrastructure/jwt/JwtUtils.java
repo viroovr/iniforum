@@ -1,6 +1,5 @@
 package com.forum.project.infrastructure.jwt;
 
-import com.forum.project.presentation.user.UserInfoDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -69,15 +68,5 @@ public class JwtUtils {
                 .setExpiration(Date.from(tokenValidity.toInstant()))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
-    }
-
-    public UserInfoDto extractUserInfo(String token) {
-        Claims claims = parseClaims(token);
-        return UserInfoDto.builder()
-                .id(claims.get("id", Long.class))
-                .loginId(claims.get("loginId", String.class))
-                .email(claims.get("email", String.class))
-                .role(claims.get("role", String.class))
-                .build();
     }
 }

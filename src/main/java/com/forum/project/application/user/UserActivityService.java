@@ -4,8 +4,8 @@ import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.domain.user.User;
 import com.forum.project.domain.user.UserActivityLog;
-import com.forum.project.infrastructure.persistence.user.UserActivityLogRepository;
-import com.forum.project.infrastructure.persistence.user.UserRepository;
+import com.forum.project.domain.user.UserActivityLogRepository;
+import com.forum.project.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

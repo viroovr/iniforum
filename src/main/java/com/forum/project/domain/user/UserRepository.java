@@ -1,6 +1,4 @@
-package com.forum.project.infrastructure.persistence.user;
-
-import com.forum.project.domain.user.User;
+package com.forum.project.domain.user;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -4,7 +4,7 @@ import com.forum.project.application.email.EmailAdminService;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.domain.comment.CommentReport;
-import com.forum.project.infrastructure.persistence.comment.CommentReportRepository;
+import com.forum.project.domain.comment.CommentReportRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

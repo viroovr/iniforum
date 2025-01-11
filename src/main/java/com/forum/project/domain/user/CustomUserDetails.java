@@ -29,7 +29,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return userInfoDto.getId().toString();
+        return userInfoDto.getUserId().toString();
     }
 
     @Override

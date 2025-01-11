@@ -1,6 +1,7 @@
 package com.forum.project.infrastructure.persistence.user;
 
 import com.forum.project.domain.user.User;
+import com.forum.project.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;

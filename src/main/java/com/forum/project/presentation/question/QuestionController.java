@@ -43,8 +43,7 @@ public class QuestionController {
             @RequestBody QuestionRequestDto questionRequestDto,
             @RequestHeader(value = "Authorization") String header
     ) {
-        String accessToken = tokenService.extractTokenByHeader(header);
-        QuestionResponseDto questionResponseDto = questionService.updateQuestion(questionId, questionRequestDto, accessToken);
+        QuestionResponseDto questionResponseDto = questionService.updateQuestion(questionId, questionRequestDto, header);
         return ResponseEntity.status(HttpStatus.OK).body(questionResponseDto);
     }
 
@@ -53,8 +52,7 @@ public class QuestionController {
             @PathVariable("id") Long questionId,
             @RequestHeader(value = "Authorization") String header
     ) {
-        String accessToken = tokenService.extractTokenByHeader(header);
-        questionService.deleteQuestion(questionId, accessToken);
+        questionService.deleteQuestion(questionId, header);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Question deleted successfully.");
