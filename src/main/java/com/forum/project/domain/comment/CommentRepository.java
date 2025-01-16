@@ -14,4 +14,6 @@ public interface CommentRepository {
     void deleteById(Long id);
 
     void hideComment(Long commentId);
+
+    boolean existsById(Long commentId);
 }

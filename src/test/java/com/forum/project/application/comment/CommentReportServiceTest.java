@@ -39,7 +39,7 @@ class CommentReportServiceTest {
         when(commentReportRepository.save(argumentCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
         when(commentReportRepository.existsByCommentIdAndUserId(commentId, userId)).thenReturn(false);
 
-        commentReportService.saveReportComment(commentId, userId, reason);
+        commentReportService.saveReport(commentId, userId, reason);
 
         CommentReport commentReport = argumentCaptor.getValue();
 
@@ -57,7 +57,7 @@ class CommentReportServiceTest {
         when(commentReportRepository.existsByCommentIdAndUserId(commentId, userId)).thenReturn(true);
 
         ApplicationException exception = assertThrows(ApplicationException.class,
-                () -> commentReportService.saveReportComment(commentId, userId, reason));
+                () -> commentReportService.saveReport(commentId, userId, reason));
 
         assertEquals(exception.getErrorCode(), ErrorCode.COMMENT_ALREADY_REPORTED);
     }
@@ -71,7 +71,7 @@ class CommentReportServiceTest {
         when(commentReportRepository.existsByCommentIdAndUserId(commentId, userId)).thenReturn(false);
 
         ApplicationException exception = assertThrows(ApplicationException.class,
-                () -> commentReportService.saveReportComment(commentId, userId, reason));
+                () -> commentReportService.saveReport(commentId, userId, reason));
 
         assertEquals(exception.getErrorCode(), ErrorCode.INVALID_COMMENT_REPORT);
     }
@@ -85,7 +85,7 @@ class CommentReportServiceTest {
         when(commentReportRepository.existsByCommentIdAndUserId(commentId, userId)).thenReturn(false);
 
         ApplicationException exception = assertThrows(ApplicationException.class,
-                () -> commentReportService.saveReportComment(commentId, userId, reason));
+                () -> commentReportService.saveReport(commentId, userId, reason));
 
         assertEquals(exception.getErrorCode(), ErrorCode.INVALID_COMMENT_REPORT);
     }
@@ -127,7 +127,7 @@ class CommentReportServiceTest {
 
         when(commentReportRepository.findAllByCommentId(commentId)).thenReturn(list);
 
-        List<CommentReport> response = commentReportService.getReportsByCommentId(commentId);
+        List<CommentReport> response = commentReportService.getReportsById(commentId);
 
         assertNotNull(response);
         assertEquals(1L, response.get(0).getId());

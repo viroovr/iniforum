@@ -31,13 +31,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        log.info("do Filter Internal Start");
         String authorizationHeader = request.getHeader("Authorization");
 
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            log.info("doFilterInternal : 헤더가 null이 아니고 Bearer로 시작합니다.");
             String token = authorizationHeader.substring(7);
 
             try{
                 if(jwtUtils.isValidToken(token)) {
+                    log.info("doFilterInternal : token이 jwtUtils에 의해 유효합니다.");
                     Long userId = jwtUtils.parseClaims(token).get("id", Long.class);
                     UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId.toString());
 
@@ -59,5 +62,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+        log.info("doFilterInternal 종료");
     }
 }

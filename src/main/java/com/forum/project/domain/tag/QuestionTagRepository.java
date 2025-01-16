@@ -15,4 +15,6 @@ public interface QuestionTagRepository {
     void deleteByQuestionId(Long questionId);
 
     void deleteByTagId(Long tagId);
+
+    List<QuestionTag> saveAll(List<QuestionTag> questionTags);
 }

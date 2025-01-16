@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentReportRequestDto {
+public class ReportRequestDto {
     private String reason;
 }

@@ -57,4 +57,9 @@ public class QuestionTagRepositoryJdbcImpl implements QuestionTagRepository {
 
         jdbcTemplate.update(sql, namedParameters);
     }
+
+    @Override
+    public List<QuestionTag> saveAll(List<QuestionTag> questionTags) {
+        return List.of();
+    }
 }

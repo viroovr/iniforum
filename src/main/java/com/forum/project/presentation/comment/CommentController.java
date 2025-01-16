@@ -1,8 +1,7 @@
 package com.forum.project.presentation.comment;
 
 import com.forum.project.application.comment.CommentService;
-import com.forum.project.application.jwt.TokenService;
-import com.forum.project.domain.commentlike.CommentReportRequestDto;
+import com.forum.project.domain.commentlike.ReportRequestDto;
 import com.forum.project.presentation.dtos.BaseResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -79,7 +78,7 @@ public class CommentController {
 
     @RequestMapping(value = "/{id}/report", method = RequestMethod.POST)
     public ResponseEntity<BaseResponseDto> reportComment(
-            @RequestBody CommentReportRequestDto dto,
+            @RequestBody ReportRequestDto dto,
             @RequestHeader(value = "Authorization") String header,
             @PathVariable Long id
     ) {

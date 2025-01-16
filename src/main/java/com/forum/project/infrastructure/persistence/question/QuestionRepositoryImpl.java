@@ -3,6 +3,7 @@ package com.forum.project.infrastructure.persistence.question;
 import com.forum.project.domain.question.Question;
 import com.forum.project.domain.question.QuestionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -88,7 +90,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
     }
 
     @Override
-    public List<Question> searchQuestions(String keyword, int page, int size) {
+    public List<Question> findQuestionsByKeyword(String keyword, int page, int size) {
         int offset = page * size;
         String sql =
                 "SELECT * FROM questions WHERE LOWER(title) LIKE LOWER(:keyword)"
@@ -104,21 +106,13 @@ public class QuestionRepositoryImpl implements QuestionRepository {
     }
 
     @Override
-    public void updateViewCount(Long questionId, Integer viewCount) {
+    public void updateViewCount(Long questionId, Long viewCount) {
         String updateSql = "UPDATE questions q SET q.viewCount = q.viewCount + :viewCount WHERE q.id = :questionId";
         MapSqlParameterSource parameterSource = new MapSqlParameterSource();
         parameterSource.addValue("viewCount", viewCount);
         parameterSource.addValue("questionId", questionId);
 
         namedParameterJdbcTemplate.update(updateSql, parameterSource);
-    }
-
-    @Override
-    public Long getTotalUserQuestionCount(Long userId) {
-        String sql = "SELECT COUNT(*) FROM questions WHERE user_id=:userId";
-        SqlParameterSource namedParameters = new MapSqlParameterSource("userId", userId);
-        return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Long.class))
-                .orElse(0L);
     }
 
     @Override
@@ -133,5 +127,72 @@ public class QuestionRepositoryImpl implements QuestionRepository {
         parameterSource.addValue("limit", size);
         parameterSource.addValue("offset", offset);
         return namedParameterJdbcTemplate.query(sql, parameterSource, new BeanPropertyRowMapper<>(Question.class));
+    }
+
+    @Override
+    public Long getViewCountByQuestionId(Long questionId) {
+        return 0L;
+    }
+
+    @Override
+    public List<Question> searchQuestionsByQuestionIds(List<Long> questionIds, int page, int size) {
+        return List.of();
+    }
+
+    @Override
+    public List<Question> findQuestionsByStatus(String status, int page, int size) {
+        return List.of();
+    }
+
+    @Override
+    public boolean existsById(Long questionId) {
+        return false;
+    }
+
+    @Override
+    public long countUnansweredQuestions() {
+        return 0;
+    }
+
+    @Override
+    public long countByKeyword(String keyword) {
+        return 0;
+    }
+
+    @Override
+    public Long countByUserId(Long userId) {
+        String sql = "SELECT COUNT(*) FROM questions WHERE user_id=:userId";
+        SqlParameterSource namedParameters = new MapSqlParameterSource("userId", userId);
+        return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Long.class))
+                .orElse(0L);
+    }
+
+    @Override
+    public Long countByQuestionIds(List<Long> questionIds) {
+        return 0L;
+    }
+
+    @Override
+    public Question update(Question question) {
+        return null;
+    }
+
+    @Override
+    public List<Question> findAll(Pageable pageable) {
+        String sql = "SELECT * FROM question " +
+                "ORDER BY " + pageable.getSort().stream()
+                .map(order -> order.getProperty() + " " + order.getDirection())
+                .collect(Collectors.joining(", ")) +
+                " LIMIT :limit OFFSET :offset";
+
+        MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+        parameterSource.addValue("limit", pageable.getPageSize());
+        parameterSource.addValue("offset", pageable.getOffset());
+        return namedParameterJdbcTemplate.query(sql, parameterSource, new BeanPropertyRowMapper<>(Question.class));
+    }
+
+    @Override
+    public Long countByStatus(String status) {
+        return 0L;
     }
 }

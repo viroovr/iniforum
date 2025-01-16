@@ -3,6 +3,7 @@ package com.forum.project.application.comment;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.application.email.EmailAdminService;
+import com.forum.project.application.report.ReportService;
 import com.forum.project.domain.comment.CommentReport;
 import com.forum.project.domain.comment.CommentReportRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,22 +13,24 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CommentReportService {
+public class CommentReportService implements ReportService<CommentReport> {
     private final CommentReportRepository commentReportRepository;
     private final EmailAdminService emailAdminService;
 
     private static final long REPORT_THRESHOLD = 10;
 
-    public void saveReportComment(Long commentId, Long userId, String reason) {
+    @Override
+    public void saveReport(Long commentId, Long userId, String reason) {
         if (commentReportRepository.existsByCommentIdAndUserId(commentId, userId)) {
             throw new ApplicationException(ErrorCode.COMMENT_ALREADY_REPORTED);
         }
         CommentReport report = new CommentReport();
-        report.initialize(commentId, userId, reason);
+        report.initialize(userId, reason, commentId);
         report.validateReason();
         commentReportRepository.save(report);
     }
 
+    @Override
     public void notifyAdminIfHighReports(Long commentId) {
         Long reportCount = commentReportRepository.countByCommentId(commentId);
         if (reportCount >= REPORT_THRESHOLD) {
@@ -37,14 +40,17 @@ public class CommentReportService {
         }
     }
 
-    public List<CommentReport> getReportsByCommentId(Long commentId) {
+    @Override
+    public List<CommentReport> getReportsById(Long commentId) {
         return commentReportRepository.findAllByCommentId(commentId);
     }
 
+    @Override
     public List<CommentReport> getReportsByUserId(Long userId) {
         return commentReportRepository.findAllByUserId(userId);
     }
 
+    @Override
     public void resolveReport(Long reportId) {
         CommentReport report = commentReportRepository.findById(reportId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_REPORT_NOT_FOUND));

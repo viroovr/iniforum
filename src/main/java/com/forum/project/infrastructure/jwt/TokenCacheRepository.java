@@ -1,4 +1,4 @@
-package com.forum.project.domain.jwt;
+package com.forum.project.infrastructure.jwt;
 
 import java.util.Optional;
 

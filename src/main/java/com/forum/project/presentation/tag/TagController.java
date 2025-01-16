@@ -21,9 +21,9 @@ public class TagController {
         return ResponseEntity.ok(recommendedTags);
     }
 
-    @PostMapping
-    public ResponseEntity<TagResponseDto> createTag(@RequestBody TagRequestDto tagRequestDto) {
-        TagResponseDto createdTag = tagService.createTag(tagRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdTag);
-    }
+//    @PostMapping
+//    public ResponseEntity<TagResponseDto> createTag(@RequestBody TagRequestDto tagRequestDto) {
+//        TagResponseDto createdTag = tagService.createTag(tagRequestDto);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(createdTag);
+//    }
 }

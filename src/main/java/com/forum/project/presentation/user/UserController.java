@@ -1,11 +1,10 @@
 package com.forum.project.presentation.user;
 
 import com.forum.project.application.user.UserFacade;
-import com.forum.project.application.jwt.TokenService;
 import com.forum.project.application.question.QuestionService;
 import com.forum.project.presentation.auth.EmailRequestDto;
 import com.forum.project.presentation.dtos.BaseResponseDto;
-import com.forum.project.presentation.question.QuestionResponseDto;
+import com.forum.project.presentation.question.QuestionPageResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,7 +22,6 @@ import java.io.IOException;
 public class UserController {
 
     private final UserFacade userFacade;
-    private final TokenService tokenService;
     private final QuestionService questionService;
 
     @GetMapping(value = "/profile")
@@ -44,13 +42,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(userResponseDto);
     }
 
-    @GetMapping(value = "/questions")
-    public Page<QuestionResponseDto> getQuestionsByUserId(
-            @RequestHeader(value = "Authorization") String header,
+    @GetMapping(value = "/questions/{userId}")
+    public Page<QuestionPageResponseDto> getQuestionsByUserId(
+            @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return questionService.getQuestionsByUser(page, size, header);
+        return questionService.getQuestionsByUser(userId, page, size);
     }
 
     @PostMapping("/reset-password")
@@ -71,5 +69,4 @@ public class UserController {
         BaseResponseDto responseDto = new BaseResponseDto("Reset password send successfully");
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
-
 }

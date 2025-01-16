@@ -1,6 +1,6 @@
 package com.forum.project.infrastructure.persistence.jwt;
 
-import com.forum.project.domain.jwt.TokenCacheRepository;
+import com.forum.project.infrastructure.jwt.TokenCacheRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

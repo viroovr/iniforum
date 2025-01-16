@@ -94,4 +94,9 @@ public class CommentRepositoryImpl implements CommentRepository {
     public void hideComment(Long commentId) {
 
     }
+
+    @Override
+    public boolean existsById(Long commentId) {
+        return false;
+    }
 }

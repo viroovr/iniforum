@@ -28,8 +28,8 @@ public class AuthenticationService {
                 .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
     }
 
-    public User extractUserByHeader(String header) {
-        return validateUser(extractUserId(header));
+    public User extractUserByToken(String token) {
+        return validateUser(extractUserId(token));
     }
 
     public String extractTokenByHeader(String header) {

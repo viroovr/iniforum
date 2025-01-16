@@ -12,6 +12,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -78,6 +79,21 @@ public class TagRepositoryJdbcImpl implements TagRepository {
 
         SqlParameterSource namedParameters = new MapSqlParameterSource("questionId", questionId);
         return jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<>(Tag.class));
+    }
+
+    @Override
+    public List<Tag> findAllByName(List<String> tagNames) {
+        return List.of();
+    }
+
+    @Override
+    public Collection<Object> findAllByNameIn(List<String> tagNames) {
+        return List.of();
+    }
+
+    @Override
+    public List<Tag> saveAll(List<Tag> newTags) {
+        return List.of();
     }
 
     public boolean existsByName(String name) {

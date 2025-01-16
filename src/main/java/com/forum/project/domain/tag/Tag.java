@@ -15,7 +15,11 @@ public class Tag {
     private Long id;
     private String name;
     private LocalDateTime createdAt;
-    private Long usageCount;
-    private Boolean isActive;
-    private String category;
+    private Long usageCount = 0L;
+    private Boolean isActive = Boolean.TRUE;
+    private String category = "UnCategorized";
+
+    public boolean isActive() {
+        return Boolean.TRUE.equals(this.isActive);
+    }
 }

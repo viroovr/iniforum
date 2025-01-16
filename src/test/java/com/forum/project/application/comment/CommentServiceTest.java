@@ -4,7 +4,7 @@ import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.application.user.auth.AuthenticationService;
 import com.forum.project.domain.comment.Comment;
-import com.forum.project.domain.commentlike.CommentReportRequestDto;
+import com.forum.project.domain.commentlike.ReportRequestDto;
 import com.forum.project.domain.comment.CommentRepository;
 import com.forum.project.presentation.comment.CommentRequestDto;
 import com.forum.project.presentation.comment.CommentResponseDto;
@@ -210,12 +210,12 @@ class CommentServiceTest {
     void testReportComment_Success() {
         Long commentId = 1L;
         String header = "validHeader";
-        CommentReportRequestDto dto = new CommentReportRequestDto("validReason");
+        ReportRequestDto dto = new ReportRequestDto("validReason");
         Long userId = 1L;
         Comment comment = Comment.builder().reportCount(0L).build();
         when(authenticationService.extractUserId(header)).thenReturn(userId);
 
-        doNothing().when(commentReportService).saveReportComment(commentId, userId, dto.getReason());
+        doNothing().when(commentReportService).saveReport(commentId, userId, dto.getReason());
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
 
         ArgumentCaptor<Comment> argumentCaptor = ArgumentCaptor.forClass(Comment.class);

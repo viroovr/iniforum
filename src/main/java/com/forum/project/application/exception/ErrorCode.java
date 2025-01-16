@@ -21,6 +21,7 @@ public enum ErrorCode {
     TAG_NOT_FOUND("TAG_NOT_FOUND", "Tag not found", HttpStatus.NOT_FOUND),
     COMMENT_REPORT_NOT_FOUND("COMMENT_REPORT_NOT_FOUND", "CommentReport not found", HttpStatus.NOT_FOUND),
     COMMENT_LIKE_NOT_FOUND("NOT_FOUND_008", "CommentLike not found", HttpStatus.NOT_FOUND),
+    QUESTION_REPORT_NOT_FOUND("NOT_FOUND_009", "Question Report not found", HttpStatus.NOT_FOUND),
 
 //  3. Conflict & Duplication
     EMAIL_ALREADY_EXISTS("EMAIL_ALREADY_EXISTS", "Email already exists", HttpStatus.CONFLICT),

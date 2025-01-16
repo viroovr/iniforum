@@ -17,10 +17,14 @@ public class Question {
     private String loginId;
     private String title;
     private String content;
-    private String status;
-    private Long viewCount;
-    private Long upVotedCount;
-    private Long downVotedCount;
+    @Builder.Default
+    private String status = QuestionStatus.OPEN.name();
+    @Builder.Default
+    private Long viewCount = 0L;
+    @Builder.Default
+    private Long upVotedCount = 0L;
+    @Builder.Default
+    private Long downVotedCount = 0L;
     private LocalDateTime createdDate;
     private LocalDateTime lastModifiedDate;
 
@@ -45,7 +49,6 @@ public class Question {
         this.status = "RESOLVED";
     }
 
-    // 유효성 검사 로직
     public void validate() {
         if (this.title == null || this.title.trim().isEmpty()) {
             throw new IllegalArgumentException("Title must not be empty.");
@@ -57,7 +60,6 @@ public class Question {
             throw new IllegalArgumentException("Status must not be empty.");
         }
 
-        // 추가적인 유효성 검사 로직 (예: content 길이 제한, title 길이 제한 등)
         if (this.title.length() > 100) {
             throw new IllegalArgumentException("Title cannot be longer than 100 characters.");
         }

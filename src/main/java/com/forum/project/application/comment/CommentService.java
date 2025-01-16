@@ -5,7 +5,7 @@ import com.forum.project.domain.comment.Comment;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.domain.comment.CommentRepository;
-import com.forum.project.domain.commentlike.CommentReportRequestDto;
+import com.forum.project.domain.commentlike.ReportRequestDto;
 import com.forum.project.infrastructure.security.auth.AuthCheck;
 import com.forum.project.presentation.comment.CommentRequestDto;
 import com.forum.project.presentation.comment.CommentResponseDto;
@@ -93,12 +93,12 @@ public class CommentService {
     }
 
     @Transactional
-    public void reportComment(Long commentId, String header, CommentReportRequestDto dto) {
+    public void reportComment(Long commentId, String header, ReportRequestDto dto) {
         Long userId = authenticationService.extractUserId(header);
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_NOT_FOUND));
+        if (!commentRepository.existsById(commentId))
+            throw new ApplicationException(ErrorCode.COMMENT_NOT_FOUND);
 
-        commentReportService.saveReportComment(commentId, userId, dto.getReason());
+        commentReportService.saveReport(commentId, userId, dto.getReason());
         commentReportService.notifyAdminIfHighReports(commentId);
     }
 

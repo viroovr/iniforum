@@ -1,11 +1,8 @@
 package com.forum.project.infrastructure.jwt;
 
-import com.forum.project.domain.jwt.TokenCacheRepository;
-import com.forum.project.presentation.user.UserInfoDto;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.Optional;
