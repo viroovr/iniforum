@@ -1,4 +1,4 @@
-package com.forum.project.presentation.question;
+package com.forum.project.presentation.question.dto;
 
 import com.forum.project.domain.user.User;
 import lombok.AllArgsConstructor;

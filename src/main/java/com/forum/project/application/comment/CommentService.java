@@ -5,7 +5,7 @@ import com.forum.project.domain.comment.Comment;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.domain.comment.CommentRepository;
-import com.forum.project.domain.commentlike.ReportRequestDto;
+import com.forum.project.domain.report.ReportRequestDto;
 import com.forum.project.infrastructure.security.auth.AuthCheck;
 import com.forum.project.presentation.comment.CommentRequestDto;
 import com.forum.project.presentation.comment.CommentResponseDto;

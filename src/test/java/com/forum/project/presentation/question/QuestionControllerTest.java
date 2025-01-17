@@ -8,8 +8,8 @@
 //import com.forum.project.domain.user.UserRepository;
 //import com.forum.project.presentation.config.TestSecurityConfig;
 //import com.forum.project.presentation.question.QuestionController;
-//import com.forum.project.presentation.question.QuestionRequestDto;
-//import com.forum.project.presentation.question.QuestionResponseDto;
+//import com.forum.project.presentation.question.dto.QuestionRequestDto;
+//import com.forum.project.presentation.question.dto.QuestionResponseDto;
 //import org.junit.jupiter.api.Test;
 //import org.junit.jupiter.api.extension.ExtendWith;
 //import org.mockito.ArgumentCaptor;

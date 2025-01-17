@@ -1,7 +1,8 @@
-package com.forum.project.presentation.question;
+package com.forum.project.presentation.question.dto;
 
 import com.forum.project.presentation.dtos.BaseResponseDto;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 public class QuestionResponseDto extends BaseResponseDto {
     private Long questionId;
     private String title;
@@ -18,5 +19,6 @@ public class QuestionResponseDto extends BaseResponseDto {
     private String content;
     private LocalDateTime createdDate;
     private List<String> tags;
-    private Long upVotedCount = 0L;
+    private Long viewCount;
+    private Long upVotedCount;
 }

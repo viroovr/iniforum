@@ -1,12 +1,13 @@
 package com.forum.project.presentation.dtos;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-@EqualsAndHashCode(callSuper = false)
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 public class TokenResponseDto extends BaseResponseDto {
     private String accessToken;
     private String refreshToken;

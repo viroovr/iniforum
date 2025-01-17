@@ -7,9 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,7 +32,7 @@ class UserExtractionAspectTest {
         mockUser.setLoginId("test_user");
 
         // Mock behavior for extracting user from token
-        when(authenticationService.extractUserByToken(token)).thenReturn(mockUser);
+        when(authenticationService.extractUserByHeader(token)).thenReturn(mockUser);
 
         // Act
         String result = testService.testMethod(token, mockUser);
@@ -43,6 +41,6 @@ class UserExtractionAspectTest {
         assertEquals("User: test_user", result);
 
         // Verify extractUserByToken was called once
-        verify(authenticationService, times(1)).extractUserByToken(token);
+        verify(authenticationService, times(1)).extractUserByHeader(token);
     }
 }

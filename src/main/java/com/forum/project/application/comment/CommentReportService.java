@@ -4,8 +4,8 @@ import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.application.email.EmailAdminService;
 import com.forum.project.application.report.ReportService;
-import com.forum.project.domain.comment.CommentReport;
-import com.forum.project.domain.comment.CommentReportRepository;
+import com.forum.project.domain.report.comment.CommentReport;
+import com.forum.project.domain.report.comment.CommentReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,8 +24,10 @@ public class CommentReportService implements ReportService<CommentReport> {
         if (commentReportRepository.existsByCommentIdAndUserId(commentId, userId)) {
             throw new ApplicationException(ErrorCode.COMMENT_ALREADY_REPORTED);
         }
-        CommentReport report = new CommentReport();
-        report.initialize(userId, reason, commentId);
+        CommentReport report = CommentReport.builder()
+                .userId(userId)
+                .commentId(commentId)
+                .reason(reason).build();
         report.validateReason();
         commentReportRepository.save(report);
     }

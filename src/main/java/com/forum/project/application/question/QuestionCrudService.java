@@ -6,12 +6,10 @@ import com.forum.project.application.tag.TagService;
 import com.forum.project.domain.question.Question;
 import com.forum.project.domain.question.QuestionRepository;
 import com.forum.project.domain.question.QuestionStatus;
-import com.forum.project.domain.tag.Tag;
-import com.forum.project.domain.user.User;
-import com.forum.project.presentation.question.QuestionCreateDto;
-import com.forum.project.presentation.question.QuestionPageResponseDto;
-import com.forum.project.presentation.question.QuestionResponseDto;
-import com.forum.project.presentation.question.QuestionUpdateDto;
+import com.forum.project.presentation.question.dto.QuestionCreateDto;
+import com.forum.project.presentation.question.dto.QuestionPageResponseDto;
+import com.forum.project.presentation.question.dto.QuestionResponseDto;
+import com.forum.project.presentation.question.dto.QuestionUpdateDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -31,6 +29,7 @@ public class QuestionCrudService {
     private final QuestionRepository questionRepository;
     private final TagService tagService;
     private final QuestionValidator questionValidator;
+    private final QuestionViewCountService questionViewCountService;
 
     @Transactional
     public QuestionResponseDto create(QuestionCreateDto dto) {
@@ -39,7 +38,7 @@ public class QuestionCrudService {
 
         List<String> stringTags = tagService.createAndAttachTagsToQuestion(
                 dto.getTagRequestDto(), savedQuestion.getId());
-        return QuestionDtoFactory.toResponseDto(savedQuestion, stringTags);
+        return QuestionDtoFactory.toResponseDto(savedQuestion, stringTags, 0L);
     }
 
     private Question findQuestionByIdOrThrow(Long questionId) {
@@ -48,10 +47,12 @@ public class QuestionCrudService {
     }
 
     @Transactional(readOnly = true)
-    public QuestionResponseDto readQuestion(Long questionId) {
+    public QuestionResponseDto readQuestion(Long questionId, Long userId) {
         Question question = findQuestionByIdOrThrow(questionId);
         List<String> tags = tagService.getStringTagsByQuestionId(questionId);
-        return QuestionDtoFactory.toResponseDto(question, tags);
+        questionViewCountService.incrementViewCount(questionId, userId);
+        Long viewCount = questionViewCountService.getViewCount(questionId, userId);
+        return QuestionDtoFactory.toResponseDto(question, tags, viewCount);
     }
 
     private Page<QuestionPageResponseDto> getPaginatedResponse(
@@ -127,7 +128,7 @@ public class QuestionCrudService {
         Question question = questionRepository.findById(dto.getQuestionId())
                 .orElseThrow(() -> new ApplicationException(ErrorCode.QUESTION_NOT_FOUND));
 
-        questionValidator.validateOwnership(dto.getUser().getId(), question.getUserId());
+        questionValidator.validateOwnership(dto.getUserId(), question.getUserId());
 
         question.setTitle(dto.getTitle());
         question.setContent(dto.getContent());
@@ -135,7 +136,8 @@ public class QuestionCrudService {
         Question updatedQuestion = questionRepository.update(question);
 
         List<String> updatedTags = tagService.getStringUpdateTags(dto.getTagRequestDto());
-        return QuestionDtoFactory.toResponseDto(updatedQuestion, updatedTags);
+        Long viewCount = questionViewCountService.getViewCount(question.getId(), question.getUserId());
+        return QuestionDtoFactory.toResponseDto(updatedQuestion, updatedTags, viewCount);
     }
 
     @Transactional
@@ -152,10 +154,10 @@ public class QuestionCrudService {
     }
 
     @Transactional
-    public void delete(Long questionId, User user) {
+    public void delete(Long questionId, Long userId) {
         Question question = findQuestionByIdOrThrow(questionId);
 
-        questionValidator.validateOwnership(user.getId(), question.getUserId());
+        questionValidator.validateOwnership(userId, question.getUserId());
 
         questionRepository.deleteById(questionId);
     }

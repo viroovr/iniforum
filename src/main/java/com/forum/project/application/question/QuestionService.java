@@ -2,12 +2,12 @@ package com.forum.project.application.question;
 
 import com.forum.project.application.bookmark.QuestionBookmarkService;
 import com.forum.project.application.user.auth.AuthenticationService;
-import com.forum.project.domain.commentlike.ReportRequestDto;
+import com.forum.project.domain.report.ReportRequestDto;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.domain.question.QuestionStatus;
-import com.forum.project.domain.user.User;
-import com.forum.project.presentation.question.*;
+import com.forum.project.presentation.question.dto.QuestionPageResponseDto;
+import com.forum.project.presentation.question.dto.QuestionResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -19,36 +19,13 @@ public class QuestionService {
     private final QuestionCrudService questionCrudService;
     private final AuthenticationService authenticationService;
     private final QuestionReportService questionReportService;
-    private final QuestionViewCountService questionViewCountService;
     private final QuestionBookmarkService questionBookmarkService;
-
-    public QuestionResponseDto createQuestion(QuestionRequestDto dto, String token) {
-        User user = authenticationService.extractUserByToken(token);
-        QuestionCreateDto questionCreateDto = QuestionDtoFactory.toCreateDto(dto, user);
-        return questionCrudService.create(questionCreateDto);
-    }
-
-    public QuestionResponseDto readQuestion(Long questionId, String token) {
-        User user = authenticationService.extractUserByToken(token);
-        QuestionResponseDto response = questionCrudService.readQuestion(questionId);
-        questionViewCountService.incrementViewCount(questionId, user.getId());
-        return response;
-    }
-
-    public QuestionResponseDto updateQuestion(Long questionId, QuestionRequestDto dto, String token) {
-        User user = authenticationService.extractUserByToken(token);
-        QuestionUpdateDto questionUpdateDto = QuestionDtoFactory.toUpdateDto(dto, questionId, user);
-        return questionCrudService.update(questionUpdateDto);
-    }
+    private final QuestionLikeService questionLikeService;
 
     public QuestionResponseDto voteUpQuestion(Long questionId, String token) {
         Long userId = authenticationService.extractUserId(token);
+        questionLikeService.addLike(questionId, userId);
         return questionCrudService.updateUpVotedCount(questionId, userId);
-    }
-
-    public void deleteQuestion(Long questionId, String token) {
-        User user = authenticationService.extractUserByToken(token);
-        questionCrudService.delete(questionId, user);
     }
 
     public Page<QuestionPageResponseDto> getQuestionsByPage(int page, int size) {

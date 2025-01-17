@@ -1,7 +1,7 @@
 package com.forum.project.infrastructure.persistence.commentlike;
 
-import com.forum.project.domain.commentlike.CommentLike;
-import com.forum.project.domain.commentlike.CommentLikeRepository;
+import com.forum.project.domain.like.commentlike.CommentLike;
+import com.forum.project.domain.like.commentlike.CommentLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;

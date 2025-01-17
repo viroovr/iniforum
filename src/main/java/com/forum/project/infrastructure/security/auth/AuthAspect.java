@@ -37,7 +37,7 @@ public class AuthAspect {
     @Around("extractUserPointcut() && args(.., token)")
     public Object extractUser(ProceedingJoinPoint joinPoint, String token) throws Throwable {
         // Extract user from token
-        User user = authenticationService.extractUserByToken(token);
+        User user = authenticationService.extractUserByHeader(token);
 
         // Add user as the last argument to the method
         Object[] args = joinPoint.getArgs();

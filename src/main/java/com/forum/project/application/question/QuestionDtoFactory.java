@@ -2,7 +2,7 @@ package com.forum.project.application.question;
 
 import com.forum.project.domain.question.Question;
 import com.forum.project.domain.user.User;
-import com.forum.project.presentation.question.*;
+import com.forum.project.presentation.question.dto.*;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -19,13 +19,14 @@ public class QuestionDtoFactory {
                 .build();
     }
 
-    public static QuestionResponseDto toResponseDto(Question q, List<String> tag) {
+    public static QuestionResponseDto toResponseDto(Question q, List<String> tag, Long viewCount) {
         return QuestionResponseDto.builder()
                 .questionId(q.getId())
                 .title(q.getTitle())
                 .content(q.getContent())
                 .createdDate(q.getCreatedDate())
                 .tags(tag)
+                .viewCount(viewCount)
                 .build();
     }
 
@@ -48,13 +49,13 @@ public class QuestionDtoFactory {
                 .build();
     }
 
-    public static QuestionUpdateDto toUpdateDto(QuestionRequestDto dto, Long questionId, User user) {
+    public static QuestionUpdateDto toUpdateDto(QuestionRequestDto dto, Long questionId, Long userId) {
         return QuestionUpdateDto.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .tagRequestDto(dto.getTagRequestDto())
                 .questionId(questionId)
-                .user(user)
+                .userId(userId)
                 .build();
     }
 }

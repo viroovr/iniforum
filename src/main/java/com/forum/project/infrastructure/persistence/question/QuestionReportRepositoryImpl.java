@@ -1,7 +1,7 @@
 package com.forum.project.infrastructure.persistence.question;
 
-import com.forum.project.domain.question.QuestionReport;
-import com.forum.project.domain.question.QuestionReportRepository;
+import com.forum.project.domain.report.question.QuestionReport;
+import com.forum.project.domain.report.question.QuestionReportRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,8 +13,8 @@ public class QuestionReportRepositoryImpl implements QuestionReportRepository {
     }
 
     @Override
-    public void save(QuestionReport report) {
-
+    public QuestionReport save(QuestionReport report) {
+        return new QuestionReport();
     }
 
     @Override

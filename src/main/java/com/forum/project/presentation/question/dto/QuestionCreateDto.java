@@ -1,8 +1,6 @@
-package com.forum.project.presentation.question;
+package com.forum.project.presentation.question.dto;
 
-import com.forum.project.domain.question.Question;
 import com.forum.project.domain.user.User;
-import com.forum.project.presentation.tag.TagRequestDto;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 

@@ -1,16 +1,17 @@
-package com.forum.project.presentation.question;
+package com.forum.project.domain.like.questionlike;
 
-import com.forum.project.domain.user.User;
+import com.forum.project.domain.like.BaseLike;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @SuperBuilder
-public class QuestionUpdateDto extends QuestionRequestDto {
+public class QuestionLike extends BaseLike {
     private Long questionId;
-    private User user;
 }

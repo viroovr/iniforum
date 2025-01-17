@@ -1,6 +1,4 @@
-package com.forum.project.domain.question;
-
-import com.forum.project.domain.comment.CommentReport;
+package com.forum.project.domain.report.question;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,7 +6,7 @@ import java.util.Optional;
 public interface QuestionReportRepository {
     boolean existsByIdAndUserId(Long questionId, Long userId);
 
-    void save(QuestionReport report);
+    QuestionReport save(QuestionReport report);
 
     Optional<QuestionReport> findById(Long reportId);
 

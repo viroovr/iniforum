@@ -1,6 +1,7 @@
 package com.forum.project.domain.report;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -16,14 +17,8 @@ public abstract class BaseReport {
     private Long userId;
     private String reason;
     private LocalDateTime reportDate;
-    private boolean isResolved;
-
-    public void initialize(Long userId, String reason) {
-        this.userId = userId;
-        this.reason = reason;
-        this.reportDate = LocalDateTime.now();
-        this.isResolved = false;
-    }
+    @Builder.Default
+    private boolean isResolved = false;
 
     public void markAsResolved() {
         this.isResolved = true;

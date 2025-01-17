@@ -4,7 +4,7 @@ import com.forum.project.application.user.UserFacade;
 import com.forum.project.application.question.QuestionService;
 import com.forum.project.presentation.auth.EmailRequestDto;
 import com.forum.project.presentation.dtos.BaseResponseDto;
-import com.forum.project.presentation.question.QuestionPageResponseDto;
+import com.forum.project.presentation.question.dto.QuestionPageResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

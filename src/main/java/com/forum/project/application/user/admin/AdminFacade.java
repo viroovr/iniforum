@@ -23,7 +23,7 @@ public class AdminFacade {
 
     @Transactional
     public void reactivateAccount(String header) {
-        User user = authenticationService.extractUserByToken(header);
+        User user = authenticationService.extractUserByHeader(header);
         userManagementService.reactivateAccount(user);
     }
 

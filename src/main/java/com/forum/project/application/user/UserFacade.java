@@ -28,7 +28,7 @@ public class UserFacade {
 
 
     public UserInfoDto getUserProfileByHeader(String header) {
-        User user = authenticationService.extractUserByToken(header);
+        User user = authenticationService.extractUserByHeader(header);
         return UserDtoConverterFactory.toUserInfoDto(user);
     }
 
@@ -37,7 +37,7 @@ public class UserFacade {
             UserRequestDto userRequestDto,
             MultipartFile multipartFile
     ) throws IOException {
-        User user = authenticationService.extractUserByToken(header);
+        User user = authenticationService.extractUserByHeader(header);
         return userProfileService.updateUserProfile(user, userRequestDto, multipartFile);
     }
 

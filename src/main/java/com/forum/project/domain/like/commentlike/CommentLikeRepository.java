@@ -1,4 +1,4 @@
-package com.forum.project.domain.commentlike;
+package com.forum.project.domain.like.commentlike;
 
 import java.util.List;
 import java.util.Optional;

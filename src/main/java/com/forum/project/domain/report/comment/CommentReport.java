@@ -1,4 +1,4 @@
-package com.forum.project.domain.comment;
+package com.forum.project.domain.report.comment;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
@@ -6,7 +6,6 @@ import com.forum.project.domain.report.BaseReport;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -16,11 +15,6 @@ import java.util.List;
 @SuperBuilder
 public class CommentReport extends BaseReport {
     private Long commentId;
-
-    public void initialize(Long userId, String reason, Long commentId) {
-        super.initialize(userId, reason);
-        this.commentId = commentId;
-    }
 
     public void validateReason() {
         if (getReason() == null || getReason().trim().isEmpty()) {

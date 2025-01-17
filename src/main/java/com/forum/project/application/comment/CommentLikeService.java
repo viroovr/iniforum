@@ -2,9 +2,9 @@ package com.forum.project.application.comment;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.domain.commentlike.CommentLike;
-import com.forum.project.domain.commentlike.CommentLikeRepository;
-import com.forum.project.domain.commentlike.CommentLikeStatus;
+import com.forum.project.domain.like.commentlike.CommentLike;
+import com.forum.project.domain.like.commentlike.CommentLikeRepository;
+import com.forum.project.domain.like.LikeStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +21,7 @@ public class CommentLikeService {
 
         commentLikeRepository.save(CommentLike.builder()
                 .userId(userId)
-                .status(CommentLikeStatus.LIKE.name())
+                .status(LikeStatus.LIKE.name())
                 .commentId(commentId).build());
     }
 
@@ -31,7 +31,7 @@ public class CommentLikeService {
 
         commentLikeRepository.save(CommentLike.builder()
                 .userId(userId)
-                .status(CommentLikeStatus.DISLIKE.name())
+                .status(LikeStatus.DISLIKE.name())
                 .commentId(commentId).build());
     }
 

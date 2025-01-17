@@ -4,9 +4,9 @@ import com.forum.project.application.tag.TagService;
 import com.forum.project.domain.question.Question;
 import com.forum.project.domain.question.QuestionRepository;
 import com.forum.project.domain.user.User;
-import com.forum.project.presentation.question.QuestionCreateDto;
-import com.forum.project.presentation.question.QuestionPageResponseDto;
-import com.forum.project.presentation.question.QuestionResponseDto;
+import com.forum.project.presentation.question.dto.QuestionCreateDto;
+import com.forum.project.presentation.question.dto.QuestionPageResponseDto;
+import com.forum.project.presentation.question.dto.QuestionResponseDto;
 import com.forum.project.presentation.tag.TagRequestDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +30,8 @@ public class QuestionCrudServiceTest {
     private QuestionRepository questionRepository;
     @Mock
     private TagService tagService;
+    @Mock
+    private QuestionViewCountService questionViewCountService;
     @Mock
     private QuestionValidator questionValidator;
 
@@ -65,21 +67,25 @@ public class QuestionCrudServiceTest {
     @Test
     void testReadQuestion_success() {
         Long questionId = 1L;
+        Long userId = 1L;
         Question question = Question.builder()
                 .id(questionId)
-                .userId(1L)
+                .userId(userId)
                 .title("testTitle")
                 .build();
         List<String> stringTags = List.of("tag1", "tag2");
         when(questionRepository.findById(questionId)).thenReturn(Optional.ofNullable(question));
         when(tagService.getStringTagsByQuestionId(questionId)).thenReturn(stringTags);
+        doNothing().when(questionViewCountService).incrementViewCount(questionId, userId);
+        when(questionViewCountService.getViewCount(questionId, userId)).thenReturn(1L);
 
-        QuestionResponseDto response = questionCrudService.readQuestion(questionId);
+        QuestionResponseDto response = questionCrudService.readQuestion(questionId, userId);
 
         assertNotNull(response);
         assertEquals(question.getId(), response.getQuestionId());
         assertEquals(question.getContent(), response.getContent());
         assertEquals(question.getTitle(), response.getTitle());
+        assertEquals(1L, response.getViewCount());
         assertEquals(stringTags, response.getTags());
     }
 

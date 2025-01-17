@@ -1,6 +1,5 @@
 package com.forum.project.application.report;
 
-import com.forum.project.domain.question.QuestionReport;
 import com.forum.project.domain.report.BaseReport;
 
 import java.util.List;

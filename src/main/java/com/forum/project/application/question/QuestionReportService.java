@@ -4,8 +4,8 @@ import com.forum.project.application.email.EmailAdminService;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.application.report.ReportService;
-import com.forum.project.domain.question.QuestionReport;
-import com.forum.project.domain.question.QuestionReportRepository;
+import com.forum.project.domain.report.question.QuestionReport;
+import com.forum.project.domain.report.question.QuestionReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,17 +15,22 @@ import java.util.List;
 @RequiredArgsConstructor
 public class QuestionReportService implements ReportService<QuestionReport> {
     private final QuestionReportRepository questionReportRepository;
+    private final QuestionValidator questionValidator;
     private final EmailAdminService emailAdminService;
 
     private static final long REPORT_THRESHOLD = 10;
 
     @Override
     public void saveReport(Long questionId, Long userId, String reason) {
+        questionValidator.existsQuestion(questionId);
+
         if (questionReportRepository.existsByIdAndUserId(questionId, userId)) {
             throw new ApplicationException(ErrorCode.COMMENT_ALREADY_REPORTED);
         }
-        QuestionReport report = new QuestionReport();
-        report.initialize(userId, reason, questionId);
+        QuestionReport report = QuestionReport.builder()
+                .questionId(questionId)
+                .userId(userId)
+                .reason(reason).build();
         report.validateReason();
         questionReportRepository.save(report);
 

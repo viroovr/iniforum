@@ -1,7 +1,7 @@
 package com.forum.project.infrastructure.persistence.comment;
 
-import com.forum.project.domain.comment.CommentReport;
-import com.forum.project.domain.comment.CommentReportRepository;
+import com.forum.project.domain.report.comment.CommentReport;
+import com.forum.project.domain.report.comment.CommentReportRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

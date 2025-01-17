@@ -1,4 +1,4 @@
-package com.forum.project.domain.comment;
+package com.forum.project.domain.report.comment;
 
 import java.util.List;
 import java.util.Optional;

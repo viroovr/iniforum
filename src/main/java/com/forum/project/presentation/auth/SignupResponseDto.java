@@ -2,12 +2,13 @@ package com.forum.project.presentation.auth;
 
 import com.forum.project.presentation.dtos.BaseResponseDto;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-@EqualsAndHashCode(callSuper = false)
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 public class SignupResponseDto extends BaseResponseDto {
     private String loginId;
     private String email;

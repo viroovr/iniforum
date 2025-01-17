@@ -1,7 +1,7 @@
 package com.forum.project.presentation.comment;
 
 import com.forum.project.application.comment.CommentService;
-import com.forum.project.domain.commentlike.ReportRequestDto;
+import com.forum.project.domain.report.ReportRequestDto;
 import com.forum.project.presentation.dtos.BaseResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

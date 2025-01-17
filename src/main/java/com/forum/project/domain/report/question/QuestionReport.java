@@ -1,4 +1,4 @@
-package com.forum.project.domain.question;
+package com.forum.project.domain.report.question;
 
 import com.forum.project.domain.report.BaseReport;
 import lombok.AllArgsConstructor;
@@ -14,11 +14,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class QuestionReport extends BaseReport {
     private Long questionId;
-
-    public void initialize(Long userId, String reason, Long questionId) {
-        super.initialize(userId, reason);
-        this.questionId = questionId;
-    }
 
     @Override
     public void validateReason() {

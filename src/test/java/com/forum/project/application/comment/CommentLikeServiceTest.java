@@ -1,8 +1,8 @@
 package com.forum.project.application.comment;
 
-import com.forum.project.domain.commentlike.CommentLike;
-import com.forum.project.domain.commentlike.CommentLikeRepository;
-import com.forum.project.domain.commentlike.CommentLikeStatus;
+import com.forum.project.domain.like.commentlike.CommentLike;
+import com.forum.project.domain.like.commentlike.CommentLikeRepository;
+import com.forum.project.domain.like.LikeStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -38,7 +38,7 @@ class CommentLikeServiceTest {
 
         assertNotNull(commentLike);
         assertEquals(userId, commentLike.getUserId());
-        assertEquals(CommentLikeStatus.LIKE.name(), commentLike.getStatus());
+        assertEquals(LikeStatus.LIKE.name(), commentLike.getStatus());
         assertEquals(commentId, commentLike.getCommentId());
     }
 
@@ -56,7 +56,7 @@ class CommentLikeServiceTest {
 
         assertNotNull(commentLike);
         assertEquals(userId, commentLike.getUserId());
-        assertEquals(CommentLikeStatus.DISLIKE.name(), commentLike.getStatus());
+        assertEquals(LikeStatus.DISLIKE.name(), commentLike.getStatus());
         assertEquals(commentId, commentLike.getCommentId());
     }
 
@@ -64,9 +64,9 @@ class CommentLikeServiceTest {
     void testChangeLikeStatus_success() {
         Long commentId = 1L;
         Long userId = 1L;
-        String status = CommentLikeStatus.LIKE.name();
+        String status = LikeStatus.LIKE.name();
         CommentLike commentLike = CommentLike.builder().commentId(commentId)
-                .status(CommentLikeStatus.NONE.name())
+                .status(LikeStatus.NONE.name())
                 .userId(userId).build();
 
         when(commentLikeRepository.findByCommentIdAndUserId(commentId, userId))
@@ -102,7 +102,7 @@ class CommentLikeServiceTest {
     @Test
     void testGetUserLikedComments_success() {
         Long userId = 1L;
-        String status = CommentLikeStatus.LIKE.name();
+        String status = LikeStatus.LIKE.name();
         List<Long> longList = List.of(1L, 2L);
         when(commentLikeRepository.findCommentIdsByUserIdAndStatus(userId, status))
                 .thenReturn(longList);
