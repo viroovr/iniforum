@@ -13,26 +13,27 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class QuestionLikeService {
     private final QuestionLikeRepository questionLikeRepository;
+    private final QuestionCrudService questionCrudService;
 
     @Transactional
-    public void addLike(Long questionId, Long userId) {
+    public void addLike(Long questionId, Long userId, LikeStatus likeStatus) {
         if(questionLikeRepository.existsByQuestionIdAndUserId(questionId, userId))
             throw new ApplicationException(ErrorCode.LIKE_ALREADY_EXISTS);
 
         questionLikeRepository.save(QuestionLike.builder()
                 .questionId(questionId)
-                .status(LikeStatus.LIKE.name())
+                .status(likeStatus.name())
                 .userId(userId).build());
+
+        questionCrudService.updateUpVotedCount(questionId, likeStatus);
     }
 
-    @Transactional
-    public void addDislikeComment(Long questionId, Long userId) {
-        if(questionLikeRepository.existsByQuestionIdAndUserId(questionId, userId))
-            throw new ApplicationException(ErrorCode.LIKE_ALREADY_EXISTS);
+    public void cancelLike(Long questionId, Long userId, LikeStatus likeStatus) {
+        if(!questionLikeRepository.existsByQuestionIdAndUserId(questionId, userId))
+            throw new ApplicationException(ErrorCode.LIKE_NOT_FOUND);
 
-        questionLikeRepository.save(QuestionLike.builder()
-                .userId(userId)
-                .status(LikeStatus.DISLIKE.name())
-                .questionId(questionId).build());
+        questionLikeRepository.delete(questionId, userId);
+
+        questionCrudService.decrementVotedCount(questionId, likeStatus);
     }
 }

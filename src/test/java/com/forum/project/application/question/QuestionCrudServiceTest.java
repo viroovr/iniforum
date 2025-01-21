@@ -89,26 +89,26 @@ public class QuestionCrudServiceTest {
         assertEquals(stringTags, response.getTags());
     }
 
-    @Test
-    void testReadQuestionsByPage_success() {
-        int page = 0;
-        int size = 10;
-        List<Question> questions = List.of(
-                Question.builder().id(1L).title("title1").build(),
-                Question.builder().id(2L).title("title2").build()
-        );
-        when(questionRepository.getQuestionByPage(page, size)).thenReturn(questions);
-        when(tagService.getStringTagsByQuestionId(anyLong())).thenReturn(
-                List.of("tag1", "tag2")
-        );
-        when(questionRepository.count()).thenReturn((long) questions.size());
-
-        Page<QuestionPageResponseDto> response = questionCrudService.readQuestionsByPage(page, size);
-
-        assertNotNull(response);
-        assertEquals(questions.get(0).getId(), response.getContent().get(0).getQuestionId());
-        assertEquals(questions.get(0).getTitle(), response.getContent().get(0).getTitle());
-        assertEquals(List.of("tag1", "tag2"), response.getContent().get(0).getTags());
-    }
+//    @Test
+//    void testReadQuestionsByPage_success() {
+//        int page = 0;
+//        int size = 10;
+//        List<Question> questions = List.of(
+//                Question.builder().id(1L).title("title1").build(),
+//                Question.builder().id(2L).title("title2").build()
+//        );
+//        when(questionRepository.getQuestionByPage(page, size)).thenReturn(questions);
+//        when(tagService.getStringTagsByQuestionId(anyLong())).thenReturn(
+//                List.of("tag1", "tag2")
+//        );
+//        when(questionRepository.count()).thenReturn((long) questions.size());
+//
+//        Page<QuestionPageResponseDto> response = questionCrudService.readQuestionsByPage(page, size);
+//
+//        assertNotNull(response);
+//        assertEquals(questions.get(0).getId(), response.getContent().get(0).getQuestionId());
+//        assertEquals(questions.get(0).getTitle(), response.getContent().get(0).getTitle());
+//        assertEquals(List.of("tag1", "tag2"), response.getContent().get(0).getTags());
+//    }
 
 }

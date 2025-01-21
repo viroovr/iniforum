@@ -37,7 +37,7 @@ public class CommentLikeService {
 
     public void changeLikeStatus(Long commentId, Long userId, String status) {
         CommentLike existingLike = commentLikeRepository.findByCommentIdAndUserId(commentId, userId)
-                .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_LIKE_NOT_FOUND));
+                .orElseThrow(() -> new ApplicationException(ErrorCode.LIKE_NOT_FOUND));
 
         if (existingLike.getStatus().equals(status)) {
             throw new ApplicationException(ErrorCode.LIKE_ALREADY_EXISTS);
@@ -49,7 +49,7 @@ public class CommentLikeService {
 
     public void removeLikeOrDislike(Long commentId, Long userId) {
         CommentLike existingLike = commentLikeRepository.findByCommentIdAndUserId(commentId, userId)
-                .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_LIKE_NOT_FOUND));
+                .orElseThrow(() -> new ApplicationException(ErrorCode.LIKE_NOT_FOUND));
 
         commentLikeRepository.delete(existingLike);
     }

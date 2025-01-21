@@ -20,8 +20,9 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND("COMMENT_NOT_FOUND", "Comment not found", HttpStatus.NOT_FOUND),
     TAG_NOT_FOUND("TAG_NOT_FOUND", "Tag not found", HttpStatus.NOT_FOUND),
     COMMENT_REPORT_NOT_FOUND("COMMENT_REPORT_NOT_FOUND", "CommentReport not found", HttpStatus.NOT_FOUND),
-    COMMENT_LIKE_NOT_FOUND("NOT_FOUND_008", "CommentLike not found", HttpStatus.NOT_FOUND),
+    LIKE_NOT_FOUND("NOT_FOUND_008", "Like not found", HttpStatus.NOT_FOUND),
     QUESTION_REPORT_NOT_FOUND("NOT_FOUND_009", "Question Report not found", HttpStatus.NOT_FOUND),
+    BOOKMARK_NOT_FOUND("NOT_FOUND_010", "Question Bookmark not found", HttpStatus.NOT_FOUND),
 
 //  3. Conflict & Duplication
     EMAIL_ALREADY_EXISTS("EMAIL_ALREADY_EXISTS", "Email already exists", HttpStatus.CONFLICT),
@@ -35,6 +36,7 @@ public enum ErrorCode {
     TAG_ALREADY_EXISTS("DUP_008", "Tag already exists", HttpStatus.CONFLICT),
     COMMENT_ALREADY_DELETED("DUP_009", "Comment already deleted", HttpStatus.CONFLICT),
     COMMENT_ALREADY_REPORTED("DUP_010", "Comment already reported", HttpStatus.CONFLICT),
+    QUESTION_ALREADY_REPORTED("DUP_011", "Question already reported", HttpStatus.CONFLICT),
 
 //  4. Validation
     INVALID_REQUEST("VALID_000", "Invalid Request", HttpStatus.BAD_REQUEST),
@@ -49,7 +51,7 @@ public enum ErrorCode {
     INVALID_LOGIN_ID("VALID_010", "Login ID must not be empty", HttpStatus.BAD_REQUEST),
     INVALID_NEW_PASSWORD("VALID_011", "New password must not be empty or too short", HttpStatus.BAD_REQUEST),
     INVALID_COMMENT_CONTENT("VALID_012", "Invalid comment content", HttpStatus.BAD_REQUEST),
-    INVALID_COMMENT_REPORT("VALID_013", "Invalid comment report", HttpStatus.BAD_REQUEST),
+    INVALID_REPORT("VALID_013", "Invalid report", HttpStatus.BAD_REQUEST),
 
 //   5. Server Errors
     INTERNAL_SERVER_ERROR("SERVER_000", "INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR),

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.forum.project.application.question.QuestionReportService;
 import com.forum.project.application.user.auth.AuthenticationService;
 import com.forum.project.domain.report.ReportRequestDto;
+import com.forum.project.domain.report.question.QuestionReport;
 import com.forum.project.presentation.config.TestSecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,8 +17,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -37,7 +41,7 @@ public class QuestionReportControllerTest {
     private AuthenticationService authenticationService;
 
     @Test
-    void testReportQuestion() throws Exception {
+    void testSaveReportQuestion_success() throws Exception {
         Long questionId = 1L;
         Long userId = 1L;
         String header = "Bearer accessToken";
@@ -53,5 +57,63 @@ public class QuestionReportControllerTest {
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(jsonPath("$.message").value("Question Reported Successfully."));
+    }
+
+    @Test
+    void testGetQuestionReport_success() throws Exception {
+        Long questionId = 1L;
+        String header = "Bearer accessToken";
+
+        List<QuestionReport> reportList = List.of(
+                QuestionReport.builder().questionId(questionId).userId(1L).build(),
+                QuestionReport.builder().questionId(questionId).userId(2L).build()
+        );
+        doNothing().when(authenticationService).validateAdminRole(header);
+        when(questionReportService.getReportsById(questionId)).thenReturn(reportList);
+
+        mockMvc.perform(get("/api/v1/questions/report/{id}", questionId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", header))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(jsonPath("$[0].userId").value(1L))
+                .andExpect(jsonPath("$[1].userId").value(2L));
+    }
+
+    @Test
+    void testGetQuestionReportByUser_success() throws Exception {
+        Long userId = 1L;
+        String header = "Bearer accessToken";
+
+        List<QuestionReport> reportList = List.of(
+                QuestionReport.builder().questionId(1L).userId(userId).build(),
+                QuestionReport.builder().questionId(2L).userId(userId).build()
+        );
+        doNothing().when(authenticationService).validateUser(userId, header);
+        when(questionReportService.getReportsByUserId(userId)).thenReturn(reportList);
+
+        mockMvc.perform(get("/api/v1/questions/report/user/{id}", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", header))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(jsonPath("$[0].questionId").value(1L))
+                .andExpect(jsonPath("$[1].questionId").value(2L));
+    }
+
+    @Test
+    void testResolveQuestionReport_success() throws Exception {
+        Long reportId = 1L;
+        String header = "Bearer accessToken";
+
+        doNothing().when(authenticationService).validateAdminRole(header);
+        doNothing().when(questionReportService).resolveReport(reportId);
+
+        mockMvc.perform(post("/api/v1/questions/report/resolve/{id}", reportId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", header))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(jsonPath("$.message").value("Question Resolved Successfully."));
     }
 }

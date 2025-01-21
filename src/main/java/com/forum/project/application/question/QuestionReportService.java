@@ -22,11 +22,12 @@ public class QuestionReportService implements ReportService<QuestionReport> {
 
     @Override
     public void saveReport(Long questionId, Long userId, String reason) {
-        questionValidator.existsQuestion(questionId);
+        questionValidator.validateQuestion(questionId);
 
         if (questionReportRepository.existsByIdAndUserId(questionId, userId)) {
-            throw new ApplicationException(ErrorCode.COMMENT_ALREADY_REPORTED);
+            throw new ApplicationException(ErrorCode.QUESTION_ALREADY_REPORTED);
         }
+
         QuestionReport report = QuestionReport.builder()
                 .questionId(questionId)
                 .userId(userId)

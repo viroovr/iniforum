@@ -59,7 +59,7 @@ public class UserFacade {
     }
 
     public void sendProfileUpdateNotification(Long userId) {
-        User user = authenticationService.validateUser(userId);
+        User user = authenticationService.getUser(userId);
         emailUserService.sendProfileUpdateEmail(user);
     }
 }

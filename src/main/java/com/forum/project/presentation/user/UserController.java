@@ -1,13 +1,11 @@
 package com.forum.project.presentation.user;
 
 import com.forum.project.application.user.UserFacade;
-import com.forum.project.application.question.QuestionService;
+import com.forum.project.application.question.QuestionBookmarkService;
 import com.forum.project.presentation.auth.EmailRequestDto;
 import com.forum.project.presentation.dtos.BaseResponseDto;
-import com.forum.project.presentation.question.dto.QuestionPageResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +20,7 @@ import java.io.IOException;
 public class UserController {
 
     private final UserFacade userFacade;
-    private final QuestionService questionService;
+    private final QuestionBookmarkService questionBookmarkService;
 
     @GetMapping(value = "/profile")
     public ResponseEntity<UserInfoDto> getUserProfile(
@@ -40,15 +38,6 @@ public class UserController {
     ) throws IOException{
         UserResponseDto userResponseDto = userFacade.updateUserProfileByHeader(header, userRequestDto, file);
         return ResponseEntity.status(HttpStatus.OK).body(userResponseDto);
-    }
-
-    @GetMapping(value = "/questions/{userId}")
-    public Page<QuestionPageResponseDto> getQuestionsByUserId(
-            @PathVariable Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        return questionService.getQuestionsByUser(userId, page, size);
     }
 
     @PostMapping("/reset-password")

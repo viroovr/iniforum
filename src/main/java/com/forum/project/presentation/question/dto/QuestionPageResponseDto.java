@@ -17,5 +17,6 @@ public class QuestionPageResponseDto {
     private String title;
     private String loginId;
     private LocalDateTime createdDate;
+    private String status;
     private List<String> tags;
 }

@@ -73,7 +73,7 @@ class CommentReportServiceTest {
         ApplicationException exception = assertThrows(ApplicationException.class,
                 () -> commentReportService.saveReport(commentId, userId, reason));
 
-        assertEquals(exception.getErrorCode(), ErrorCode.INVALID_COMMENT_REPORT);
+        assertEquals(exception.getErrorCode(), ErrorCode.INVALID_REPORT);
     }
 
     @Test
@@ -87,7 +87,7 @@ class CommentReportServiceTest {
         ApplicationException exception = assertThrows(ApplicationException.class,
                 () -> commentReportService.saveReport(commentId, userId, reason));
 
-        assertEquals(exception.getErrorCode(), ErrorCode.INVALID_COMMENT_REPORT);
+        assertEquals(exception.getErrorCode(), ErrorCode.INVALID_REPORT);
     }
 
     @Test

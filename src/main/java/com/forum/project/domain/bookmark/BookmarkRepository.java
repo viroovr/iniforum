@@ -12,4 +12,6 @@ public interface BookmarkRepository {
     void delete(Bookmark bookmark);
 
     List<Bookmark> findAllByUserId(Long userId);
+
+    boolean existsByUserIdAndQuestionId(Long userId, Long questionId);
 }

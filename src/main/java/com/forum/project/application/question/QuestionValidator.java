@@ -2,12 +2,9 @@ package com.forum.project.application.question;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.domain.question.Question;
 import com.forum.project.domain.question.QuestionRepository;
-import com.forum.project.domain.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 @Component
 @RequiredArgsConstructor
@@ -20,7 +17,7 @@ public class QuestionValidator {
         }
     }
 
-    public void existsQuestion(Long questionId) {
+    public void validateQuestion(Long questionId) {
         if (!questionRepository.existsById(questionId))
             throw new ApplicationException(ErrorCode.QUESTION_NOT_FOUND);
     }

@@ -5,8 +5,8 @@ import org.springframework.data.domain.Sort;
 import java.util.Arrays;
 
 public enum QuestionSortType {
-    LATEST("created_date", Sort.Direction.DESC),
-    OLDEST("created_date", Sort.Direction.ASC),
+    LATEST("createdDate", Sort.Direction.DESC),
+    OLDEST("createdDate", Sort.Direction.ASC),
     VOTES("upvoteCount", Sort.Direction.DESC),
     VIEWS("viewCount", Sort.Direction.DESC);
 

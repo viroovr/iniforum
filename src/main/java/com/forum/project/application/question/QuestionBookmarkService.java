@@ -1,6 +1,7 @@
-package com.forum.project.application.bookmark;
+package com.forum.project.application.question;
 
-import com.forum.project.application.user.auth.AuthenticationService;
+import com.forum.project.application.exception.ApplicationException;
+import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.domain.bookmark.Bookmark;
 import com.forum.project.domain.bookmark.BookmarkRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,13 +14,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class QuestionBookmarkService {
     private final BookmarkRepository bookmarkRepository;
-    private final AuthenticationService authenticationService;
 
     @Transactional
-    public void bookmarkQuestion(Long questionId, Long userId) {
-        bookmarkRepository.findByUserIdAndQuestionId(userId, questionId).ifPresent(bookmark -> {
-            throw new IllegalArgumentException("This question is already bookmarked.");
-        });
+    public void saveQuestionBookmark(Long questionId, Long userId) {
+        if (bookmarkRepository.existsByUserIdAndQuestionId(userId, questionId))
+            throw new ApplicationException(ErrorCode.BOOKMARK_NOT_FOUND);
 
         Bookmark bookmark = Bookmark.builder()
                 .userId(userId)
@@ -30,9 +29,7 @@ public class QuestionBookmarkService {
     }
 
     @Transactional
-    public void removeBookmark(Long questionId, String header) {
-        Long userId = authenticationService.extractUserId(header);
-
+    public void removeBookmark(Long questionId, Long userId) {
         Bookmark bookmark = bookmarkRepository.findByUserIdAndQuestionId(userId, questionId)
                 .orElseThrow(() -> new IllegalArgumentException("Bookmark not found for this question."));
 
@@ -40,9 +37,7 @@ public class QuestionBookmarkService {
     }
 
     @Transactional(readOnly = true)
-    public List<Bookmark> getUserBookmarks(String header) {
-        Long userId = authenticationService.extractUserId(header);
-
+    public List<Bookmark> getUserBookmarks(Long userId) {
         return bookmarkRepository.findAllByUserId(userId);
     }
 }

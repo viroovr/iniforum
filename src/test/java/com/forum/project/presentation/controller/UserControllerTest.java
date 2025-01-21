@@ -2,7 +2,7 @@ package com.forum.project.presentation.controller;
 
 import com.forum.project.application.jwt.TokenService;
 import com.forum.project.application.user.UserFacade;
-import com.forum.project.application.question.QuestionService;
+import com.forum.project.application.question.QuestionBookmarkService;
 import com.forum.project.presentation.config.TestSecurityConfig;
 import com.forum.project.presentation.user.UserRequestDto;
 import com.forum.project.presentation.user.UserResponseDto;
@@ -40,7 +40,7 @@ class UserControllerTest {
     private UserFacade userFacade;
 
     @MockBean
-    private QuestionService questionService;
+    private QuestionBookmarkService questionBookmarkService;
 
     private final UserRequestDto userRequestDto = new UserRequestDto("oldPassword", "newPassword", "newNickname");
     private final UserResponseDto userResponseDto = new UserResponseDto(null, "test/upload/path", "newNickname");

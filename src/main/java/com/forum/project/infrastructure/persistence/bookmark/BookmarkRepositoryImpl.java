@@ -26,4 +26,9 @@ public class BookmarkRepositoryImpl implements BookmarkRepository {
     public List<Bookmark> findAllByUserId(Long userId) {
         return List.of();
     }
+
+    @Override
+    public boolean existsByUserIdAndQuestionId(Long userId, Long questionId) {
+        return false;
+    }
 }

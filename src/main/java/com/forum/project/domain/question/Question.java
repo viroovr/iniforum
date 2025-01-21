@@ -70,25 +70,24 @@ public class Question {
 
     // 추가적으로 조회수를 증가시키는 메서드
     public void incrementViewCount() {
-        if (this.viewCount == null) {
-            this.viewCount = 0L;
-        }
         this.viewCount++;
     }
 
-    // 유저가 추천한 경우 증가시키는 메서드
     public void incrementUpVotedCount() {
-        if (this.upVotedCount == null) {
-            this.upVotedCount = 0L;
-        }
         this.upVotedCount++;
     }
 
-    // 유저가 반대 의견을 표시한 경우 감소시키는 메서드
+    public void decrementUpVotedCount() {
+        if (this.upVotedCount > 0)
+            this.upVotedCount--;
+    }
+
     public void incrementDownVotedCount() {
-        if (this.downVotedCount == null) {
-            this.downVotedCount = 0L;
-        }
         this.downVotedCount++;
+    }
+
+    public void decrementDownVotedCount() {
+        if (this.downVotedCount > 0)
+            this.downVotedCount--;
     }
 }
