@@ -54,14 +54,7 @@ public enum ErrorCode {
     INVALID_REPORT("VALID_013", "Invalid report", HttpStatus.BAD_REQUEST),
 
 //   5. Server Errors
-    INTERNAL_SERVER_ERROR("SERVER_000", "INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR),
-    FAIL_SENDING_EMAIL("SERVER_001", "Failed to send Email", HttpStatus.INTERNAL_SERVER_ERROR),
-
-//    Rate Limiting & Resource Limits
-
-//    I/O & Networks
-    FAIL_IO("IO_001", "Failed I/O", HttpStatus.INTERNAL_SERVER_ERROR);
-//
+    INTERNAL_SERVER_ERROR("SERVER_000", "INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final String code;
     private final String message;

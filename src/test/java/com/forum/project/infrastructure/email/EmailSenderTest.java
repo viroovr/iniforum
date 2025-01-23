@@ -2,6 +2,8 @@ package com.forum.project.infrastructure.email;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.application.exception.InfraErrorCode;
+import com.forum.project.application.exception.InfraException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
@@ -52,9 +54,9 @@ class EmailSenderTest {
             throw new MessagingException("Message creation failed");
         }).when(mailSender).send(any(MimeMessage.class));
 
-        ApplicationException applicationException = assertThrows(ApplicationException.class,
+        InfraException infraException = assertThrows(InfraException.class,
                 () -> emailSender.sendEmail(to, subject, body));
 
-        assertEquals(applicationException.getErrorCode(), ErrorCode.FAIL_SENDING_EMAIL);
+        assertEquals(InfraErrorCode.FAIL_SENDING_EMAIL, infraException.getErrorCode());
     }
 }

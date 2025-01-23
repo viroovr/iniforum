@@ -1,11 +1,13 @@
 package com.forum.project.infrastructure.web;
 
 import com.forum.project.application.exception.ApplicationException;
+import com.forum.project.application.exception.InfraErrorCode;
 import com.forum.project.common.utils.LogHelper;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.presentation.error.ErrorResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -50,6 +52,19 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = ex.getErrorCode();
 
         log.error(LogHelper.formatLogMessage(path, method, errorCode, ex.getDetails()));
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(new ErrorResponseDto(errorCode));
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ErrorResponseDto> handleDataAccessException(Exception ex, WebRequest request) {
+        InfraErrorCode errorCode = InfraErrorCode.FAIL_ACCESS;
+        String path = request.getDescription(false).replace("uri=", "");
+        String method = ((ServletWebRequest) request).getHttpMethod().name();
+
+        log.error(LogHelper.formatLogMessage(path, method, errorCode, ex.getMessage()));
 
         return ResponseEntity
                 .status(errorCode.getStatus())

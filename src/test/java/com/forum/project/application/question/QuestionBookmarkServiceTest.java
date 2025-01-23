@@ -25,7 +25,7 @@ class QuestionBookmarkServiceTest {
 
         when(bookmarkRepository.existsByUserIdAndQuestionId(userId, questionId))
                 .thenReturn(false);
-        when(bookmarkRepository.save(any(Bookmark.class))).thenReturn(any(Bookmark.class));
+        when(bookmarkRepository.insert(any(Bookmark.class))).thenReturn(any(Bookmark.class));
 
         questionBookmarkService.saveQuestionBookmark(questionId, userId);
 

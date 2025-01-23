@@ -1,4 +1,4 @@
-package com.forum.project.infrastructure.kafka;
+package com.forum.project.infrastructure.persistence.kafka;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;

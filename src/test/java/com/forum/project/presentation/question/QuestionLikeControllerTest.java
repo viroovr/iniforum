@@ -39,13 +39,15 @@ public class QuestionLikeControllerTest {
         Long userId = 1L;
         LikeStatus likeStatus = LikeStatus.LIKE;
         String header = "Bearer accessToken";
+        String ipAddress = "192.168.0.1";
 
         when(authenticationService.extractUserId(header)).thenReturn(userId);
-        doNothing().when(questionLikeService).addLike(questionId, userId, likeStatus);
+        doNothing().when(questionLikeService).addLike(questionId, userId, likeStatus, ipAddress);
 
         mockMvc.perform(put("/api/v1/questions/like/{id}", questionId)
                         .param("status", likeStatus.name())
-                        .header("Authorization", header))
+                        .header("Authorization", header)
+                        .header("X-Forwarded-For", ipAddress))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(jsonPath("$.message").value(String.format("%s Question successfully.", likeStatus)));

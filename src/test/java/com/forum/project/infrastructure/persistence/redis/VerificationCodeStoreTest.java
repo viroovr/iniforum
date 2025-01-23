@@ -1,4 +1,4 @@
-package com.forum.project.infrastructure.redis;
+package com.forum.project.infrastructure.persistence.redis;
 
 import com.forum.project.domain.email.EmailVerification;
 import com.forum.project.infrastructure.persistence.email.VerificationCodeStore;

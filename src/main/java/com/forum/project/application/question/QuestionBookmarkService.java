@@ -25,7 +25,7 @@ public class QuestionBookmarkService {
                 .questionId(questionId)
                 .build();
 
-        bookmarkRepository.save(bookmark);
+        bookmarkRepository.insert(bookmark);
     }
 
     @Transactional
@@ -33,7 +33,7 @@ public class QuestionBookmarkService {
         Bookmark bookmark = bookmarkRepository.findByUserIdAndQuestionId(userId, questionId)
                 .orElseThrow(() -> new IllegalArgumentException("Bookmark not found for this question."));
 
-        bookmarkRepository.delete(bookmark);
+        bookmarkRepository.delete(userId, questionId);
     }
 
     @Transactional(readOnly = true)

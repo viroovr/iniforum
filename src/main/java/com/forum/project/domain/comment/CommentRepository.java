@@ -4,16 +4,14 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CommentRepository {
-    List<Comment> findByQuestionId(Long questionId);
-    List<Comment> findByUserId(Long userId);
-    List<Comment> findByParentCommentId(Long parentCommentId);
+    List<Comment> findAllByQuestionId(Long questionId);
+    List<Comment> findAllByUserId(Long userId);
+    List<Comment> findAllByParentCommentId(Long parentCommentId);
 
     Optional<Comment> findById(Long id);
-    Comment save(Comment comment);
-    Comment update(Comment comment);
+    Comment insert(Comment comment);
+    void updateContent(Long id, String content);
     void deleteById(Long id);
-
-    void hideComment(Long commentId);
 
     boolean existsById(Long commentId);
 }

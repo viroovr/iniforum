@@ -46,21 +46,23 @@ CREATE TABLE question_tags (
 CREATE TABLE comments (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    content VARCHAR(1000) NOT NULL,
     question_id BIGINT NOT NULL,
-    up_voted_count BIGINT DEFAULT 0,
-    down_voted_count BIGINT DEFAULT 0,
-    status VARCHAR(50) DEFAULT 'ACTIVE',
     parent_comment_id BIGINT,
-    report_count BIGINT DEFAULT 0,
+    content VARCHAR(1000) NOT NULL,
+    up_voted_count BIGINT DEFAULT 0 CHECK (up_voted_count >= 0),
+    down_voted_count BIGINT DEFAULT 0 CHECK (down_voted_count >= 0),
+    status VARCHAR(50),
+    report_count BIGINT DEFAULT 0 CHECK (report_count >= 0),
     is_edited BOOLEAN DEFAULT FALSE,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (question_id) REFERENCES questions(id)
+    FOREIGN KEY (question_id) REFERENCES questions(id),
+    FOREIGN KEY (parent_comment_id) REFERENCES comments(id),
+    CHECK (status IN ('ACTIVE', 'INACTIVE', 'DELETED', 'SPAM'))
 );
 
-CREATE TABLE likes (
+CREATE TABLE comment_likes (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT,
     comment_id BIGINT,
@@ -69,4 +71,27 @@ CREATE TABLE likes (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_user_comment ON likes (user_id, comment_id);
+CREATE TABLE question_likes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    question_id BIGINT NOT NULL,
+    status VARCHAR(255),
+    ip_address VARCHAR(255),
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE bookmarks (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    question_id BIGINT NOT NULL,
+    notes VARCHAR(255),
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_accessed_date TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_user_comment_likes ON comment_likes (user_id, comment_id);
+CREATE INDEX idx_user_question_likes ON question_likes (user_id, question_id);

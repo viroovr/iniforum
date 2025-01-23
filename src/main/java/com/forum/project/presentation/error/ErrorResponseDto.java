@@ -1,6 +1,7 @@
 package com.forum.project.presentation.error;
 
 import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.application.exception.InfraErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -14,6 +15,12 @@ public class ErrorResponseDto {
     private LocalDateTime timestamp;
 
     public ErrorResponseDto(ErrorCode errorCode) {
+        this.message = errorCode.getMessage();
+        this.errorCode = errorCode.getCode();
+        this.timestamp = LocalDateTime.now();
+    }
+
+    public ErrorResponseDto(InfraErrorCode errorCode) {
         this.message = errorCode.getMessage();
         this.errorCode = errorCode.getCode();
         this.timestamp = LocalDateTime.now();

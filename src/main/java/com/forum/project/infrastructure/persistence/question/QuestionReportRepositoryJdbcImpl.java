@@ -1,12 +1,12 @@
 package com.forum.project.infrastructure.persistence.question;
 
-import com.forum.project.domain.report.question.QuestionReport;
-import com.forum.project.domain.report.question.QuestionReportRepository;
+import com.forum.project.domain.question.report.QuestionReport;
+import com.forum.project.domain.question.report.QuestionReportRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public class QuestionReportRepositoryImpl implements QuestionReportRepository {
+public class QuestionReportRepositoryJdbcImpl implements QuestionReportRepository {
     @Override
     public boolean existsByIdAndUserId(Long questionId, Long userId) {
         return false;

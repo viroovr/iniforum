@@ -1,4 +1,4 @@
-package com.forum.project.domain.report.question;
+package com.forum.project.domain.question.report;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;

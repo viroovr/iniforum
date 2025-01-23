@@ -15,5 +15,7 @@ public class Bookmark {
     private Long id;
     private Long userId;
     private Long questionId;
-    private LocalDateTime createdAt;
+    private String notes;
+    private LocalDateTime createdDate;
+    private LocalDateTime lastAccessedDate;
 }

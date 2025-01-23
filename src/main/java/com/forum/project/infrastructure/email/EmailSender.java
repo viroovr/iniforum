@@ -2,6 +2,8 @@ package com.forum.project.infrastructure.email;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.application.exception.InfraErrorCode;
+import com.forum.project.application.exception.InfraException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +34,7 @@ public class EmailSender {
             mailSender.send(mimeMessage);
             log.debug("Email sent to: {}", to);
         } catch (MessagingException e) {
-            throw new ApplicationException(ErrorCode.FAIL_SENDING_EMAIL);
+            throw new InfraException(InfraErrorCode.FAIL_SENDING_EMAIL);
         }
     }
 }

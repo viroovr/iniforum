@@ -1,6 +1,5 @@
 package com.forum.project.application.jwt;
 
-import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.domain.user.UserRole;
 import com.forum.project.infrastructure.jwt.ClaimRequestDto;

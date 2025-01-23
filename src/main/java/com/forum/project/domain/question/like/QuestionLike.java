@@ -1,10 +1,7 @@
-package com.forum.project.domain.like.questionlike;
+package com.forum.project.domain.question.like;
 
 import com.forum.project.domain.like.BaseLike;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @EqualsAndHashCode(callSuper = true)
@@ -12,6 +9,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
+@ToString(callSuper = true)
 public class QuestionLike extends BaseLike {
     private Long questionId;
 }

@@ -1,4 +1,4 @@
-package com.forum.project.domain.report.question;
+package com.forum.project.domain.question.report;
 
 import java.util.List;
 import java.util.Optional;

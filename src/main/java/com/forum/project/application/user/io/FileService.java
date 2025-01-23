@@ -2,6 +2,8 @@ package com.forum.project.application.user.io;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.application.exception.InfraErrorCode;
+import com.forum.project.application.exception.InfraException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,7 +24,7 @@ public class FileService {
         }
         File checkUploadDir = new File(uploadDir);
         if (!checkUploadDir.exists() && !checkUploadDir.mkdirs()) {
-            throw new ApplicationException(ErrorCode.FAIL_IO);
+            throw new InfraException(InfraErrorCode.FAIL_IO);
         }
 
         String originalFilename = file.getOriginalFilename();

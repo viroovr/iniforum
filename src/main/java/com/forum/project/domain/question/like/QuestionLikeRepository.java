@@ -1,13 +1,13 @@
-package com.forum.project.domain.like.questionlike;
+package com.forum.project.domain.question.like;
 
 import java.util.Optional;
 
 public interface QuestionLikeRepository {
     boolean existsByQuestionIdAndUserId(Long questionId, Long userId);
 
-    QuestionLike save(QuestionLike build);
+    QuestionLike insert(QuestionLike build);
 
-    Optional<QuestionLike> findByQuestionIdAndUserID(Long questionId, Long userId);
+    Optional<QuestionLike> findByQuestionIdAndUserId(Long questionId, Long userId);
 
     void delete(Long questionId, Long userId);
 }

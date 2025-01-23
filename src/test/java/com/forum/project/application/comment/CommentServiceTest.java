@@ -4,7 +4,7 @@ import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.application.user.auth.AuthenticationService;
 import com.forum.project.domain.comment.Comment;
-import com.forum.project.domain.report.ReportRequestDto;
+import com.forum.project.presentation.report.ReportRequestDto;
 import com.forum.project.domain.comment.CommentRepository;
 import com.forum.project.presentation.comment.CommentRequestDto;
 import com.forum.project.presentation.comment.CommentResponseDto;
@@ -49,7 +49,7 @@ class CommentServiceTest {
         when(authenticationService.extractUserId(header)).thenReturn(userId);
         when(authenticationService.extractLoginId(header)).thenReturn(loginId);
         ArgumentCaptor<Comment> commentArgumentCaptor = ArgumentCaptor.forClass(Comment.class);
-        when(commentRepository.save(commentArgumentCaptor.capture()))
+        when(commentRepository.insert(commentArgumentCaptor.capture()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         CommentResponseDto result = commentService.addComment(questionId, commentRequestDto, header);
@@ -76,7 +76,7 @@ class CommentServiceTest {
                 Comment.builder().id(1L).questionId(questionId).build(),
                 Comment.builder().id(2L).questionId(questionId).build()
         );
-        when(commentRepository.findByQuestionId(questionId)).thenReturn(response);
+        when(commentRepository.findAllByQuestionId(questionId)).thenReturn(response);
 
         List<CommentResponseDto> result = commentService.getCommentsByQuestionId(questionId);
 
@@ -136,8 +136,7 @@ class CommentServiceTest {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
 
         ArgumentCaptor<Comment> argumentCaptor = ArgumentCaptor.forClass(Comment.class);
-        when(commentRepository.update(argumentCaptor.capture()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        doNothing().when(commentRepository).updateContent(commentId, "newContent");
 
         CommentResponseDto result = commentService.updateComment(commentId, commentRequestDto, header);
 
@@ -162,7 +161,7 @@ class CommentServiceTest {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
 
         ArgumentCaptor<Comment> argumentCaptor = ArgumentCaptor.forClass(Comment.class);
-        when(commentRepository.save(argumentCaptor.capture()))
+        when(commentRepository.insert(argumentCaptor.capture()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         commentService.likeComment(commentId, header);
 
@@ -182,7 +181,7 @@ class CommentServiceTest {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
 
         ArgumentCaptor<Comment> argumentCaptor = ArgumentCaptor.forClass(Comment.class);
-        when(commentRepository.save(argumentCaptor.capture()))
+        when(commentRepository.insert(argumentCaptor.capture()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         commentService.dislikeComment(commentId, header);
 
@@ -219,8 +218,7 @@ class CommentServiceTest {
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
 
         ArgumentCaptor<Comment> argumentCaptor = ArgumentCaptor.forClass(Comment.class);
-        when(commentRepository.update(argumentCaptor.capture()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        doNothing().when(commentRepository).updateContent(commentId, "newContent");
         commentService.reportComment(commentId, header, dto);
 
         Comment captorValue = argumentCaptor.getValue();
@@ -236,7 +234,7 @@ class CommentServiceTest {
             Comment.builder().id(2L).userId(userId).loginId("loginId2").build()
         );
 
-        when(commentRepository.findByUserId(userId)).thenReturn(commentList);
+        when(commentRepository.findAllByUserId(userId)).thenReturn(commentList);
 
         List<CommentResponseDto> response = commentService.getUserComments(userId, header);
 
@@ -259,7 +257,7 @@ class CommentServiceTest {
         when(authenticationService.extractLoginId(header)).thenReturn(loginId);
         when(commentRepository.findById(parentCommentId)).thenReturn(Optional.of(parentComment));
         ArgumentCaptor<Comment> argumentCaptor = ArgumentCaptor.forClass(Comment.class);
-        when(commentRepository.save(argumentCaptor.capture()))
+        when(commentRepository.insert(argumentCaptor.capture()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         CommentResponseDto response = commentService.replyToComment(parentCommentId, dto, header);
@@ -281,7 +279,7 @@ class CommentServiceTest {
                 Comment.builder().id(2L).parentCommentId(parentCommentId).loginId("loginId2").build()
         );
 
-        when(commentRepository.findByParentCommentId(parentCommentId)).thenReturn(commentList);
+        when(commentRepository.findAllByParentCommentId(parentCommentId)).thenReturn(commentList);
 
         List<CommentResponseDto> response = commentService.getChildComments(parentCommentId);
 

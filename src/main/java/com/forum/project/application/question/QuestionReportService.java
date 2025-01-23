@@ -4,8 +4,8 @@ import com.forum.project.application.email.EmailAdminService;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.application.report.ReportService;
-import com.forum.project.domain.report.question.QuestionReport;
-import com.forum.project.domain.report.question.QuestionReportRepository;
+import com.forum.project.domain.question.report.QuestionReport;
+import com.forum.project.domain.question.report.QuestionReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

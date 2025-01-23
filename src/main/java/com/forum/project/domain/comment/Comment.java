@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -17,38 +18,46 @@ import java.util.Objects;
 public class Comment {
     private Long id;
     private Long userId;
+    private Long questionId;
+    private Long parentCommentId;
     private String loginId;
     private String content;
-    private Long questionId;
-    private Long upVotedCount;
-    private Long downVotedCount;
-    private String status;
-    private Long parentCommentId;
-    private Long reportCount;
-    private Boolean isEdited;
+    @Builder.Default
+    private Long upVotedCount = 0L;
+    @Builder.Default
+    private Long downVotedCount = 0L;
+    @Builder.Default
+    private String status = CommentStatus.ACTIVE.name();
+    @Builder.Default
+    private Long reportCount = 0L;
+    @Builder.Default
+    private Boolean isEdited = false;
     private LocalDateTime createdDate;
     private LocalDateTime lastModifiedDate;
 
     public void initialize(Long questionId, Long userId, String loginId) {
         this.questionId = questionId;
         this.userId = userId;
-        this.loginId = loginId;
+        this.loginId= loginId;
         this.upVotedCount = 0L;
         this.downVotedCount = 0L;
         this.reportCount = 0L;
         this.isEdited = false;
         this.status = CommentStatus.ACTIVE.name();
-        this.createdDate = LocalDateTime.now();
-        this.lastModifiedDate = LocalDateTime.now();
+    }
+
+    public void markAsEdited(LocalDateTime now) {
+        this.isEdited = true;
+        this.lastModifiedDate = now;
     }
 
     public void updateContent(String newContent) {
         if (newContent == null || newContent.trim().isEmpty()) {
             throw new ApplicationException(ErrorCode.INVALID_COMMENT_CONTENT);
         }
+        LocalDateTime now = LocalDateTime.now();
         this.content = newContent;
-        this.isEdited = true;
-        this.lastModifiedDate = LocalDateTime.now();
+        this.lastModifiedDate = now;
     }
 
     public void delete() {

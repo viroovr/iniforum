@@ -2,8 +2,8 @@ package com.forum.project.presentation.question;
 
 import com.forum.project.application.question.QuestionReportService;
 import com.forum.project.application.user.auth.AuthenticationService;
-import com.forum.project.domain.report.ReportRequestDto;
-import com.forum.project.domain.report.question.QuestionReport;
+import com.forum.project.presentation.report.ReportRequestDto;
+import com.forum.project.domain.question.report.QuestionReport;
 import com.forum.project.presentation.dtos.BaseResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

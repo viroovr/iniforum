@@ -5,7 +5,7 @@ import com.forum.project.domain.comment.Comment;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.domain.comment.CommentRepository;
-import com.forum.project.domain.report.ReportRequestDto;
+import com.forum.project.presentation.report.ReportRequestDto;
 import com.forum.project.infrastructure.security.auth.AuthCheck;
 import com.forum.project.presentation.comment.CommentRequestDto;
 import com.forum.project.presentation.comment.CommentResponseDto;
@@ -32,11 +32,11 @@ public class CommentService {
 
         comment.initialize(questionId, userId, loginId);
 
-        return CommentDtoConverterFactory.toResponseCommentDto(commentRepository.save(comment));
+        return CommentDtoConverterFactory.toResponseCommentDto(commentRepository.insert(comment));
     }
 
     public List<CommentResponseDto> getCommentsByQuestionId(Long questionId) {
-        return commentRepository.findByQuestionId(questionId)
+        return commentRepository.findAllByQuestionId(questionId)
                 .stream().map(CommentDtoConverterFactory::toResponseCommentDto).toList();
     }
 
@@ -64,8 +64,8 @@ public class CommentService {
             throw new ApplicationException(ErrorCode.AUTH_BAD_CREDENTIAL);
 
         existingComment.updateContent(commentRequestDto.getContent());
-
-        return CommentDtoConverterFactory.toResponseCommentDto(commentRepository.update(existingComment));
+        commentRepository.updateContent(existingComment.getId(), existingComment.getContent());
+        return CommentDtoConverterFactory.toResponseCommentDto(existingComment);
     }
 
     @Transactional
@@ -77,7 +77,7 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_NOT_FOUND));
         comment.increaseUpVote();
-        commentRepository.save(comment);
+        commentRepository.insert(comment);
     }
 
     @Transactional
@@ -89,7 +89,7 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_NOT_FOUND));
         comment.increaseDownVote();
-        commentRepository.save(comment);
+        commentRepository.insert(comment);
     }
 
     @Transactional
@@ -104,7 +104,7 @@ public class CommentService {
 
     @AuthCheck
     public List<CommentResponseDto> getUserComments(Long userId, String header) {
-        return commentRepository.findByUserId(userId)
+        return commentRepository.findAllByUserId(userId)
                 .stream()
                 .map(CommentDtoConverterFactory::toResponseCommentDto)
                 .toList();
@@ -121,11 +121,11 @@ public class CommentService {
         replyComment.initialize(parentComment.getQuestionId(), userId, loginId);
         replyComment.setParentCommentId(parentCommentId);
 
-        return CommentDtoConverterFactory.toResponseCommentDto(commentRepository.save(replyComment));
+        return CommentDtoConverterFactory.toResponseCommentDto(commentRepository.insert(replyComment));
     }
 
     public List<CommentResponseDto> getChildComments(Long parentCommentId) {
-        return commentRepository.findByParentCommentId(parentCommentId)
+        return commentRepository.findAllByParentCommentId(parentCommentId)
                 .stream()
                 .map(CommentDtoConverterFactory::toResponseCommentDto)
                 .toList();

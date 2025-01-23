@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,6 +18,7 @@ public class BaseLike {
     @Builder.Default
     private String status = LikeStatus.NONE.name();
     private String ipAddress;
+    private LocalDateTime createdDate;
 
     public void like() {
         this.status = LikeStatus.LIKE.name();

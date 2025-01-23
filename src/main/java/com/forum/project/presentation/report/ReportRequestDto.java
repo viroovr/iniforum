@@ -1,4 +1,4 @@
-package com.forum.project.domain.report;
+package com.forum.project.presentation.report;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

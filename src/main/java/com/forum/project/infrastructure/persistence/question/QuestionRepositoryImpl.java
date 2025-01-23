@@ -43,7 +43,8 @@ public class QuestionRepositoryImpl implements QuestionRepository {
         if (question.getCreatedDate() == null) {
             question.setCreatedDate(LocalDateTime.now(clock));
         }
-        String sql = "INSERT INTO questions (title, user_id, content, tag, created_date) VALUES (:title, :userId, :content, :tag, :createdDate)";
+        String sql = "INSERT INTO questions (title, user_id, content, tag, created_date) " +
+                "VALUES (:title, :userId, :content, :tag, :createdDate)";
         SqlParameterSource namedParameters = new BeanPropertySqlParameterSource(question);
 
         KeyHolder keyHolder = new GeneratedKeyHolder();

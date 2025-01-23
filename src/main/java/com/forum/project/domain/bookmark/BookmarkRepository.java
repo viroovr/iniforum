@@ -7,9 +7,9 @@ public interface BookmarkRepository {
 
     Optional<Bookmark> findByUserIdAndQuestionId(Long userId, Long questionId);
 
-    Bookmark save(Bookmark bookmark);
+    Bookmark insert(Bookmark bookmark);
 
-    void delete(Bookmark bookmark);
+    void delete(Long userId, Long questionId);
 
     List<Bookmark> findAllByUserId(Long userId);
 
