@@ -1,6 +1,7 @@
 package com.forum.project.presentation.comment;
 
 import com.forum.project.application.comment.CommentService;
+import com.forum.project.application.user.auth.AuthenticationService;
 import com.forum.project.presentation.report.ReportRequestDto;
 import com.forum.project.presentation.dtos.BaseResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,7 @@ import java.util.Map;
 @RequestMapping(value = "/api/v1/comments")
 @RequiredArgsConstructor
 public class CommentController {
-
+    private final AuthenticationService authenticationService;
     private final CommentService commentService;
 
     @PostMapping(value = "/{questionId}")
@@ -24,7 +25,8 @@ public class CommentController {
             @PathVariable Long questionId,
             @RequestBody CommentRequestDto commentRequestDto
     ) {
-        CommentResponseDto commentResponseDto = commentService.addComment(questionId, commentRequestDto, header);
+        Long userId = authenticationService.extractUserId(header);
+        CommentResponseDto commentResponseDto = commentService.addComment(questionId, userId, commentRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(commentResponseDto);
     }
 
@@ -37,22 +39,24 @@ public class CommentController {
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public ResponseEntity<CommentResponseDto> updateComment(
+    public ResponseEntity<BaseResponseDto> updateComment(
             @RequestHeader(value = "Authorization") String header,
             @PathVariable("id") Long commentId,
             @RequestBody CommentRequestDto commentRequestDto
     ) {
-        CommentResponseDto commentResponseDto = commentService.updateComment(commentId, commentRequestDto, header);
-        return ResponseEntity.status(HttpStatus.OK).body(commentResponseDto);
+        Long userId = authenticationService.extractUserId(header);
+        commentService.updateComment(commentId, userId, commentRequestDto);
+        BaseResponseDto response = new BaseResponseDto("Comment updated successfully.");
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<Map<String, String>> deleteComment(
+    public ResponseEntity<BaseResponseDto> deleteComment(
             @RequestHeader(value = "Authorization") String header,
             @PathVariable Long id
     ) {
         commentService.deleteComment(id, header);
-        Map<String, String> response = Map.of("message", "Comment deleted successfully.");
+        BaseResponseDto response = new BaseResponseDto("Comment deleted successfully.");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -61,7 +65,8 @@ public class CommentController {
             @RequestHeader(value = "Authorization") String header,
             @PathVariable Long id
     ) {
-        commentService.likeComment(id, header);
+        Long userId = authenticationService.extractUserId(header);
+        commentService.likeComment(id, userId);
         BaseResponseDto response = new BaseResponseDto("Comment liked successfully.");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -71,7 +76,8 @@ public class CommentController {
             @RequestHeader(value = "Authorization") String header,
             @PathVariable Long id
     ) {
-        commentService.dislikeComment(id, header);
+        Long userId = authenticationService.extractUserId(header);
+        commentService.dislikeComment(id, userId);
         BaseResponseDto response = new BaseResponseDto("Comment disliked successfully.");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -82,7 +88,8 @@ public class CommentController {
             @RequestHeader(value = "Authorization") String header,
             @PathVariable Long id
     ) {
-        commentService.reportComment(id, header, dto);
+        Long userId = authenticationService.extractUserId(header);
+        commentService.reportComment(id, userId, dto);
         BaseResponseDto response = new BaseResponseDto("Comment reported successfully.");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

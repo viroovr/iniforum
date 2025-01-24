@@ -51,22 +51,23 @@ CREATE TABLE comments (
     content VARCHAR(1000) NOT NULL,
     up_voted_count BIGINT DEFAULT 0 CHECK (up_voted_count >= 0),
     down_voted_count BIGINT DEFAULT 0 CHECK (down_voted_count >= 0),
-    status VARCHAR(50),
+    status ENUM('ACTIVE', 'INACTIVE', 'DELETED', 'SPAM') DEFAULT 'ACTIVE',
     report_count BIGINT DEFAULT 0 CHECK (report_count >= 0),
     is_edited BOOLEAN DEFAULT FALSE,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (question_id) REFERENCES questions(id),
-    FOREIGN KEY (parent_comment_id) REFERENCES comments(id),
-    CHECK (status IN ('ACTIVE', 'INACTIVE', 'DELETED', 'SPAM'))
+    FOREIGN KEY (parent_comment_id) REFERENCES comments(id)
 );
 
 CREATE TABLE comment_likes (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT,
-    comment_id BIGINT,
+    comment_id BIGINT NOT NULL,
+    status VARCHAR(255),
     ip_address VARCHAR(255),
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -91,6 +92,18 @@ CREATE TABLE bookmarks (
     last_accessed_date TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+);
+
+CREATE TABLE comment_reports (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    comment_id BIGINT NOT NULL,
+    reason VARCHAR(500) NOT NULL,
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED') DEFAULT 'PENDING',
+    is_resolved BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_user_comment_likes ON comment_likes (user_id, comment_id);

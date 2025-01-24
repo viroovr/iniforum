@@ -8,8 +8,8 @@ public class BookmarkQueries {
 
     public static String insert() {
         return "INSERT INTO bookmarks " +
-               "(user_id, question_id, notes, created_date) " +
-               "VALUES (:userId, :questionId, :notes, :createdDate);";
+               "(user_id, question_id, notes) " +
+               "VALUES (:userId, :questionId, :notes)";
     }
 
     public static String delete() {

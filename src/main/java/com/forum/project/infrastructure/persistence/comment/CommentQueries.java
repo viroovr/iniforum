@@ -37,6 +37,20 @@ public class CommentQueries {
                 "WHERE id=:id";
     }
 
+    public static String updateDownVotedCount() {
+        return "UPDATE comments " +
+                "SET " +
+                "down_voted_count=:downVotedCount " +
+                "WHERE id=:id";
+    }
+
+    public static String updateUpVotedCount() {
+        return "UPDATE comments " +
+                "SET " +
+                "up_voted_count=:upVotedCount " +
+                "WHERE id=:id";
+    }
+
     public static String deleteById() {
         return "DELETE FROM comments WHERE id=:id";
     }

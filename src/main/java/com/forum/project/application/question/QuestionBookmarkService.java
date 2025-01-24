@@ -25,7 +25,7 @@ public class QuestionBookmarkService {
                 .questionId(questionId)
                 .build();
 
-        bookmarkRepository.insert(bookmark);
+        bookmark.setKeys(bookmarkRepository.insertAndReturnGeneratedKeys(bookmark));
     }
 
     @Transactional

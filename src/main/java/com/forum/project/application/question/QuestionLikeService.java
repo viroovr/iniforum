@@ -20,7 +20,7 @@ public class QuestionLikeService {
         if(questionLikeRepository.existsByQuestionIdAndUserId(questionId, userId))
             throw new ApplicationException(ErrorCode.LIKE_ALREADY_EXISTS);
 
-        questionLikeRepository.insert(QuestionLike.builder()
+        questionLikeRepository.insertAndReturnGeneratedKeys(QuestionLike.builder()
                 .questionId(questionId)
                 .status(likeStatus.name())
                 .userId(userId)

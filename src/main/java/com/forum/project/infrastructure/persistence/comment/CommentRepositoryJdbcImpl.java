@@ -1,6 +1,7 @@
 package com.forum.project.infrastructure.persistence.comment;
 
 import com.forum.project.domain.comment.Comment;
+import com.forum.project.domain.comment.CommentKey;
 import com.forum.project.domain.comment.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -15,7 +16,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 
 @Log4j2
@@ -25,15 +26,14 @@ public class CommentRepositoryJdbcImpl implements CommentRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
-    public Comment insert(Comment comment) {
+    public Map<String, Object> insertAndReturnGeneratedKeys(Comment comment) {
         String sql = CommentQueries.insert();
         SqlParameterSource namedParameters = new BeanPropertySqlParameterSource(comment);
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(sql, namedParameters, keyHolder, new String[] {"id"});
+        jdbcTemplate.update(sql, namedParameters, keyHolder, CommentKey.getKeys());
 
-        comment.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
-        return comment;
+        return keyHolder.getKeys();
     }
 
     @Override
@@ -81,6 +81,27 @@ public class CommentRepositoryJdbcImpl implements CommentRepository {
     }
 
     @Override
+    public void updateUpVotedCount(Long id, Long upVotedCount) {
+        String sql = CommentQueries.updateUpVotedCount();
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("upVotedCount", upVotedCount);
+
+        jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public void updateDownVotedCount(Long id, Long downVotedCount) {
+        String sql = CommentQueries.updateDownVotedCount();
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("downVotedCount", downVotedCount);
+
+        jdbcTemplate.update(sql, params);
+    }
+
+
+    @Override
     public void deleteById(Long id) {
         String sql = CommentQueries.deleteById();
         SqlParameterSource namedParameters = new MapSqlParameterSource("id", id);
@@ -88,9 +109,9 @@ public class CommentRepositoryJdbcImpl implements CommentRepository {
     }
 
     @Override
-    public boolean existsById(Long commentId) {
+    public boolean existsById(Long id) {
         String sql = CommentQueries.existsById();
-        SqlParameterSource source = new MapSqlParameterSource("id", commentId);
+        SqlParameterSource source = new MapSqlParameterSource("id", id);
         Boolean result = jdbcTemplate.queryForObject(sql, source, Boolean.class);
         return Boolean.TRUE.equals(result);
     }

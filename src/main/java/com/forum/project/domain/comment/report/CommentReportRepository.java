@@ -1,10 +1,11 @@
-package com.forum.project.domain.report.comment;
+package com.forum.project.domain.comment.report;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface CommentReportRepository {
-    CommentReport save(CommentReport commentReport);
+    Map<String, Object> insertAndReturnGeneratedKeys(CommentReport commentReport);
 
     boolean existsByCommentIdAndUserId(Long commentId, Long userId);
 

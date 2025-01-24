@@ -2,21 +2,21 @@ package com.forum.project.domain.comment;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.forum.project.common.utils.DateUtil;
+import com.forum.project.domain.BaseEntity;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Objects;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Comment {
-    private Long id;
+@SuperBuilder
+public class Comment extends BaseEntity {
     private Long userId;
     private Long questionId;
     private Long parentCommentId;
@@ -32,32 +32,23 @@ public class Comment {
     private Long reportCount = 0L;
     @Builder.Default
     private Boolean isEdited = false;
-    private LocalDateTime createdDate;
     private LocalDateTime lastModifiedDate;
 
-    public void initialize(Long questionId, Long userId, String loginId) {
-        this.questionId = questionId;
-        this.userId = userId;
-        this.loginId= loginId;
-        this.upVotedCount = 0L;
-        this.downVotedCount = 0L;
-        this.reportCount = 0L;
-        this.isEdited = false;
-        this.status = CommentStatus.ACTIVE.name();
-    }
+    public void setKeys(Map<String, Object> keys) {
+        if (keys == null) {
+            throw new IllegalArgumentException("Keys map cannot be null");
+        }
 
-    public void markAsEdited(LocalDateTime now) {
-        this.isEdited = true;
-        this.lastModifiedDate = now;
+        setId((Long) keys.get(CommentKey.ID));
+        setCreatedDate(DateUtil.convertToLocalDateTime(keys.get(CommentKey.CREATED_DATE)));
+        this.lastModifiedDate = DateUtil.convertToLocalDateTime(keys.get(CommentKey.LAST_MODIFIED_DATE));
     }
 
     public void updateContent(String newContent) {
         if (newContent == null || newContent.trim().isEmpty()) {
             throw new ApplicationException(ErrorCode.INVALID_COMMENT_CONTENT);
         }
-        LocalDateTime now = LocalDateTime.now();
         this.content = newContent;
-        this.lastModifiedDate = now;
     }
 
     public void delete() {

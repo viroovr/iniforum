@@ -20,4 +20,6 @@ public interface UserRepository{
     boolean userLoginIdExists(String userId);
 
     boolean existsById(Long userId);
+
+    String getLoginId(Long userId);
 }

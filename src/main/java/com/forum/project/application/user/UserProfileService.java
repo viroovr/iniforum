@@ -36,4 +36,8 @@ public class UserProfileService {
         User updatedUser = userRepository.update(user);
         return UserDtoConverterFactory.toUserResponseDto(updatedUser);
     }
+
+    public String getLoginId(Long userId) {
+        return userRepository.getLoginId(userId);
+    }
 }

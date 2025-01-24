@@ -169,4 +169,9 @@ public class UserRepositoryJdbcImpl implements UserRepository {
         Boolean exists = jdbcTemplate.queryForObject(sql, namedParameters, Boolean.class);
         return Boolean.TRUE.equals(exists);
     }
+
+    @Override
+    public String getLoginId(Long userId) {
+        return "";
+    }
 }

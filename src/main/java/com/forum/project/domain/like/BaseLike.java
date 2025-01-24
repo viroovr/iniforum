@@ -1,24 +1,19 @@
 package com.forum.project.domain.like;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.forum.project.domain.BaseEntity;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
-
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-public class BaseLike {
-    private Long id;
+public abstract class BaseLike extends BaseEntity {
     private Long userId;
     @Builder.Default
     private String status = LikeStatus.NONE.name();
     private String ipAddress;
-    private LocalDateTime createdDate;
 
     public void like() {
         this.status = LikeStatus.LIKE.name();

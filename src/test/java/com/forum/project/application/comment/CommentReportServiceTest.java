@@ -3,8 +3,9 @@ package com.forum.project.application.comment;
 import com.forum.project.application.email.EmailAdminService;
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.domain.report.comment.CommentReport;
-import com.forum.project.domain.report.comment.CommentReportRepository;
+import com.forum.project.domain.comment.report.CommentReport;
+import com.forum.project.domain.comment.report.CommentReportRepository;
+import com.forum.project.domain.report.ReportStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -36,7 +37,7 @@ class CommentReportServiceTest {
         String reason = "스팸";
 
         ArgumentCaptor<CommentReport> argumentCaptor = ArgumentCaptor.forClass(CommentReport.class);
-        when(commentReportRepository.save(argumentCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
+        when(commentReportRepository.insertAndReturnGeneratedKeys(argumentCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
         when(commentReportRepository.existsByCommentIdAndUserId(commentId, userId)).thenReturn(false);
 
         commentReportService.saveReport(commentId, userId, reason);
@@ -157,11 +158,10 @@ class CommentReportServiceTest {
     void testResolveReport_success() {
         Long reportId = 1L;
         CommentReport commentReport = CommentReport.builder()
-                .id(reportId)
-                .isResolved(false).build();
-
+                .id(reportId).build();
+        String status = ReportStatus.RESOLVED.name();
         ArgumentCaptor<CommentReport> argumentCaptor = ArgumentCaptor.forClass(CommentReport.class);
-        when(commentReportRepository.save(argumentCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
+        when(commentReportRepository.insertAndReturnGeneratedKeys(argumentCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
         when(commentReportRepository.findById(reportId)).thenReturn(Optional.of(commentReport));
 
         commentReportService.resolveReport(reportId);
@@ -169,6 +169,6 @@ class CommentReportServiceTest {
         CommentReport captorValue = argumentCaptor.getValue();
 
         assertEquals(reportId, captorValue.getId());
-        assertTrue(captorValue.isResolved());
+        assertEquals(status, captorValue.getStatus());
     }
 }

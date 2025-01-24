@@ -5,6 +5,7 @@ import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.domain.question.report.QuestionReport;
 import com.forum.project.domain.question.report.QuestionReportRepository;
+import com.forum.project.domain.report.ReportStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -163,8 +164,7 @@ public class QuestionReportServiceTest {
     void testResolveReport_success() {
         Long reportId = 1L;
         QuestionReport commentReport = QuestionReport.builder()
-                .id(reportId)
-                .isResolved(false).build();
+                .id(reportId).build();
 
         ArgumentCaptor<QuestionReport> argumentCaptor = ArgumentCaptor.forClass(QuestionReport.class);
         when(questionReportRepository.save(any(QuestionReport.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -176,6 +176,6 @@ public class QuestionReportServiceTest {
         QuestionReport captorValue = argumentCaptor.getValue();
 
         assertEquals(reportId, captorValue.getId());
-        assertTrue(captorValue.isResolved());
+        assertEquals(ReportStatus.RESOLVED.name(), captorValue.getStatus());
     }
 }

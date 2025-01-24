@@ -4,8 +4,8 @@ import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
 import com.forum.project.application.email.EmailAdminService;
 import com.forum.project.application.report.ReportService;
-import com.forum.project.domain.report.comment.CommentReport;
-import com.forum.project.domain.report.comment.CommentReportRepository;
+import com.forum.project.domain.comment.report.CommentReport;
+import com.forum.project.domain.comment.report.CommentReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +29,7 @@ public class CommentReportService implements ReportService<CommentReport> {
                 .commentId(commentId)
                 .reason(reason).build();
         report.validateReason();
-        commentReportRepository.save(report);
+        commentReportRepository.insertAndReturnGeneratedKeys(report);
     }
 
     @Override
@@ -57,6 +57,6 @@ public class CommentReportService implements ReportService<CommentReport> {
         CommentReport report = commentReportRepository.findById(reportId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_REPORT_NOT_FOUND));
         report.markAsResolved();
-        commentReportRepository.save(report);
+        commentReportRepository.insertAndReturnGeneratedKeys(report);
     }
 }

@@ -1,6 +1,8 @@
 package com.forum.project.infrastructure.persistence.comment;
 
+import com.forum.project.common.utils.DateUtil;
 import com.forum.project.domain.comment.Comment;
+import com.forum.project.domain.comment.CommentKey;
 import com.forum.project.domain.comment.CommentRepository;
 import com.forum.project.domain.comment.CommentStatus;
 import lombok.extern.slf4j.Slf4j;
@@ -16,10 +18,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -92,22 +94,24 @@ class CommentRepositoryJdbcImplTest {
     }
 
     @Test
-    void insert() {
+    void insertAndReturnGeneratedKeys() {
         Comment comment = createComment(1L, 1L, null);
+        Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
 
-        Comment savedComment = commentRepository.insert(comment);
+        Map<String, Object> generatedKeys = commentRepository.insertAndReturnGeneratedKeys(comment);
 
-        assertThat(savedComment).isNotNull();
-        assertThat(savedComment.getId()).isOne();
-        assertThat(savedComment.getUserId()).isOne();
-        assertThat(savedComment.getQuestionId()).isOne();
-        assertThat(savedComment.getParentCommentId()).isNull();
-        assertThat(savedComment.getContent()).isEqualTo("testContent");
-        assertThat(savedComment.getUpVotedCount()).isEqualTo(0L);
-        assertThat(savedComment.getDownVotedCount()).isEqualTo(0L);
-        assertThat(savedComment.getStatus()).isEqualTo(CommentStatus.ACTIVE.name());
-        assertThat(savedComment.getReportCount()).isEqualTo(0L);
-        assertThat(savedComment.getIsEdited()).isFalse();
+        assertThat(generatedKeys).isNotNull();
+        assertThat(generatedKeys.size()).isEqualTo(CommentKey.getKeys().length);
+
+        Long generatedId = (Long) generatedKeys.get(CommentKey.ID);
+        Timestamp createdDate = (Timestamp) generatedKeys.get(CommentKey.CREATED_DATE);
+        Timestamp lastModifiedDate = (Timestamp) generatedKeys.get(CommentKey.LAST_MODIFIED_DATE);
+
+        assertThat(generatedId).isEqualTo(1L);
+        assertThat(createdDate).isNotNull();
+        assertThat(lastModifiedDate).isNotNull();
+        assertThat(DateUtil.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
+        assertThat(DateUtil.timeDifferenceWithinLimit(expectedTimestamp, lastModifiedDate)).isTrue();
     }
 
     @Test
@@ -201,6 +205,36 @@ class CommentRepositoryJdbcImplTest {
 
         Comment comment = optionalComment.get();
         assertThat(comment.getContent()).isEqualTo("newContent");
+        assertThat(comment.getQuestionId()).isEqualTo(1L);
+        log.info(comment.toString());
+    }
+
+    @Test
+    void updateUpVotedCount() {
+        insertTestData(1L, 1L, null, CommentStatus.ACTIVE.name());
+
+        commentRepository.updateUpVotedCount(1L, 2L);
+
+        Optional<Comment> optionalComment = findData(1L);
+        assertThat(optionalComment).isPresent();
+
+        Comment comment = optionalComment.get();
+        assertThat(comment.getUpVotedCount()).isEqualTo(2L);
+        assertThat(comment.getQuestionId()).isEqualTo(1L);
+        log.info(comment.toString());
+    }
+
+    @Test
+    void updateDownVotedCount() {
+        insertTestData(1L, 1L, null, CommentStatus.ACTIVE.name());
+
+        commentRepository.updateDownVotedCount(1L, 2L);
+
+        Optional<Comment> optionalComment = findData(1L);
+        assertThat(optionalComment).isPresent();
+
+        Comment comment = optionalComment.get();
+        assertThat(comment.getDownVotedCount()).isEqualTo(2L);
         assertThat(comment.getQuestionId()).isEqualTo(1L);
         log.info(comment.toString());
     }

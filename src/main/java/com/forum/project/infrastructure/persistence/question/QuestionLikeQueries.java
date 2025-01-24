@@ -3,8 +3,8 @@ package com.forum.project.infrastructure.persistence.question;
 public class QuestionLikeQueries {
     public static final String INSERT = """
         INSERT INTO question_likes
-        (user_id, status, ip_address, created_date, question_id)
-        VALUES (:userId, :status, :ipAddress, :createdDate, :questionId)
+        (user_id, status, ip_address, question_id)
+        VALUES (:userId, :status, :ipAddress, :questionId)
         """.stripIndent();
 
     public static final String EXISTS_BY_QUESTION_ID_AND_USER_ID = """

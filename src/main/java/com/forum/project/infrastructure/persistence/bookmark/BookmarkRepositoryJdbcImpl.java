@@ -1,6 +1,7 @@
 package com.forum.project.infrastructure.persistence.bookmark;
 
 import com.forum.project.domain.bookmark.Bookmark;
+import com.forum.project.domain.bookmark.BookmarkKey;
 import com.forum.project.domain.bookmark.BookmarkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -13,17 +14,14 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
 public class BookmarkRepositoryJdbcImpl implements BookmarkRepository {
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-    private final Clock clock;
 
     private SqlParameterSource createSqlParameterSource(Long userId, Long questionId) {
         return new MapSqlParameterSource()
@@ -52,22 +50,13 @@ public class BookmarkRepositoryJdbcImpl implements BookmarkRepository {
         return namedParameterJdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(Bookmark.class));
     }
 
-    private void setDefaultTimestamps(Bookmark bookmark) {
-        LocalDateTime now = LocalDateTime.now(clock);
-        bookmark.setCreatedDate(Optional.ofNullable(bookmark.getCreatedDate()).orElse(now));
-    }
-
     @Override
-    public Bookmark insert(Bookmark bookmark) {
+    public Map<String ,Object> insertAndReturnGeneratedKeys(Bookmark bookmark) {
         String sql = BookmarkQueries.insert();
-        setDefaultTimestamps(bookmark);
-
         SqlParameterSource source = new BeanPropertySqlParameterSource(bookmark);
         KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        namedParameterJdbcTemplate.update(sql, source, keyHolder, new String[] {"id"});
-        bookmark.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
-        return bookmark;
+        namedParameterJdbcTemplate.update(sql, source, keyHolder, BookmarkKey.getKeys());
+        return keyHolder.getKeys();
     }
 
     @Override

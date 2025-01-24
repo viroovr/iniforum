@@ -1,27 +1,23 @@
 package com.forum.project.domain.report;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.forum.project.domain.BaseEntity;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
-
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-public abstract class BaseReport {
-    private Long id;
+public abstract class BaseReport extends BaseEntity {
+
     private Long userId;
     private String reason;
-    private LocalDateTime reportDate;
     @Builder.Default
-    private boolean isResolved = false;
+    private String status = ReportStatus.PENDING.name();
 
     public void markAsResolved() {
-        this.isResolved = true;
+        this.status = ReportStatus.RESOLVED.name();
     }
 
     public abstract void validateReason();

@@ -2,20 +2,25 @@ package com.forum.project.application.comment;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.application.user.UserProfileService;
 import com.forum.project.application.user.auth.AuthenticationService;
 import com.forum.project.domain.comment.Comment;
-import com.forum.project.presentation.report.ReportRequestDto;
+import com.forum.project.domain.comment.CommentKey;
 import com.forum.project.domain.comment.CommentRepository;
 import com.forum.project.presentation.comment.CommentRequestDto;
 import com.forum.project.presentation.comment.CommentResponseDto;
+import com.forum.project.presentation.report.ReportRequestDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,38 +40,40 @@ class CommentServiceTest {
     @Mock
     private AuthenticationService authenticationService;
 
+    @Mock
+    private UserProfileService userProfileService;
+
     @InjectMocks
     private CommentService commentService;
+
+    private Map<String, Object> generateKeys(Long id, Timestamp timestamp) {
+        Map<String, Object> generatedKeys = new HashMap<>();
+        generatedKeys.put(CommentKey.ID, id);
+        generatedKeys.put(CommentKey.CREATED_DATE, timestamp);
+        generatedKeys.put(CommentKey.LAST_MODIFIED_DATE, timestamp);
+        return generatedKeys;
+    }
 
     @Test
     void testAddComment_Success() {
         CommentRequestDto commentRequestDto = new CommentRequestDto("requestContent");
-        String header = "validHeader";
         Long userId = 1L;
         Long questionId = 1L;
         String loginId = "testUser";
+        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
 
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
-        when(authenticationService.extractLoginId(header)).thenReturn(loginId);
-        ArgumentCaptor<Comment> commentArgumentCaptor = ArgumentCaptor.forClass(Comment.class);
-        when(commentRepository.insert(commentArgumentCaptor.capture()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        Map<String, Object> generatedKeys = generateKeys(1L, timestamp);
 
-        CommentResponseDto result = commentService.addComment(questionId, commentRequestDto, header);
+        when(commentRepository.insertAndReturnGeneratedKeys(any(Comment.class))).thenReturn(generatedKeys);
+        when(userProfileService.getLoginId(userId)).thenReturn(loginId);
 
-        Comment capturedComment = commentArgumentCaptor.getValue();
+        CommentResponseDto result = commentService.addComment(questionId, userId, commentRequestDto);
 
         assertNotNull(result);
-        assertEquals("requestContent", capturedComment.getContent());
-        assertEquals(questionId, capturedComment.getQuestionId());
-        assertEquals(loginId, capturedComment.getLoginId());
-        assertEquals(userId, capturedComment.getUserId());
-        assertEquals(0L, capturedComment.getUpVotedCount());
-        assertEquals(0L, capturedComment.getDownVotedCount());
-        assertEquals(0L, capturedComment.getReportCount());
-        assertFalse(capturedComment.getIsEdited());
-
-        assertEquals(capturedComment.getContent(), result.getContent());
+        assertEquals("requestContent", result.getContent());
+        assertEquals(loginId, result.getLoginId());
+        assertEquals(timestamp.toLocalDateTime(), result.getCreatedDate());
+        assertEquals(0L, result.getLikeCount());
     }
 
     @Test
@@ -126,81 +133,64 @@ class CommentServiceTest {
     @Test
     void testUpdateComment_Success() {
         Long commentId = 1L;
-        CommentRequestDto commentRequestDto = new CommentRequestDto("requestContent");
-        String header = "validHeader";
         Long userId = 1L;
+        CommentRequestDto commentRequestDto = new CommentRequestDto("newContent");
         Comment comment = Comment.builder()
                 .id(commentId)
+                .content("originalContent")
                 .userId(userId).build();
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
 
-        ArgumentCaptor<Comment> argumentCaptor = ArgumentCaptor.forClass(Comment.class);
-        doNothing().when(commentRepository).updateContent(commentId, "newContent");
+        doNothing().when(commentRepository).updateContent(commentId, commentRequestDto.getContent());
 
-        CommentResponseDto result = commentService.updateComment(commentId, commentRequestDto, header);
+        commentService.updateComment(commentId, userId, commentRequestDto);
 
-        Comment capturedComment = argumentCaptor.getValue();
-
-        assertNotNull(result);
-        assertEquals("requestContent", capturedComment.getContent());
-        assertEquals(commentId, capturedComment.getId());
-        assertEquals(userId, capturedComment.getUserId());
-        assertTrue(capturedComment.getIsEdited());
+        assertEquals(comment.getContent(), commentRequestDto.getContent());
     }
 
     @Test
     void testLikeComment_Success() {
-        String header = "validHeader";
         Long commentId = 1L;
         Long userId = 1L;
-        Comment comment = Comment.builder().upVotedCount(0L).build();
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
+        Optional<Comment> optionalComment = Optional.of(Comment.builder().downVotedCount(0L).build());
 
         doNothing().when(commentLikeService).addLikeComment(commentId, userId);
-        when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
+        when(commentRepository.findById(commentId)).thenReturn(optionalComment);
 
-        ArgumentCaptor<Comment> argumentCaptor = ArgumentCaptor.forClass(Comment.class);
-        when(commentRepository.insert(argumentCaptor.capture()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-        commentService.likeComment(commentId, header);
+        doNothing().when(commentRepository).updateDownVotedCount(commentId, 1L);
+        commentService.likeComment(commentId, userId);
 
-        Comment captorValue = argumentCaptor.getValue();
-        assertEquals(1L, captorValue.getUpVotedCount());
+        assertEquals(1L, optionalComment.get().getUpVotedCount());
     }
 
     @Test
     void testDislikeComment_Success() {
-        String header = "validHeader";
         Long commentId = 1L;
         Long userId = 1L;
-        Comment comment = Comment.builder().downVotedCount(0L).build();
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
+        Optional<Comment> optionalComment = Optional.of(
+                Comment.builder()
+                    .downVotedCount(0L)
+                    .build());
 
         doNothing().when(commentLikeService).addDislikeComment(commentId, userId);
-        when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
+        when(commentRepository.findById(commentId)).thenReturn(optionalComment);
 
-        ArgumentCaptor<Comment> argumentCaptor = ArgumentCaptor.forClass(Comment.class);
-        when(commentRepository.insert(argumentCaptor.capture()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-        commentService.dislikeComment(commentId, header);
+        doNothing().when(commentRepository).updateDownVotedCount(commentId, 1L);
+        commentService.dislikeComment(commentId, userId);
 
-        Comment captorValue = argumentCaptor.getValue();
-        assertEquals(1L, captorValue.getDownVotedCount());
+        assertEquals(1L, optionalComment.get().getDownVotedCount());
     }
 
     @Test
     void shouldThrowCommentNotFound_whenCommentIsEmpty() {
-        String header = "validHeader";
         Long commentId = 1L;
         Long userId = 1L;
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
 
         doNothing().when(commentLikeService).addDislikeComment(commentId, userId);
         when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
 
         ApplicationException applicationException = assertThrows(ApplicationException.class,
-                () -> commentService.dislikeComment(commentId, header));
+                () -> commentService.dislikeComment(commentId, userId));
 
         assertEquals(ErrorCode.COMMENT_NOT_FOUND, applicationException.getErrorCode());
     }
@@ -208,21 +198,18 @@ class CommentServiceTest {
     @Test
     void testReportComment_Success() {
         Long commentId = 1L;
-        String header = "validHeader";
-        ReportRequestDto dto = new ReportRequestDto("validReason");
         Long userId = 1L;
-        Comment comment = Comment.builder().reportCount(0L).build();
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
+        ReportRequestDto dto = new ReportRequestDto("validReason");
+        Optional<Comment> comment = Optional.of(Comment.builder().reportCount(0L).build());
 
         doNothing().when(commentReportService).saveReport(commentId, userId, dto.getReason());
-        when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
+        doNothing().when(commentReportService).notifyAdminIfHighReports(commentId);
+        when(commentRepository.findById(commentId)).thenReturn(comment);
 
-        ArgumentCaptor<Comment> argumentCaptor = ArgumentCaptor.forClass(Comment.class);
         doNothing().when(commentRepository).updateContent(commentId, "newContent");
-        commentService.reportComment(commentId, header, dto);
+        commentService.reportComment(commentId, userId, dto);
 
-        Comment captorValue = argumentCaptor.getValue();
-        assertEquals(1L, captorValue.getReportCount());
+        assertEquals(1L, comment.get().getReportCount());
     }
 
     @Test
@@ -246,29 +233,27 @@ class CommentServiceTest {
     @Test
     void testReplyToComment_Success() {
         Long parentCommentId = 1L;
-        String header = "Bearer validHeader";
         Long userId = 1L;
         String loginId = "validLoginId";
         CommentRequestDto dto = new CommentRequestDto("validContent");
         Comment parentComment = Comment.builder()
                 .questionId(1L)
                 .parentCommentId(parentCommentId).build();
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
-        when(authenticationService.extractLoginId(header)).thenReturn(loginId);
+        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
+
+        Map<String, Object> generatedKeys = generateKeys(1L, timestamp);
+
         when(commentRepository.findById(parentCommentId)).thenReturn(Optional.of(parentComment));
-        ArgumentCaptor<Comment> argumentCaptor = ArgumentCaptor.forClass(Comment.class);
-        when(commentRepository.insert(argumentCaptor.capture()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(userProfileService.getLoginId(userId)).thenReturn(loginId);
+        when(commentRepository.insertAndReturnGeneratedKeys(any(Comment.class))).thenReturn(generatedKeys);
 
-        CommentResponseDto response = commentService.replyToComment(parentCommentId, dto, header);
+        CommentResponseDto result = commentService.replyToComment(parentCommentId, userId, dto);
 
-        Comment captorValue = argumentCaptor.getValue();
-        assertNotNull(response);
-        assertEquals(parentCommentId, captorValue.getParentCommentId());
-        assertEquals(userId, captorValue.getUserId());
-        assertEquals(loginId, captorValue.getLoginId());
-        assertEquals(1L, captorValue.getQuestionId());
-        assertEquals(loginId, response.getLoginId());
+        assertNotNull(result);
+        assertEquals("validContent", result.getContent());
+        assertEquals(loginId, result.getLoginId());
+        assertEquals(timestamp.toLocalDateTime(), result.getCreatedDate());
+        assertEquals(0L, result.getLikeCount());
     }
 
     @Test

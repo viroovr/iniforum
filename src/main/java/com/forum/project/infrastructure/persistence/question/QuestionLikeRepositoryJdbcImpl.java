@@ -1,12 +1,10 @@
 package com.forum.project.infrastructure.persistence.question;
 
-import com.forum.project.application.exception.InfraErrorCode;
-import com.forum.project.application.exception.InfraException;
 import com.forum.project.domain.question.like.QuestionLike;
+import com.forum.project.domain.question.like.QuestionLikeKey;
 import com.forum.project.domain.question.like.QuestionLikeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
@@ -17,9 +15,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -28,20 +24,15 @@ import java.util.Optional;
 public class QuestionLikeRepositoryJdbcImpl implements QuestionLikeRepository {
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-    private final Clock clock;
 
     @Override
-    public QuestionLike insert(QuestionLike build) {
+    public Map<String, Object> insertAndReturnGeneratedKeys(QuestionLike build) {
         String sql = QuestionLikeQueries.INSERT;
-        build.setCreatedDate(Optional.ofNullable(build.getCreatedDate())
-                .orElse(LocalDateTime.now(clock)));
-
         SqlParameterSource sqlParameterSource = new BeanPropertySqlParameterSource(build);
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        namedParameterJdbcTemplate.update(sql, sqlParameterSource, keyHolder, new String[] {"id"});
-        build.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
-        return build;
+        namedParameterJdbcTemplate.update(sql, sqlParameterSource, keyHolder, QuestionLikeKey.getKeys());
+        return keyHolder.getKeys();
     }
 
     @Override

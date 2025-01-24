@@ -1,7 +1,9 @@
 package com.forum.project.infrastructure.persistence.question;
 
+import com.forum.project.common.utils.DateUtil;
 import com.forum.project.domain.like.LikeStatus;
 import com.forum.project.domain.question.like.QuestionLike;
+import com.forum.project.domain.question.like.QuestionLikeKey;
 import com.forum.project.domain.question.like.QuestionLikeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -15,11 +17,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.Clock;
-import java.time.Instant;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,20 +36,17 @@ class QuestionLikeRepositoryJdbcImplTest {
 
     private QuestionLikeRepository questionLikeRepository;
 
-    private Clock fixedClock;
-
     @BeforeEach
     void setUp() {
-        fixedClock = Clock.fixed(Instant.parse("2025-01-01T00:00:00Z"), ZoneId.of("Asia/Seoul"));
-        questionLikeRepository = new QuestionLikeRepositoryJdbcImpl(jdbcTemplate, fixedClock);
+        questionLikeRepository = new QuestionLikeRepositoryJdbcImpl(jdbcTemplate);
 
         jdbcTemplate.getJdbcTemplate().execute("CREATE TABLE question_likes (" +
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
                 "user_id BIGINT NOT NULL, " +
+                "question_id BIGINT NOT NULL, " +
                 "status VARCHAR(255), " +
                 "ip_address VARCHAR(255), " +
-                "created_date TIMESTAMP, " +
-                "question_id BIGINT NOT NULL" +
+                "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                 ");");
     }
 
@@ -63,7 +61,6 @@ class QuestionLikeRepositoryJdbcImplTest {
                 .addValue("userId", userId)
                 .addValue("status", status)
                 .addValue("ipAddress", "192.168.0.1")
-                .addValue("createdDate", LocalDateTime.now(fixedClock))
                 .addValue("questionId", questionId);
 
         jdbcTemplate.update(insertSql, params);
@@ -79,21 +76,21 @@ class QuestionLikeRepositoryJdbcImplTest {
     }
 
     @Test
-    void testInsertQuestionLike_success() {
-        QuestionLike questionLike = createQuestionLike(
-                1L, LikeStatus.LIKE.name(), 1L);
+    void testInsertAndReturnGeneratedKeysQuestionLike_success() {
+        QuestionLike questionLike = createQuestionLike(1L, LikeStatus.LIKE.name(), 1L);
+        Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
 
-        QuestionLike savedQuestionLike = questionLikeRepository.insert(questionLike);
+        Map<String, Object> generatedKeys = questionLikeRepository.insertAndReturnGeneratedKeys(questionLike);
 
-        assertNotNull(savedQuestionLike);
-        assertNotNull(savedQuestionLike.getId());
-        assertEquals(1L, savedQuestionLike.getId());
-        assertEquals(1L, savedQuestionLike.getUserId());
-        assertEquals(LikeStatus.LIKE.name(), savedQuestionLike.getStatus());
-        assertEquals("192.168.0.1", savedQuestionLike.getIpAddress());
-        assertEquals(1L, savedQuestionLike.getQuestionId());
-        assertEquals(LocalDateTime.now(fixedClock), savedQuestionLike.getCreatedDate());
-        log.info("Saved QuestionLike: {}", savedQuestionLike);
+        assertThat(generatedKeys).isNotNull();
+        assertThat(generatedKeys.size()).isEqualTo(QuestionLikeKey.getKeys().length);
+
+        Long generatedId = (Long) generatedKeys.get(QuestionLikeKey.ID);
+        Timestamp createdDate = (Timestamp) generatedKeys.get(QuestionLikeKey.CREATED_DATE);
+
+        assertThat(generatedId).isEqualTo(1L);
+        assertThat(createdDate).isNotNull();
+        assertThat(DateUtil.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
     }
 
     @Test
