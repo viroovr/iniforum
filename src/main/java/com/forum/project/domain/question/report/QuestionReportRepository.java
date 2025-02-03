@@ -1,14 +1,15 @@
 package com.forum.project.domain.question.report;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface QuestionReportRepository {
-    boolean existsByIdAndUserId(Long questionId, Long userId);
+    boolean existsByQuestionIdAndUserId(Long questionId, Long userId);
 
-    QuestionReport save(QuestionReport report);
+    Map<String, Object> insertAndReturnGeneratedKeys(QuestionReport report);
 
-    Optional<QuestionReport> findById(Long reportId);
+    Optional<QuestionReport> findById(Long id);
 
     List<QuestionReport> findAllByUserId(Long userId);
 

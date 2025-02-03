@@ -49,8 +49,8 @@ public class QuestionCrudController {
             @RequestHeader(value = "Authorization") String header
     ) {
         Long userId = authenticationService.extractUserId(header);
-        QuestionUpdateDto questionUpdateDto = QuestionDtoFactory.toUpdateDto(dto, questionId, userId);
-        QuestionResponseDto questionResponseDto = questionCrudService.update(questionUpdateDto);
+        QuestionResponseDto questionResponseDto = questionCrudService.updateTitleAndContent(
+                questionId, userId, dto.getTitle(), dto.getContent());
         return ResponseEntity.status(HttpStatus.OK).body(questionResponseDto);
     }
 

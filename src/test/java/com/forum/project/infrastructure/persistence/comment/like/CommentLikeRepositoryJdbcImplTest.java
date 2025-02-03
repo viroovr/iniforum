@@ -1,6 +1,6 @@
-package com.forum.project.infrastructure.persistence.commentlike;
+package com.forum.project.infrastructure.persistence.comment.like;
 
-import com.forum.project.common.utils.DateUtil;
+import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.like.LikeStatus;
 import com.forum.project.domain.like.commentlike.CommentLike;
 import com.forum.project.domain.like.commentlike.CommentLikeKey;
@@ -90,26 +90,27 @@ class CommentLikeRepositoryJdbcImplTest {
         Timestamp expectedTimeStamp = Timestamp.valueOf(LocalDateTime.now());
         Map<String, Object> result = commentLikeRepository.insertAndReturnGeneratedKeys(commentLike);
 
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(CommentLikeKey.getKeys().length);
+        assertThat(result)
+                .isNotNull()
+                .hasSize(CommentLikeKey.getKeys().length);
 
         Long generatedId = (Long) result.get(CommentLikeKey.ID);
         Timestamp createdDate = (Timestamp) result.get(CommentLikeKey.CREATED_DATE);
 
         assertThat(generatedId).isEqualTo(1L);
         assertThat(createdDate).isNotNull();
-        assertThat(DateUtil.timeDifferenceWithinLimit(expectedTimeStamp, createdDate)).isTrue();
+        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimeStamp, createdDate)).isTrue();
     }
 
     @Test
-    void existsByUserIdAndCommentId() {
+    void existsByUserIdAndCommentId_fail() {
         boolean result = commentLikeRepository.existsByUserIdAndCommentId(1L, 1L);
 
         assertThat(result).isFalse();
     }
 
     @Test
-    void existsByUserIdAndCommentId_fail() {
+    void existsByUserIdAndCommentId() {
         insertTestData(1L, 1L, LikeStatus.LIKE.name());
 
         boolean result = commentLikeRepository.existsByUserIdAndCommentId(1L, 1L);
@@ -122,13 +123,12 @@ class CommentLikeRepositoryJdbcImplTest {
         insertTestData(1L, 1L, LikeStatus.LIKE.name());
         Optional<CommentLike> result = commentLikeRepository.findByUserIdAndCommentId(1L, 1L);
 
-        assertThat(result).isPresent();
+        assertThat(result).isNotEmpty();
         CommentLike commentLike = result.get();
 
-        assertThat(commentLike).isNotNull();
-        assertThat(commentLike.getCommentId()).isEqualTo(1L);
-        assertThat(commentLike.getUserId()).isEqualTo(1L);
-        assertThat(commentLike.getStatus()).isEqualTo(LikeStatus.LIKE.name());
+        assertThat(commentLike)
+                .extracting(CommentLike::getCommentId, CommentLike::getUserId, CommentLike::getStatus)
+                .containsExactly(1L, 1L, LikeStatus.LIKE.name());
     }
 
     @Test

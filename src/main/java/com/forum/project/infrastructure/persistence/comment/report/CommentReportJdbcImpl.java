@@ -1,4 +1,4 @@
-package com.forum.project.infrastructure.persistence.comment;
+package com.forum.project.infrastructure.persistence.comment.report;
 
 import com.forum.project.domain.comment.report.CommentReport;
 import com.forum.project.domain.comment.report.CommentReportRepository;

@@ -2,7 +2,7 @@ package com.forum.project.domain.comment.report;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.common.utils.DateUtil;
+import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.report.BaseReport;
 import com.forum.project.domain.report.ReportKey;
 import lombok.AllArgsConstructor;
@@ -28,7 +28,7 @@ public class CommentReport extends BaseReport {
         }
 
         this.setId((Long) keys.get(ReportKey.ID));
-        this.setCreatedDate(DateUtil.convertToLocalDateTime(keys.get(ReportKey.CREATED_DATE)));
+        this.setCreatedDate(DateUtils.convertToLocalDateTime(keys.get(ReportKey.CREATED_DATE)));
     }
 
     public void validateReason() {

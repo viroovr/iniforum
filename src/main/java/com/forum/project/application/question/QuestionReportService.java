@@ -24,7 +24,7 @@ public class QuestionReportService implements ReportService<QuestionReport> {
     public void saveReport(Long questionId, Long userId, String reason) {
         questionValidator.validateQuestion(questionId);
 
-        if (questionReportRepository.existsByIdAndUserId(questionId, userId)) {
+        if (questionReportRepository.existsByQuestionIdAndUserId(questionId, userId)) {
             throw new ApplicationException(ErrorCode.QUESTION_ALREADY_REPORTED);
         }
 
@@ -33,7 +33,7 @@ public class QuestionReportService implements ReportService<QuestionReport> {
                 .userId(userId)
                 .reason(reason).build();
         report.validateReason();
-        questionReportRepository.save(report);
+        questionReportRepository.insertAndReturnGeneratedKeys(report);
 
         notifyAdminIfHighReports(questionId);
     }
@@ -63,7 +63,7 @@ public class QuestionReportService implements ReportService<QuestionReport> {
         QuestionReport report = questionReportRepository.findById(reportId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.QUESTION_REPORT_NOT_FOUND));
         report.markAsResolved();
-        questionReportRepository.save(report);
+        questionReportRepository.insertAndReturnGeneratedKeys(report);
     }
 }
 

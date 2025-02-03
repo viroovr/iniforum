@@ -24,7 +24,7 @@ public class QuestionViewCountService {
         String key = generateCacheKey(questionId, userId);
         Long viewCount = viewCountRepository.getViewCount(key);
         if (!viewCountRepository.hasKey(key)) {
-            viewCount = questionRepository.getViewCountByQuestionId(questionId);
+            viewCount = questionRepository.getViewCountById(questionId);
             viewCountRepository.setViewCount(key, viewCount);
         }
         return viewCount;
@@ -33,7 +33,7 @@ public class QuestionViewCountService {
     public void incrementViewCount(Long questionId, Long userId) {
         String key = generateCacheKey(questionId, userId);
         if (!viewCountRepository.hasKey(key)) {
-            Long dbViewCount = questionRepository.getViewCountByQuestionId(questionId);
+            Long dbViewCount = questionRepository.getViewCountById(questionId);
             viewCountRepository.setViewCount(key, dbViewCount + 1L);
         } else
             viewCountRepository.increment(key);
@@ -43,7 +43,7 @@ public class QuestionViewCountService {
         String key = generateCacheKey(questionId, userId);
 
         if (!viewCountRepository.hasKey(key)) {
-            Long dbViewCount = questionRepository.getViewCountByQuestionId(questionId);
+            Long dbViewCount = questionRepository.getViewCountById(questionId);
             viewCountRepository.setViewCount(key, dbViewCount - 1L);
         } else {
             viewCountRepository.decrement(key);

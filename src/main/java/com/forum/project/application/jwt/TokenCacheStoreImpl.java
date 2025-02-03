@@ -1,4 +1,4 @@
-package com.forum.project.infrastructure.persistence.jwt;
+package com.forum.project.application.jwt;
 
 import com.forum.project.infrastructure.jwt.TokenCacheRepository;
 import org.springframework.stereotype.Component;
@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class TokenCacheRepositoryImpl implements TokenCacheRepository {
+public class TokenCacheStoreImpl implements TokenCacheRepository {
 
     private final Map<String, CacheEntry<?>> cache = new ConcurrentHashMap<>();
     private final long ttlMillis = 60000; // 60초

@@ -2,10 +2,10 @@ package com.forum.project.application.question;
 
 import com.forum.project.application.tag.TagService;
 import com.forum.project.domain.question.Question;
+import com.forum.project.domain.question.QuestionKey;
 import com.forum.project.domain.question.QuestionRepository;
 import com.forum.project.domain.user.User;
 import com.forum.project.presentation.question.dto.QuestionCreateDto;
-import com.forum.project.presentation.question.dto.QuestionPageResponseDto;
 import com.forum.project.presentation.question.dto.QuestionResponseDto;
 import com.forum.project.presentation.tag.TagRequestDto;
 import org.junit.jupiter.api.Test;
@@ -13,9 +13,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,6 +38,14 @@ public class QuestionCrudServiceTest {
     @Mock
     private QuestionValidator questionValidator;
 
+    private Map<String, Object> generateKeys(Long id, Timestamp timestamp) {
+        Map<String, Object> generatedKeys = new HashMap<>();
+        generatedKeys.put(QuestionKey.ID, id);
+        generatedKeys.put(QuestionKey.CREATED_DATE, timestamp);
+        generatedKeys.put(QuestionKey.LAST_MODIFIED_DATE, timestamp);
+        return generatedKeys;
+    }
+
     @Test
     void testCreate_success() {
         List<String> stringTags = List.of("tag1", "tag2");
@@ -48,10 +59,11 @@ public class QuestionCrudServiceTest {
                 .id(1L)
                 .content("testContent")
                 .title("testTitle")
-                .loginId("loginId")
                 .userId(1L).build();
+        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
+        Map<String, Object> keys = generateKeys(1L, timestamp);
 
-        when(questionRepository.save(any(Question.class))).thenReturn(savedQuestion);
+        when(questionRepository.insertAndReturnGeneratedKeys(any(Question.class))).thenReturn(keys);
         when(tagService.createAndAttachTagsToQuestion(
                 questionCreateDto.getTagRequestDto(), savedQuestion.getId())).thenReturn(stringTags);
 

@@ -8,12 +8,12 @@ import com.forum.project.domain.question.Question;
 import com.forum.project.domain.question.QuestionRepository;
 import com.forum.project.presentation.question.dto.QuestionCreateDto;
 import com.forum.project.presentation.question.dto.QuestionResponseDto;
-import com.forum.project.presentation.question.dto.QuestionUpdateDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,11 +27,12 @@ public class QuestionCrudService {
     @Transactional
     public QuestionResponseDto create(QuestionCreateDto dto) {
         Question requestQuestion = QuestionDtoFactory.toEntity(dto);
-        Question savedQuestion = questionRepository.save(requestQuestion);
+        Map<String, Object> keys = questionRepository.insertAndReturnGeneratedKeys(requestQuestion);
 
+        requestQuestion.setKeys(keys);
         List<String> stringTags = tagService.createAndAttachTagsToQuestion(
-                dto.getTagRequestDto(), savedQuestion.getId());
-        return QuestionDtoFactory.toResponseDto(savedQuestion, stringTags, 0L);
+                dto.getTagRequestDto(), requestQuestion.getId());
+        return QuestionDtoFactory.toResponseDto(requestQuestion, stringTags, 0L);
     }
 
     private Question findQuestionByIdOrThrow(Long questionId) {
@@ -49,40 +50,36 @@ public class QuestionCrudService {
     }
 
     @Transactional
-    public QuestionResponseDto update(QuestionUpdateDto dto) {
-        Question question = questionRepository.findById(dto.getQuestionId())
+    public QuestionResponseDto updateTitleAndContent(Long id, Long userId, String title, String content) {
+        Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.QUESTION_NOT_FOUND));
 
-        questionValidator.validateOwnership(dto.getUserId(), question.getUserId());
+        questionValidator.validateOwnership(userId, question.getUserId());
+        questionRepository.updateTitleAndContent(id, title, content);
 
-        question.setTitle(dto.getTitle());
-        question.setContent(dto.getContent());
-
-        Question updatedQuestion = questionRepository.update(question);
-
-        List<String> updatedTags = tagService.getStringUpdateTags(dto.getTagRequestDto());
-        Long viewCount = questionViewCountService.getViewCount(question.getId(), question.getUserId());
-        return QuestionDtoFactory.toResponseDto(updatedQuestion, updatedTags, viewCount);
+        question.setTitle(title);
+        question.setContent(content);
+        return QuestionDtoFactory.toResponseDto(question);
     }
 
     @Transactional
-    public void updateUpVotedCount(Long questionId, LikeStatus likeStatus) {
+    public void incrementVotedCount(Long questionId, LikeStatus likeStatus) {
         Question question = findQuestionByIdOrThrow(questionId);
 
         switch (likeStatus) {
             case LIKE:
                 question.incrementUpVotedCount();
+                questionRepository.updateUpVotedCount(questionId, question.getUpVotedCount());
                 break;
             case DISLIKE:
                 question.incrementDownVotedCount();
+                questionRepository.updateDownVotedCount(questionId, question.getUpVotedCount());
                 break;
             case NONE:
                 break;
             default:
                 throw new ApplicationException(ErrorCode.INVALID_REQUEST, "Unsupported LikeStatus: " + likeStatus);
         }
-
-       questionRepository.update(question);
     }
 
     public void decrementVotedCount(Long questionId, LikeStatus likeStatus) {
@@ -91,9 +88,11 @@ public class QuestionCrudService {
         switch (likeStatus) {
             case LIKE:
                 question.decrementUpVotedCount();
+                questionRepository.updateUpVotedCount(questionId, question.getUpVotedCount());
                 break;
             case DISLIKE:
                 question.decrementDownVotedCount();
+                questionRepository.updateDownVotedCount(questionId, question.getDownVotedCount());
                 break;
             case NONE:
                 break;
@@ -101,7 +100,6 @@ public class QuestionCrudService {
                 throw new ApplicationException(ErrorCode.INVALID_REQUEST, "Unsupported LikeStatus: " + likeStatus);
         }
 
-        questionRepository.update(question);
     }
 
     @Transactional

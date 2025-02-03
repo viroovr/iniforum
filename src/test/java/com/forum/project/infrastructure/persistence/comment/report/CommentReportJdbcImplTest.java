@@ -1,6 +1,6 @@
-package com.forum.project.infrastructure.persistence.comment;
+package com.forum.project.infrastructure.persistence.comment.report;
 
-import com.forum.project.common.utils.DateUtil;
+import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.comment.report.CommentReport;
 import com.forum.project.domain.comment.report.CommentReportRepository;
 import com.forum.project.domain.report.ReportKey;
@@ -87,7 +87,7 @@ class CommentReportJdbcImplTest {
 
         assertThat(generatedId).isEqualTo(1L);
         assertThat(createdDate).isNotNull();
-        assertThat(DateUtil.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
+        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
     }
 
     @Test

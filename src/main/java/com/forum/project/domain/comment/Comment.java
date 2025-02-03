@@ -2,7 +2,7 @@ package com.forum.project.domain.comment;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.common.utils.DateUtil;
+import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.BaseEntity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -40,8 +40,8 @@ public class Comment extends BaseEntity {
         }
 
         setId((Long) keys.get(CommentKey.ID));
-        setCreatedDate(DateUtil.convertToLocalDateTime(keys.get(CommentKey.CREATED_DATE)));
-        this.lastModifiedDate = DateUtil.convertToLocalDateTime(keys.get(CommentKey.LAST_MODIFIED_DATE));
+        setCreatedDate(DateUtils.convertToLocalDateTime(keys.get(CommentKey.CREATED_DATE)));
+        this.lastModifiedDate = DateUtils.convertToLocalDateTime(keys.get(CommentKey.LAST_MODIFIED_DATE));
     }
 
     public void updateContent(String newContent) {

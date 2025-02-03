@@ -18,13 +18,12 @@ CREATE TABLE users (
 CREATE TABLE questions (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    login_id VARCHAR(255) NOT NULL,
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
-    status VARCHAR(50),
-    view_count BIGINT DEFAULT 0,
-    up_voted_count BIGINT DEFAULT 0,
-    down_voted_count BIGINT DEFAULT 0,
+    status ENUM('OPEN', 'CLOSED', 'RESOLVED', 'DELETED') DEFAULT 'OPEN',
+    view_count BIGINT DEFAULT 0 CHECK (view_count >= 0),
+    up_voted_count BIGINT DEFAULT 0 CHECK (up_voted_count >= 0),
+    down_voted_count BIGINT DEFAULT 0 CHECK (down_voted_count >= 0),
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -90,6 +89,18 @@ CREATE TABLE bookmarks (
     notes VARCHAR(255),
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_accessed_date TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+);
+
+CREATE TABLE question_reports (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    question_id BIGINT NOT NULL,
+    reason VARCHAR(500) NOT NULL,
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED') DEFAULT 'PENDING',
+    is_resolved BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
 );

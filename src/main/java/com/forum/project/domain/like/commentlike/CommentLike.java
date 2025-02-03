@@ -1,6 +1,6 @@
 package com.forum.project.domain.like.commentlike;
 
-import com.forum.project.common.utils.DateUtil;
+import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.like.BaseLike;
 import com.forum.project.domain.report.ReportKey;
 import lombok.AllArgsConstructor;
@@ -26,6 +26,6 @@ public class CommentLike extends BaseLike {
         }
 
         setId((Long) keys.get(ReportKey.ID));
-        setCreatedDate(DateUtil.convertToLocalDateTime(keys.get(ReportKey.CREATED_DATE)));
+        setCreatedDate(DateUtils.convertToLocalDateTime(keys.get(ReportKey.CREATED_DATE)));
     }
 }

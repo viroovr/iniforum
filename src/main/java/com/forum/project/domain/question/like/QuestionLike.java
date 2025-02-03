@@ -1,6 +1,6 @@
 package com.forum.project.domain.question.like;
 
-import com.forum.project.common.utils.DateUtil;
+import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.like.BaseLike;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -22,6 +22,6 @@ public class QuestionLike extends BaseLike {
         }
 
         this.setId((Long) keys.get(QuestionLikeKey.ID));
-        this.setCreatedDate(DateUtil.convertToLocalDateTime(keys.get(QuestionLikeKey.CREATED_DATE)));
+        this.setCreatedDate(DateUtils.convertToLocalDateTime(keys.get(QuestionLikeKey.CREATED_DATE)));
     }
 }

@@ -1,4 +1,4 @@
-package com.forum.project.infrastructure.persistence.commentlike;
+package com.forum.project.infrastructure.persistence.comment.like;
 
 public class CommentLikeQueries {
 

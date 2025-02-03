@@ -1,20 +1,22 @@
 package com.forum.project.domain.question;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.forum.project.common.utils.DateUtils;
+import com.forum.project.domain.BaseEntity;
+import com.forum.project.domain.comment.CommentKey;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Question {
-    private Long id;
+@SuperBuilder
+@ToString(callSuper = true)
+public class Question extends BaseEntity {
     private Long userId;
-    private String loginId;
     private String title;
     private String content;
     @Builder.Default
@@ -25,8 +27,17 @@ public class Question {
     private Long upVotedCount = 0L;
     @Builder.Default
     private Long downVotedCount = 0L;
-    private LocalDateTime createdDate;
     private LocalDateTime lastModifiedDate;
+
+    public void setKeys(Map<String, Object> keys) {
+        if (keys == null) {
+            throw new IllegalArgumentException("Keys map cannot be null");
+        }
+
+        setId((Long) keys.get(CommentKey.ID));
+        setCreatedDate(DateUtils.convertToLocalDateTime(keys.get(CommentKey.CREATED_DATE)));
+        this.lastModifiedDate = DateUtils.convertToLocalDateTime(keys.get(CommentKey.LAST_MODIFIED_DATE));
+    }
 
     public void open() {
         if ("OPEN".equals(this.status)) {

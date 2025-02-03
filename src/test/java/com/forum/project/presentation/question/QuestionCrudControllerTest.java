@@ -98,7 +98,8 @@ public class QuestionCrudControllerTest {
                 .content("testContent").build();
 
         when(authenticationService.extractUserId(header)).thenReturn(userId);
-        when(questionCrudService.update(any(QuestionUpdateDto.class))).thenReturn(questionResponseDto);
+        when(questionCrudService.updateTitleAndContent(questionId, userId, "testTitle", "testContent"))
+                .thenReturn(questionResponseDto);
 
         mockMvc.perform(put("/api/v1/questions/{id}", questionId)
                         .contentType(MediaType.APPLICATION_JSON)

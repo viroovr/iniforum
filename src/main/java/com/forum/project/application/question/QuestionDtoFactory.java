@@ -14,7 +14,6 @@ public class QuestionDtoFactory {
         return Question.builder()
                 .content(dto.getContent())
                 .title(dto.getTitle())
-                .loginId(dto.getUser().getLoginId())
                 .userId(dto.getUser().getId())
                 .build();
     }
@@ -30,11 +29,19 @@ public class QuestionDtoFactory {
                 .build();
     }
 
+    public static QuestionResponseDto toResponseDto(Question q) {
+        return QuestionResponseDto.builder()
+                .questionId(q.getId())
+                .title(q.getTitle())
+                .content(q.getContent())
+                .createdDate(q.getCreatedDate())
+                .build();
+    }
+
     public static QuestionPageResponseDto toResponsePageDto(Question q, List<String> tag) {
         return QuestionPageResponseDto.builder()
                 .questionId(q.getId())
                 .title(q.getTitle())
-                .loginId(q.getLoginId())
                 .createdDate(q.getCreatedDate())
                 .tags(tag)
                 .build();

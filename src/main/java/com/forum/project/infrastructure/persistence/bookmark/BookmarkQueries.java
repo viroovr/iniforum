@@ -22,6 +22,11 @@ public class BookmarkQueries {
                "WHERE user_id=:userId;";
     }
 
+    public static String findById() {
+        return "SELECT * FROM bookmarks " +
+                "WHERE id=:id;";
+    }
+
     public static String existsByUserIdAndQuestionId() {
         return "SELECT EXISTS (" +
                 "SELECT 1 FROM bookmarks " +

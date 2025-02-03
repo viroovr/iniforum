@@ -38,33 +38,33 @@ public class QuestionQueryService {
     @Transactional(readOnly = true)
     public Page<QuestionPageResponseDto> readQuestionsByPage(int page, int size) {
         return getPaginatedResponse(
-                () -> questionRepository.getQuestionByPage(page, size),
+                () -> questionRepository.getByPage(page, size),
                 PageRequest.of(page, size),
-                questionRepository::count);
+                questionRepository::countAll);
     }
 
     @Transactional(readOnly = true)
     public Page<QuestionPageResponseDto> readQuestionsSortedBy(QuestionSortType sortType, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, sortType.getSort());
         return getPaginatedResponse(
-                () -> questionRepository.findAll(pageable),
+                () -> questionRepository.getByPageable(pageable),
                 pageable,
-                questionRepository::count);
+                questionRepository::countAll);
     }
 
     @Transactional(readOnly = true)
     public Page<QuestionPageResponseDto> readQuestionsByKeyword(String keyword, int page, int size) {
         return getPaginatedResponse(
-                () -> questionRepository.findQuestionsByKeyword(keyword, page, size),
+                () -> questionRepository.searchByTitle(keyword, page, size),
                 PageRequest.of(page, size),
-                () -> questionRepository.countByKeyword(keyword));
+                () -> questionRepository.countByTitleKeyword(keyword));
     }
 
     @Transactional(readOnly = true)
     public Page<QuestionPageResponseDto> readQuestionsByStatus(QuestionStatus questionStatus, int page, int size) {
         String status = questionStatus.name();
         return getPaginatedResponse(
-                () -> questionRepository.findQuestionsByStatus(status, page, size),
+                () -> questionRepository.findByStatus(status, page, size),
                 PageRequest.of(page, size),
                 () -> questionRepository.countByStatus(status));
     }
@@ -72,7 +72,7 @@ public class QuestionQueryService {
     @Transactional(readOnly = true)
     public Page<QuestionPageResponseDto> readQuestionsByUserId(Long userId, int page, int size) {
         return getPaginatedResponse(
-                () -> questionRepository.searchQuestionsByUser(userId, page, size),
+                () -> questionRepository.findByUserId(userId, page, size),
                 PageRequest.of(page, size),
                 () -> questionRepository.countByUserId(userId));
     }
@@ -81,7 +81,7 @@ public class QuestionQueryService {
     public Page<QuestionPageResponseDto> readQuestionsByTag(String tag, int page, int size) {
         List<Long> questionIds = tagService.getQuestionIdsByTagName(tag);
         return getPaginatedResponse(
-                () -> questionRepository.searchQuestionsByQuestionIds(questionIds, page, size),
+                () -> questionRepository.findQuestionByIds(questionIds),
                 PageRequest.of(page, size),
                 () -> questionRepository.countByQuestionIds(questionIds));
     }

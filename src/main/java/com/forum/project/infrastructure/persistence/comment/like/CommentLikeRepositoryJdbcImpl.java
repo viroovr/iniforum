@@ -1,4 +1,4 @@
-package com.forum.project.infrastructure.persistence.commentlike;
+package com.forum.project.infrastructure.persistence.comment.like;
 
 import com.forum.project.domain.like.commentlike.CommentLike;
 import com.forum.project.domain.like.commentlike.CommentLikeKey;

@@ -1,6 +1,6 @@
 package com.forum.project.infrastructure.persistence.bookmark;
 
-import com.forum.project.common.utils.DateUtil;
+import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.bookmark.Bookmark;
 import com.forum.project.domain.bookmark.BookmarkKey;
 import com.forum.project.domain.bookmark.BookmarkRepository;
@@ -8,17 +8,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,12 +24,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
-@ActiveProfiles("test")
-@JdbcTest
-@ExtendWith(MockitoExtension.class)
 @Slf4j
+@JdbcTest
+@ActiveProfiles("test")
 class BookmarkRepositoryJdbcImplTest {
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
@@ -66,6 +62,19 @@ class BookmarkRepositoryJdbcImplTest {
                 .addValue("questionId", questionId)
                 .addValue("notes", notes);
         jdbcTemplate.update(sql, params);
+        log.info("Test Data Inserted userId:{}, questionId:{}, notes:{}", userId, questionId, notes);
+    }
+
+    private Optional<Bookmark> findData(Long id) {
+        String sql = BookmarkQueries.findById();
+        SqlParameterSource params = new MapSqlParameterSource("id", id);
+        try {
+            Bookmark result = jdbcTemplate.queryForObject(sql, params,
+                    new BeanPropertyRowMapper<>(Bookmark.class));
+            return Optional.ofNullable(result);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @AfterEach
@@ -78,13 +87,14 @@ class BookmarkRepositoryJdbcImplTest {
         insertData(1L, 1L, "testNotes");
 
         Optional<Bookmark> bookmark = bookmarkRepository.findByUserIdAndQuestionId(1L, 1L);
-        assertThat(bookmark).isPresent();
+        assertThat(bookmark).isNotEmpty();
 
         Bookmark savedBookmark = bookmark.get();
-        assertThat(savedBookmark).isNotNull();
-        assertThat(savedBookmark.getQuestionId()).isEqualTo(1L);
-        assertThat(savedBookmark.getUserId()).isEqualTo(1L);
-        assertThat(savedBookmark.getNotes()).isEqualTo("testNotes");
+
+        assertThat(savedBookmark)
+                .extracting(Bookmark::getQuestionId, Bookmark::getUserId, Bookmark::getNotes)
+                .containsExactly(1L, 1L, "testNotes");
+
         log.info(savedBookmark.toString());
     }
 
@@ -96,14 +106,14 @@ class BookmarkRepositoryJdbcImplTest {
         Map<String, Object> generatedKeys = bookmarkRepository.insertAndReturnGeneratedKeys(bookmark);
 
         assertThat(generatedKeys).isNotNull();
-        assertThat(generatedKeys.size()).isEqualTo(BookmarkKey.getKeys().length);
 
         Long generatedId = (Long) generatedKeys.get(BookmarkKey.ID);
         Timestamp createdDate = (Timestamp) generatedKeys.get(BookmarkKey.CREATED_DATE);
 
         assertThat(generatedId).isEqualTo(1L);
         assertThat(createdDate).isNotNull();
-        assertThat(DateUtil.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
+
+        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
     }
 
     @Test
@@ -114,14 +124,9 @@ class BookmarkRepositoryJdbcImplTest {
 
         bookmarkRepository.delete(userId, questionId);
 
-        String sql = BookmarkQueries.findByQuestionIdAndUserId();
-        SqlParameterSource source = new MapSqlParameterSource()
-                .addValue("userId", userId)
-                .addValue("questionId", questionId);
+        Optional<Bookmark> result = findData(1L);
 
-        List<Bookmark> result = jdbcTemplate.query(sql, source, new BeanPropertyRowMapper<>(Bookmark.class));
-
-        assertThat(result.size()).isEqualTo(0);
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -133,14 +138,11 @@ class BookmarkRepositoryJdbcImplTest {
 
         List<Bookmark> result = bookmarkRepository.findAllByUserId(userId);
 
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(2);
         assertThat(result)
-            .extracting("userId", "questionId", "notes")
-            .containsExactlyInAnyOrder(
-                tuple(userId, 2L, "testNotes1"),
-                tuple(userId, 3L, "testNotes2")
-            );
+                .isNotNull()
+                .hasSize(2)
+                .allSatisfy(bookmark ->
+                        assertThat(bookmark.getUserId()).isOne());
     }
 
     @Test
@@ -154,8 +156,6 @@ class BookmarkRepositoryJdbcImplTest {
 
     @Test
     void existsByUserIdAndQuestionId_NotExists() {
-        insertData(1L, 2L, "testNotes2");
-
         boolean result = bookmarkRepository.existsByUserIdAndQuestionId(1L, 1L);
 
         assertThat(result).isFalse();

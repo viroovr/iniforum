@@ -1,6 +1,6 @@
 package com.forum.project.domain.bookmark;
 
-import com.forum.project.common.utils.DateUtil;
+import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,7 +28,7 @@ public class Bookmark extends BaseEntity {
         }
 
         setId((Long) keys.get(BookmarkKey.ID));
-        setCreatedDate(DateUtil.convertToLocalDateTime(keys.get(BookmarkKey.CREATED_DATE)));
-        this.lastAccessedDate = DateUtil.convertToLocalDateTime(keys.get(BookmarkKey.LAST_ACCESSED_DATE));
+        setCreatedDate(DateUtils.convertToLocalDateTime(keys.get(BookmarkKey.CREATED_DATE)));
+        this.lastAccessedDate = DateUtils.convertToLocalDateTime(keys.get(BookmarkKey.LAST_ACCESSED_DATE));
     }
 }

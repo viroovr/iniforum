@@ -1,6 +1,6 @@
-package com.forum.project.infrastructure.persistence.question;
+package com.forum.project.infrastructure.persistence.question.like;
 
-import com.forum.project.common.utils.DateUtil;
+import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.like.LikeStatus;
 import com.forum.project.domain.question.like.QuestionLike;
 import com.forum.project.domain.question.like.QuestionLikeKey;
@@ -90,7 +90,7 @@ class QuestionLikeRepositoryJdbcImplTest {
 
         assertThat(generatedId).isEqualTo(1L);
         assertThat(createdDate).isNotNull();
-        assertThat(DateUtil.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
+        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
     }
 
     @Test

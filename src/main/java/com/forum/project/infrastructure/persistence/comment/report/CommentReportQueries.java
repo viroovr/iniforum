@@ -1,4 +1,4 @@
-package com.forum.project.infrastructure.persistence.comment;
+package com.forum.project.infrastructure.persistence.comment.report;
 
 public class CommentReportQueries {
     public static String insert() {

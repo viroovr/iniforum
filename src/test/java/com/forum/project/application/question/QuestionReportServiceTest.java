@@ -13,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,14 +42,15 @@ public class QuestionReportServiceTest {
 
         ArgumentCaptor<QuestionReport> argumentCaptor = ArgumentCaptor.forClass(QuestionReport.class);
         doNothing().when(questionValidator).validateQuestion(questionId);
-        when(questionReportRepository.existsByIdAndUserId(questionId, userId)).thenReturn(false);
-        when(questionReportRepository.save(any(QuestionReport.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(questionReportRepository.existsByQuestionIdAndUserId(questionId, userId)).thenReturn(false);
+        when(questionReportRepository.insertAndReturnGeneratedKeys(any(QuestionReport.class)))
+                .thenReturn(Collections.emptyMap());
 
         when(questionReportRepository.countByQuestionId(questionId)).thenReturn(reportCount);
 
         questionReportService.saveReport(questionId, userId, reason);
 
-        verify(questionReportRepository).save(argumentCaptor.capture());
+        verify(questionReportRepository).insertAndReturnGeneratedKeys(argumentCaptor.capture());
         QuestionReport questionReport = argumentCaptor.getValue();
         assertNotNull(questionReport);
         assertEquals(questionId, questionReport.getQuestionId());
@@ -61,7 +63,7 @@ public class QuestionReportServiceTest {
         Long userId = 1L;
         String reason = "스팸";
 
-        when(questionReportRepository.existsByIdAndUserId(questionId, userId)).thenReturn(true);
+        when(questionReportRepository.existsByQuestionIdAndUserId(questionId, userId)).thenReturn(true);
 
         ApplicationException exception = assertThrows(ApplicationException.class,
                 () -> questionReportService.saveReport(questionId, userId, reason));
@@ -75,7 +77,7 @@ public class QuestionReportServiceTest {
         Long userId = 1L;
         String reason = "";
 
-        when(questionReportRepository.existsByIdAndUserId(questionId, userId)).thenReturn(false);
+        when(questionReportRepository.existsByQuestionIdAndUserId(questionId, userId)).thenReturn(false);
 
         ApplicationException exception = assertThrows(ApplicationException.class,
                 () -> questionReportService.saveReport(questionId, userId, reason));
@@ -89,7 +91,7 @@ public class QuestionReportServiceTest {
         Long userId = 1L;
         String reason = "없는 신고 사유";
 
-        when(questionReportRepository.existsByIdAndUserId(questionId, userId)).thenReturn(false);
+        when(questionReportRepository.existsByQuestionIdAndUserId(questionId, userId)).thenReturn(false);
 
         ApplicationException exception = assertThrows(ApplicationException.class,
                 () -> questionReportService.saveReport(questionId, userId, reason));
@@ -167,12 +169,13 @@ public class QuestionReportServiceTest {
                 .id(reportId).build();
 
         ArgumentCaptor<QuestionReport> argumentCaptor = ArgumentCaptor.forClass(QuestionReport.class);
-        when(questionReportRepository.save(any(QuestionReport.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(questionReportRepository.insertAndReturnGeneratedKeys(any(QuestionReport.class)))
+                .thenReturn(Collections.emptyMap());
         when(questionReportRepository.findById(reportId)).thenReturn(Optional.of(commentReport));
 
         questionReportService.resolveReport(reportId);
 
-        verify(questionReportRepository).save(argumentCaptor.capture());
+        verify(questionReportRepository).insertAndReturnGeneratedKeys(argumentCaptor.capture());
         QuestionReport captorValue = argumentCaptor.getValue();
 
         assertEquals(reportId, captorValue.getId());

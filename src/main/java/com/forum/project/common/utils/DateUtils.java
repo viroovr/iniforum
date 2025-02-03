@@ -3,7 +3,7 @@ package com.forum.project.common.utils;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
-public class DateUtil {
+public class DateUtils {
 
     /** Timestamp Object를 LocalDateTime으로 변환하는 유틸 메서드
      *

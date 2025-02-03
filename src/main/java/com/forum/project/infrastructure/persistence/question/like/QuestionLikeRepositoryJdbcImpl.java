@@ -1,4 +1,4 @@
-package com.forum.project.infrastructure.persistence.question;
+package com.forum.project.infrastructure.persistence.question.like;
 
 import com.forum.project.domain.question.like.QuestionLike;
 import com.forum.project.domain.question.like.QuestionLikeKey;

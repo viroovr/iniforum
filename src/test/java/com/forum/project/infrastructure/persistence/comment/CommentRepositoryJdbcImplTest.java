@@ -1,6 +1,6 @@
 package com.forum.project.infrastructure.persistence.comment;
 
-import com.forum.project.common.utils.DateUtil;
+import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.comment.Comment;
 import com.forum.project.domain.comment.CommentKey;
 import com.forum.project.domain.comment.CommentRepository;
@@ -110,8 +110,8 @@ class CommentRepositoryJdbcImplTest {
         assertThat(generatedId).isEqualTo(1L);
         assertThat(createdDate).isNotNull();
         assertThat(lastModifiedDate).isNotNull();
-        assertThat(DateUtil.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
-        assertThat(DateUtil.timeDifferenceWithinLimit(expectedTimestamp, lastModifiedDate)).isTrue();
+        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
+        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimestamp, lastModifiedDate)).isTrue();
     }
 
     @Test
@@ -120,20 +120,22 @@ class CommentRepositoryJdbcImplTest {
 
         Optional<Comment> optionalComment = commentRepository.findById(1L);
 
-        assertThat(optionalComment).isPresent();
-        Comment comment = optionalComment.get();
-        assertThat(comment).isNotNull();
-        assertThat(comment.getId()).isOne();
-        assertThat(comment.getQuestionId()).isOne();
-        assertThat(comment.getParentCommentId()).isNull();
-        assertThat(comment.getLoginId()).isNull();
-        assertThat(comment.getContent()).isEqualTo("testContent");
-        assertThat(comment.getUpVotedCount()).isEqualTo(0L);
-        assertThat(comment.getDownVotedCount()).isEqualTo(0L);
-        assertThat(comment.getStatus()).isEqualTo(CommentStatus.ACTIVE.name());
-        assertThat(comment.getReportCount()).isEqualTo(0L);
-        assertThat(comment.getIsEdited()).isFalse();
-        log.info(comment.toString());
+        assertThat(optionalComment)
+                .isPresent()
+                .hasValueSatisfying(comment -> {
+                    assertThat(comment.getId()).isOne();
+                    assertThat(comment.getQuestionId()).isOne();
+                    assertThat(comment.getParentCommentId()).isNull();
+                    assertThat(comment.getLoginId()).isNull();
+                    assertThat(comment.getContent()).isEqualTo("testContent");
+                    assertThat(comment.getUpVotedCount()).isZero();
+                    assertThat(comment.getDownVotedCount()).isZero();
+                    assertThat(comment.getStatus()).isEqualTo(CommentStatus.ACTIVE.name());
+                    assertThat(comment.getReportCount()).isZero();
+                    assertThat(comment.getIsEdited()).isFalse();
+                });
+
+        log.info(optionalComment.get().toString());
     }
 
     @Test

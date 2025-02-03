@@ -27,7 +27,7 @@ public class QuestionLikeService {
                 .ipAddress(ipAddress)
                 .build());
 
-        questionCrudService.updateUpVotedCount(questionId, likeStatus);
+        questionCrudService.incrementVotedCount(questionId, likeStatus);
     }
 
     public void cancelLike(Long questionId, Long userId, LikeStatus likeStatus) {

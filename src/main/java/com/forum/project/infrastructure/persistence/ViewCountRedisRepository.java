@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 @Profile("redis")
 public class ViewCountRedisRepository implements ViewCountRepository {
 
-    private final RedisTemplate<String, Long> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private static final String TOTAL_COUNT_KEY = "question:viewCount:";
 
     private String generateKey(String key) {
@@ -30,7 +30,7 @@ public class ViewCountRedisRepository implements ViewCountRepository {
 
     @Override
     public Long getViewCount(String key) {
-        return redisTemplate.opsForValue().get(generateKey(key));
+        return (Long) redisTemplate.opsForValue().get(generateKey(key));
     }
 
     @Override
