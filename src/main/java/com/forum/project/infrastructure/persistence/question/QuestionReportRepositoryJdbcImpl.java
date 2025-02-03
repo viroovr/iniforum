@@ -2,10 +2,12 @@ package com.forum.project.infrastructure.persistence.question;
 
 import com.forum.project.domain.question.report.QuestionReport;
 import com.forum.project.domain.question.report.QuestionReportRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class QuestionReportRepositoryJdbcImpl implements QuestionReportRepository {
     @Override
     public boolean existsByIdAndUserId(Long questionId, Long userId) {

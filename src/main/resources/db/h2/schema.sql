@@ -63,9 +63,9 @@ CREATE TABLE comments (
 
 CREATE TABLE comment_likes (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT,
+    user_id BIGINT NOT NULL,
     comment_id BIGINT NOT NULL,
-    status VARCHAR(255),
+    status ENUM('LIKE', 'DISLIKE', 'NONE') DEFAULT 'LIKE',
     ip_address VARCHAR(255),
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,

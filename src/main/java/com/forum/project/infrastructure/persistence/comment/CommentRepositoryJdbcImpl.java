@@ -4,7 +4,7 @@ import com.forum.project.domain.comment.Comment;
 import com.forum.project.domain.comment.CommentKey;
 import com.forum.project.domain.comment.CommentRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Log4j2
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class CommentRepositoryJdbcImpl implements CommentRepository {
