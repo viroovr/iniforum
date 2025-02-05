@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -25,8 +26,13 @@ public class UserManagementService {
         LocalDateTime thresholdDate = LocalDateTime.now(clock).minus(inactivityPeriod);
 
         List<User> inactiveUsers = userRepository.findAllByLastActivityDateBefore(thresholdDate);
-        inactiveUsers.forEach(user -> user.setStatus(UserStatus.INACTIVE.name()));
-        userRepository.updateAll(inactiveUsers);
+        if (inactiveUsers.isEmpty()) {
+            return;
+        }
+
+        List<Long> ids = inactiveUsers.stream().map(User::getId).toList();
+        List<String> statuses = Collections.nCopies(inactiveUsers.size(), UserStatus.INACTIVE.name());
+        userRepository.updateAllStatus(ids, statuses);
     }
 
     public void reactivateAccount(User user) {
@@ -34,7 +40,7 @@ public class UserManagementService {
             throw new ApplicationException(ErrorCode.ACCOUNT_ALREADY_ACTIVE);
         }
         user.setStatus(UserStatus.ACTIVE.name());
-        userRepository.update(user);
+        userRepository.updateProfile(user);
     }
 
     public void updateUserRole(Long userId, String newRole) {
@@ -46,6 +52,6 @@ public class UserManagementService {
         }
 
         user.setRole(newRole);
-        userRepository.update(user);
+        userRepository.updateProfile(user);
     }
 }

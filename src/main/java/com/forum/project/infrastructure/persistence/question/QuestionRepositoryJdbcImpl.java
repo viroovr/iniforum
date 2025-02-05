@@ -13,7 +13,6 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -189,39 +188,39 @@ public class QuestionRepositoryJdbcImpl implements QuestionRepository {
     }
 
     @Override
-    public void updateViewCount(Long id, Long plus) {
+    public int updateViewCount(Long id, Long plus) {
         String sql = QuestionQueries.updateViewCount();
         MapSqlParameterSource parameterSource = new MapSqlParameterSource()
                 .addValue("plus", plus)
                 .addValue("id", id);
-        jdbcTemplate.update(sql, parameterSource);
+        return jdbcTemplate.update(sql, parameterSource);
     }
 
     @Override
-    public void updateTitleAndContent(Long id, String title, String content) {
+    public int updateTitleAndContent(Long id, String title, String content) {
         String sql = QuestionQueries.updateTitleAndContent();
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("title", title)
                 .addValue("content", content);
-        jdbcTemplate.update(sql, params);
+        return jdbcTemplate.update(sql, params);
     }
 
     @Override
-    public void updateUpVotedCount(Long id, Long delta) {
+    public int updateUpVotedCount(Long id, Long delta) {
         String sql = QuestionQueries.updateUpVotedCount();
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("delta", delta)
                 .addValue("id", id);
-        jdbcTemplate.update(sql, params);
+        return jdbcTemplate.update(sql, params);
     }
 
     @Override
-    public void updateDownVotedCount(Long id, Long delta) {
+    public int updateDownVotedCount(Long id, Long delta) {
         String sql = QuestionQueries.updateDownVotedCount();
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("delta", delta)
                 .addValue("id", id);
-        jdbcTemplate.update(sql, params);
+        return jdbcTemplate.update(sql, params);
     }
 }

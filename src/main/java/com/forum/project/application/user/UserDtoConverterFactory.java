@@ -57,7 +57,7 @@ public class UserDtoConverterFactory {
                 .role(user.getRole())
                 .status(user.getStatus())
                 .nickname(user.getNickname())
-                .passwordLastModifiedDate(user.getPasswordLastModifiedDate())
+                .passwordLastModifiedDate(user.getLastPasswordModifiedDate())
                 .build();
     }
 }

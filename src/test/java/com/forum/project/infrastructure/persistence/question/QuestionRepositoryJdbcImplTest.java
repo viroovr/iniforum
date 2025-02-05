@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 @JdbcTest
 @ActiveProfiles("test")
@@ -118,27 +119,24 @@ class QuestionRepositoryJdbcImplTest {
     @Test
     void insertAndReturnGeneratedKeys() {
         Question question = createQuestion(1L, QuestionStatus.OPEN.name());
-        Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp beforeTimestamp = Timestamp.valueOf(LocalDateTime.now());
 
         Map<String, Object> generatedKeys = questionRepository.insertAndReturnGeneratedKeys(question);
 
         assertThat(generatedKeys).hasSize(3);
-        Long id = (Long) generatedKeys.get(QuestionKey.ID);
-        Timestamp createdDate = (Timestamp) generatedKeys.get(QuestionKey.CREATED_DATE);
-        Timestamp lastModifiedDate = (Timestamp) generatedKeys.get(QuestionKey.LAST_MODIFIED_DATE);
 
-        assertThat(id).isOne();
-        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
-        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimestamp, lastModifiedDate)).isTrue();
+        assertThat((Long) generatedKeys.get(QuestionKey.ID)).isOne();
+        assertThat((Timestamp) generatedKeys.get(QuestionKey.CREATED_DATE)).isAfter(beforeTimestamp);
+        assertThat((Timestamp) generatedKeys.get(QuestionKey.LAST_MODIFIED_DATE)).isAfter(beforeTimestamp);
     }
 
     @Test
     void findById() {
         insertTestData(1L, QuestionStatus.OPEN.name());
 
-        Optional<Question> optionalQuestion = questionRepository.findById(1L);
+        Optional<Question> result = questionRepository.findById(1L);
 
-        assertThat(optionalQuestion)
+        assertThat(result)
                 .isNotEmpty()
                 .hasValueSatisfying(question -> {
                     assertThat(question.getUserId()).isOne();
@@ -146,7 +144,7 @@ class QuestionRepositoryJdbcImplTest {
                     assertThat(question.getUpVotedCount()).isZero();
                 });
 
-        log.info(optionalQuestion.get().toString());
+        log.info(result.get().toString());
     }
 
     @Test
@@ -170,11 +168,12 @@ class QuestionRepositoryJdbcImplTest {
     @Test
     void deleteById() {
         insertTestData(1L, QuestionStatus.OPEN.name());
+        assertThat(findData(1L)).isPresent();
 
         questionRepository.deleteById(1L);
 
-        Optional<Question> optionalQuestion = findData(1L);
-        assertThat(optionalQuestion).isEmpty();
+        assertThat(findData(1L)).isEmpty();
+        assertThatCode(() -> questionRepository.deleteById(999L)).doesNotThrowAnyException();
     }
 
     @Test
@@ -201,9 +200,9 @@ class QuestionRepositoryJdbcImplTest {
 
         List<Question> result = questionRepository.findByUserId(1L, 0, 10);
 
-        assertThat(result).hasSize(2)
-                .allSatisfy(question ->
-                        assertThat(question.getUserId()).isOne());
+        assertThat(result)
+                .hasSize(2)
+                .allSatisfy(question ->assertThat(question.getUserId()).isOne());
     }
 
     @Test
@@ -215,7 +214,8 @@ class QuestionRepositoryJdbcImplTest {
 
         List<Question> result = questionRepository.findByStatus(QuestionStatus.CLOSED.name(), 0, 10);
 
-        assertThat(result).hasSize(3)
+        assertThat(result)
+                .hasSize(3)
                 .allSatisfy(question ->
                         assertThat(question.getStatus()).isEqualTo(QuestionStatus.CLOSED.name()));
 
@@ -233,7 +233,8 @@ class QuestionRepositoryJdbcImplTest {
 
         List<Question> result = questionRepository.searchByTitle("keyword", 0, 10);
 
-        assertThat(result).hasSize(4)
+        assertThat(result)
+                .hasSize(4)
                 .allSatisfy(question ->
                         assertThat(question.getTitle().toLowerCase()).contains("keyword"));
 
@@ -251,7 +252,8 @@ class QuestionRepositoryJdbcImplTest {
 
         List<Question> result = questionRepository.searchByContent("keyword", 0, 10);
 
-        assertThat(result).hasSize(4)
+        assertThat(result)
+                .hasSize(4)
                 .allSatisfy(question ->
                         assertThat(question.getTitle()).containsIgnoringCase("keyword"));
 
@@ -271,12 +273,12 @@ class QuestionRepositoryJdbcImplTest {
 
         assertThat(result)
                 .hasSize(5)
-                .allSatisfy(question -> {
+                .allSatisfy(question ->
                             assertThat(
                                     question.getTitle().toLowerCase().contains("keyword") ||
                                     question.getContent().toLowerCase().contains("keyword"))
-                                    .isTrue();
-                });
+                                    .isTrue()
+                );
 
         result.forEach(question -> log.info(question.toString()));
     }
@@ -285,97 +287,86 @@ class QuestionRepositoryJdbcImplTest {
     void updateViewCount() {
         insertTestData(1L, 10L, 0L, 0L);
 
-        questionRepository.updateViewCount(1L, 5L);
+        int result = questionRepository.updateViewCount(1L, 5L);
 
-        Optional<Question> optional = findData(1L);
+        assertThat(result).isOne();
 
-        assertThat(optional).isNotEmpty()
+        assertThat(findData(1L))
+                .isNotEmpty()
                 .hasValueSatisfying(question ->
-                        assertThat(question.getViewCount()).isEqualTo(15L));
+                        assertThat(question.getViewCount()).isEqualTo(15L)
+                );
 
-        optional.ifPresent(question -> log.info(question.toString()));
+        findData(1L).ifPresent(question -> log.info(question.toString()));
     }
-
 
     @Test
     void updateTitleAndContent() {
         insertTestData(1L, "testTitle", "testContent");
 
-        questionRepository.updateTitleAndContent(1L, "newTitle", "newContent");
+        int result = questionRepository.updateTitleAndContent(1L, "newTitle", "newContent");
 
-        Optional<Question> optional = findData(1L);
+        assertThat(result).isOne();
 
-        assertThat(optional).isNotEmpty()
+        assertThat(findData(1L))
+                .isNotEmpty()
                 .hasValueSatisfying(question -> {
                     assertThat(question.getTitle()).isEqualTo("newTitle");
                     assertThat(question.getContent()).isEqualTo("newContent");
                 });
-
-        optional.ifPresent(question -> log.info(question.toString()));
     }
 
     @Test
     void updateUpVotedCount_increment() {
         insertTestData(1L, 0L, 10L, 10L);
 
-        questionRepository.updateUpVotedCount(1L, 1L);
+        int result = questionRepository.updateUpVotedCount(1L, 1L);
 
-        Optional<Question> optional = findData(1L);
-
-        assertThat(optional).isNotEmpty()
-                .hasValueSatisfying(question -> {
-                    assertThat(question.getUpVotedCount()).isEqualTo(11L);
-                });
-
-        optional.ifPresent(question -> log.info(question.toString()));
+        assertThat(result).isOne();
+        assertThat(findData(1L))
+                .isNotEmpty()
+                .hasValueSatisfying(question ->
+                    assertThat(question.getUpVotedCount()).isEqualTo(11L)
+                );
     }
 
     @Test
     void updateUpVotedCount_decrement() {
         insertTestData(1L, 0L, 10L, 10L);
 
-        questionRepository.updateUpVotedCount(1L, -1L);
+        int result = questionRepository.updateUpVotedCount(1L, -1L);
 
-        Optional<Question> optional = findData(1L);
-
-        assertThat(optional).isNotEmpty()
-                .hasValueSatisfying(question -> {
-                    assertThat(question.getUpVotedCount()).isEqualTo(9L);
-                });
-
-        optional.ifPresent(question -> log.info(question.toString()));
+        assertThat(result).isOne();
+        assertThat(findData(1L)).isNotEmpty()
+                .hasValueSatisfying(question ->
+                    assertThat(question.getUpVotedCount()).isEqualTo(9L)
+                );
     }
 
     @Test
     void updateDownVotedCount_increment() {
         insertTestData(1L, 0L, 10L, 8L);
 
-        questionRepository.updateDownVotedCount(1L, 1L);
+        int result = questionRepository.updateDownVotedCount(1L, 1L);
 
-        Optional<Question> optional = findData(1L);
-
-        assertThat(optional).isNotEmpty()
-                .hasValueSatisfying(question -> {
-                    assertThat(question.getDownVotedCount()).isEqualTo(9L);
-                });
-
-        optional.ifPresent(question -> log.info(question.toString()));
+        assertThat(result).isOne();
+        assertThat(findData(1L)).isNotEmpty()
+                .hasValueSatisfying(question ->
+                    assertThat(question.getDownVotedCount()).isEqualTo(9L)
+                );
     }
 
     @Test
     void updateDownVotedCount_decrement() {
         insertTestData(1L, 0L, 10L, 8L);
 
-        questionRepository.updateDownVotedCount(1L, -2L);
+        int result = questionRepository.updateDownVotedCount(1L, -2L);
 
-        Optional<Question> optional = findData(1L);
-
-        assertThat(optional).isNotEmpty()
-                .hasValueSatisfying(question -> {
-                    assertThat(question.getDownVotedCount()).isEqualTo(6L);
-                });
-
-        optional.ifPresent(question -> log.info(question.toString()));
+        assertThat(result).isOne();
+        assertThat(findData(1L)).isNotEmpty()
+                .hasValueSatisfying(question ->
+                    assertThat(question.getDownVotedCount()).isEqualTo(6L)
+                );
     }
 
     @Test
@@ -412,7 +403,8 @@ class QuestionRepositoryJdbcImplTest {
 
         List<Question> result = questionRepository.getByPageable(pageable);
 
-        assertThat(result).hasSize(3)
+        assertThat(result)
+                .hasSize(3)
                 .extracting(Question::getUpVotedCount)
                 .isSortedAccordingTo((a, b) -> Long.compare(b, a));
 
@@ -429,7 +421,8 @@ class QuestionRepositoryJdbcImplTest {
 
         List<Question> result = questionRepository.getByPageable(pageable);
 
-        assertThat(result).hasSize(3)
+        assertThat(result)
+                .hasSize(3)
                 .extracting(Question::getDownVotedCount)
                 .isSorted();
 
@@ -442,8 +435,7 @@ class QuestionRepositoryJdbcImplTest {
 
         Long result = questionRepository.getViewCountById(1L);
 
-        assertThat(result).isNotNull()
-                .isEqualTo(100L);
+        assertThat(result).isEqualTo(100L);
     }
 
     @Test
@@ -454,8 +446,7 @@ class QuestionRepositoryJdbcImplTest {
 
         Long result = questionRepository.countAll();
 
-        assertThat(result).isNotNull()
-                .isEqualTo(3L);
+        assertThat(result).isEqualTo(3L);
     }
 
     @Test
@@ -532,5 +523,4 @@ class QuestionRepositoryJdbcImplTest {
 
         assertThat(result).isEqualTo(2L);
     }
-
 }

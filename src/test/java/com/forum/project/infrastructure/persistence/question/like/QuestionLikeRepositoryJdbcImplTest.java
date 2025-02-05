@@ -1,6 +1,5 @@
 package com.forum.project.infrastructure.persistence.question.like;
 
-import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.like.LikeStatus;
 import com.forum.project.domain.question.like.QuestionLike;
 import com.forum.project.domain.question.like.QuestionLikeKey;
@@ -11,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -19,12 +19,13 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @JdbcTest
@@ -56,7 +57,7 @@ class QuestionLikeRepositoryJdbcImplTest {
     }
 
     private void insertTestData(Long userId, String status, Long questionId) {
-        String insertSql = QuestionLikeQueries.INSERT;
+        String insertSql = QuestionLikeQueries.insertAndReturnGeneratedKeys();
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", userId)
                 .addValue("status", status)
@@ -75,26 +76,33 @@ class QuestionLikeRepositoryJdbcImplTest {
                 .build();
     }
 
-    @Test
-    void testInsertAndReturnGeneratedKeysQuestionLike_success() {
-        QuestionLike questionLike = createQuestionLike(1L, LikeStatus.LIKE.name(), 1L);
-        Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
-
-        Map<String, Object> generatedKeys = questionLikeRepository.insertAndReturnGeneratedKeys(questionLike);
-
-        assertThat(generatedKeys).isNotNull();
-        assertThat(generatedKeys.size()).isEqualTo(QuestionLikeKey.getKeys().length);
-
-        Long generatedId = (Long) generatedKeys.get(QuestionLikeKey.ID);
-        Timestamp createdDate = (Timestamp) generatedKeys.get(QuestionLikeKey.CREATED_DATE);
-
-        assertThat(generatedId).isEqualTo(1L);
-        assertThat(createdDate).isNotNull();
-        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
+    private Optional<QuestionLike> findData(Long id) {
+        String sql = QuestionLikeQueries.findById();
+        SqlParameterSource params = new MapSqlParameterSource("id", id);
+        try {
+            QuestionLike result = jdbcTemplate.queryForObject(sql, params,
+                    new BeanPropertyRowMapper<>(QuestionLike.class));
+            return Optional.ofNullable(result);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Test
-    void testExistsByQuestionIdAndUserId_success() {
+    void insertAndReturnGeneratedKeys() {
+        QuestionLike questionLike = createQuestionLike(1L, LikeStatus.LIKE.name(), 1L);
+        Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
+
+        Map<String, Object> result = questionLikeRepository.insertAndReturnGeneratedKeys(questionLike);
+
+        assertThat(result).hasSize(QuestionLikeKey.getKeys().length);
+
+        assertThat((Long) result.get(QuestionLikeKey.ID)).isEqualTo(1L);
+        assertThat((Timestamp) result.get(QuestionLikeKey.CREATED_DATE)).isAfter(expectedTimestamp);
+    }
+
+    @Test
+    void existsByQuestionIdAndUserId() {
         insertTestData(1L, LikeStatus.LIKE.name(), 100L);
 
         boolean exists = questionLikeRepository.existsByQuestionIdAndUserId(100L, 1L);
@@ -103,44 +111,52 @@ class QuestionLikeRepositoryJdbcImplTest {
     }
 
     @Test
-    void testExistsByQuestionIdAndUserId_WhenRecordDoesNotExist_ReturnFalse() {
-        boolean exists = questionLikeRepository.existsByQuestionIdAndUserId(999L, 1L);
+    void existsByQuestionIdAndUserId_notExists() {
+        boolean exists = questionLikeRepository.existsByQuestionIdAndUserId(100L, 1L);
 
         assertFalse(exists);
     }
 
     @Test
-    void testFindByQuestionIdAndUserId_success() {
+    void findByQuestionIdAndUserId() {
         insertTestData(1L, LikeStatus.LIKE.name(), 100L);
 
         Optional<QuestionLike> result = questionLikeRepository.findByQuestionIdAndUserId(100L, 1L);
-        assertThat(result).isPresent();
-        QuestionLike questionLike = result.get();
 
-        assertNotNull(questionLike);
-        assertEquals(1L, questionLike.getUserId());
-        assertEquals(LikeStatus.LIKE.name(), questionLike.getStatus());
-        assertEquals("192.168.0.1", questionLike.getIpAddress());
-        assertEquals(100L, questionLike.getQuestionId());
+        assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(questionLike -> {
+                    assertThat(questionLike.getUserId()).isOne();
+                    assertThat(questionLike.getStatus()).isEqualTo(LikeStatus.LIKE.name());
+                    assertThat(questionLike.getIpAddress()).isEqualTo("192.168.0.1");
+                    assertThat(questionLike.getQuestionId()).isEqualTo(100L);
+                });
     }
 
     @Test
-    void testDeleteQuestionLike() {
-        Long userId = 1L;
-        Long questionId = 1L;
+    void findById() {
+        insertTestData(1L, LikeStatus.LIKE.name(), 1L);
 
-        insertTestData(userId, LikeStatus.LIKE.name(), questionId);
+        Optional<QuestionLike> result = questionLikeRepository.findById(1L);
 
-        questionLikeRepository.delete(questionId, userId);
+        assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(questionLike -> {
+                    assertThat(questionLike.getUserId()).isOne();
+                    assertThat(questionLike.getStatus()).isEqualTo(LikeStatus.LIKE.name());
+                    assertThat(questionLike.getQuestionId()).isEqualTo(1L);
+                });
+    }
 
-        String sql = QuestionLikeQueries.FIND_BY_QUESTION_ID_AND_USER_ID;
-        SqlParameterSource source = new MapSqlParameterSource()
-                .addValue("userId", userId)
-                .addValue("questionId", questionId);
+    @Test
+    void deleteByQuestionIdAndUserId() {
+        insertTestData(1L, LikeStatus.LIKE.name(), 1L);
+        assertThat(findData(1L)).isPresent();
 
-        List<QuestionLike> result = jdbcTemplate.query(sql, source, new BeanPropertyRowMapper<>(QuestionLike.class));
+        questionLikeRepository.deleteByQuestionIdAndUserId(1L, 1L);
 
-        assertEquals(0, result.size());
+        assertThat(findData(1L)).isEmpty();
+        assertThatCode(() -> questionLikeRepository.deleteByQuestionIdAndUserId(999L, 999L)).doesNotThrowAnyException();
     }
 
 }

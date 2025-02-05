@@ -27,7 +27,7 @@ public class AdminFacade {
         userManagementService.reactivateAccount(user);
     }
 
-    public Page<UserInfoDto> searchUsers(String keyword, String role, String status, int offset, int limit) {
-        return userSearchService.searchUsers(keyword, role, status, offset, limit);
+    public Page<UserInfoDto> searchUsers(String keyword, String role, int offset, int limit) {
+        return userSearchService.searchUsers(keyword, role, offset, limit);
     }
 }

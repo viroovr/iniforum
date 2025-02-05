@@ -7,10 +7,10 @@ CREATE TABLE users (
     first_name VARCHAR(255) NOT NULL,
     nickname VARCHAR(255),
     profile_image_path VARCHAR(255),
-    status VARCHAR(50) NOT NULL,
-    role VARCHAR(50) NOT NULL,
+    status ENUM('ACTIVE', 'INACTIVE', 'LOCKED','SUSPENDED', 'DELETED') DEFAULT 'ACTIVE',
+    role ENUM('USER', 'ADMIN') DEFAULT 'USER',
     last_activity_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    password_last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_password_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

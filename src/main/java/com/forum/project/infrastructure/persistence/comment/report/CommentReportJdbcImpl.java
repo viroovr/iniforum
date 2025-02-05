@@ -51,6 +51,13 @@ public class CommentReportJdbcImpl implements CommentReportRepository {
     }
 
     @Override
+    public void delete(Long id) {
+        String sql = CommentReportQueries.delete();
+        SqlParameterSource params = new MapSqlParameterSource("id", id);
+        jdbcTemplate.update(sql, params);
+    }
+
+    @Override
     public List<CommentReport> findAllByCommentId(Long commentId) {
         String sql = CommentReportQueries.findAllByCommentId();
         SqlParameterSource params = new MapSqlParameterSource("commentId", commentId);

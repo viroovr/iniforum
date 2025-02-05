@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 @Slf4j
 @JdbcTest
@@ -118,15 +119,13 @@ class BookmarkRepositoryJdbcImplTest {
 
     @Test
     void delete() {
-        Long userId = 1L;
-        Long questionId = 1L;
-        insertData(userId, questionId, "testNotes");
+        insertData(1L, 1L, "testNotes");
+        assertThat(findData(1L)).isPresent();
 
-        bookmarkRepository.delete(userId, questionId);
+        bookmarkRepository.delete(1L, 1L);
 
-        Optional<Bookmark> result = findData(1L);
-
-        assertThat(result).isEmpty();
+        assertThat(findData(1L)).isEmpty();
+        assertThatCode(() -> bookmarkRepository.delete(999L, 999L)).doesNotThrowAnyException();
     }
 
     @Test

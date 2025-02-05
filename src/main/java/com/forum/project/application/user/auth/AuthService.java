@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -50,19 +52,19 @@ public class AuthService {
 
     @Transactional
     public SignupResponseDto createUser(SignupRequestDto signupRequestDto) {
-        if (userRepository.emailExists(signupRequestDto.getEmail())) {
+        if (userRepository.existsByEmail(signupRequestDto.getEmail())) {
             throw new ApplicationException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
-        if (userRepository.userLoginIdExists(signupRequestDto.getLoginId())) {
+        if (userRepository.existsByLoginId(signupRequestDto.getLoginId())) {
             throw new ApplicationException(ErrorCode.LOGIN_ID_ALREADY_EXISTS);
         }
 
         User preparedUser = prepareUser(signupRequestDto);
 
-        User committedUser = userRepository.save(preparedUser);
-
-        userFacade.logUserActivity(committedUser.getId(), UserAction.SIGNUP_SUCCESS.name());
-        return UserDtoConverterFactory.toSignupResponseDto(committedUser);
+        Map<String, Object> generatedKeys = userRepository.insertAndReturnGeneratedKeys(preparedUser);
+        preparedUser.setKeys(generatedKeys);
+        userFacade.logUserActivity(preparedUser.getId(), UserAction.SIGNUP_SUCCESS.name());
+        return UserDtoConverterFactory.toSignupResponseDto(preparedUser);
     }
 
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
@@ -70,7 +72,7 @@ public class AuthService {
         String loginId = loginRequestDto.getLoginId();
         String password = loginRequestDto.getPassword();
 
-        User user = userRepository.findByUserLoginId(loginId)
+        User user = userRepository.findByLoginId(loginId)
                     .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
 
         userPasswordService.validatePassword(password, user.getPassword());

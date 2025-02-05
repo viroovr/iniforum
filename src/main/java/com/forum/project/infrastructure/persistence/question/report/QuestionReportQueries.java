@@ -31,4 +31,8 @@ public class QuestionReportQueries {
         return "SELECT COUNT(*) FROM question_reports " +
                 "WHERE question_id =:questionId";
     }
+
+    public static String delete() {
+        return "DELETE FROM question_reports WHERE id =:id";
+    }
 }

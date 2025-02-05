@@ -41,10 +41,9 @@ public class AdminController {
     public ResponseEntity<Page<UserInfoDto>> searchUsers(
             @RequestParam String keyword,
             @RequestParam(required = false) String role,
-            @RequestParam(required = false) String status,
-            @RequestParam int offset,
-            @RequestParam int limit) {
-        Page<UserInfoDto> users = adminFacade.searchUsers(keyword, role, status, offset, limit);
+            @RequestParam int page,
+            @RequestParam int size) {
+        Page<UserInfoDto> users = adminFacade.searchUsers(keyword, role, page, size);
         return ResponseEntity.ok(users);
     }
 }

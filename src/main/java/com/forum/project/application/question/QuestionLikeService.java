@@ -34,7 +34,7 @@ public class QuestionLikeService {
         if(!questionLikeRepository.existsByQuestionIdAndUserId(questionId, userId))
             throw new ApplicationException(ErrorCode.LIKE_NOT_FOUND);
 
-        questionLikeRepository.delete(questionId, userId);
+        questionLikeRepository.deleteByQuestionIdAndUserId(questionId, userId);
 
         questionCrudService.decrementVotedCount(questionId, likeStatus);
     }

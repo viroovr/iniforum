@@ -5,18 +5,19 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface CommentRepository {
+    Map<String, Object> insertAndReturnGeneratedKeys(Comment comment);
+
     List<Comment> findAllByQuestionId(Long questionId);
     List<Comment> findAllByUserId(Long userId);
     List<Comment> findAllByParentCommentId(Long parentCommentId);
-
     Optional<Comment> findById(Long id);
-    Map<String, Object> insertAndReturnGeneratedKeys(Comment comment);
-    void updateContent(Long id, String content);
-    void deleteById(Long id);
-
     boolean existsById(Long id);
 
-    void updateDownVotedCount(Long id, Long downVotedCount);
+    int updateContent(Long id, String content);
+    int updateDownVotedCount(Long id, Long downVotedCount);
+    int updateUpVotedCount(Long id, Long upVotedCount);
 
-    void updateUpVotedCount(Long id, Long upVotedCount);
+    void deleteById(Long id);
+
+
 }

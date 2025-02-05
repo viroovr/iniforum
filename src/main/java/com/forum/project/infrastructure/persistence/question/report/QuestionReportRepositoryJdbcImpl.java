@@ -74,4 +74,11 @@ public class QuestionReportRepositoryJdbcImpl implements QuestionReportRepositor
         Long result = jdbcTemplate.queryForObject(sql, params, Long.class);
         return Optional.ofNullable(result).orElse(0L);
     }
+
+    @Override
+    public void delete(Long id) {
+        String sql = QuestionReportQueries.delete();
+        SqlParameterSource params = new MapSqlParameterSource("id", id);
+        jdbcTemplate.update(sql, params);
+    }
 }

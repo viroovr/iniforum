@@ -2,19 +2,21 @@ package com.forum.project.domain.user;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.forum.project.common.utils.DateUtils;
+import com.forum.project.domain.BaseEntity;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class User {
-    private Long id;
+@SuperBuilder
+@ToString(callSuper = true)
+public class User extends BaseEntity {
     private String loginId;
     private String email;
     private String password;
@@ -22,12 +24,25 @@ public class User {
     private String firstName;
     private String nickname;
     private String profileImagePath;
-    private String status;
-    private String role;
+    @Builder.Default
+    private String status = UserStatus.ACTIVE.name();
+    @Builder.Default
+    private String role = UserRole.USER.name();
     private LocalDateTime lastActivityDate;
-    private LocalDateTime passwordLastModifiedDate;
+    private LocalDateTime lastPasswordModifiedDate;
     private LocalDateTime lastLoginDate;
-    private LocalDateTime createdDate;
+
+    public void setKeys(Map<String, Object> keys) {
+        if (keys == null) {
+            throw new IllegalArgumentException("Keys map cannot be null");
+        }
+
+        setId((Long) keys.get(UserKey.ID));
+        setCreatedDate(DateUtils.convertToLocalDateTime(keys.get(UserKey.CREATED_DATE)));
+        this.lastActivityDate = DateUtils.convertToLocalDateTime(keys.get(UserKey.LAST_ACTIVITY_DATE));
+        this.lastPasswordModifiedDate = DateUtils.convertToLocalDateTime(keys.get(UserKey.LAST_PASSWORD_MODIFIED_DATE));
+        this.lastLoginDate = DateUtils.convertToLocalDateTime(keys.get(UserKey.LAST_LOGIN_DATE));
+    }
 
     public void activate() {
         if ("ACTIVE".equals(this.status)) {
@@ -71,7 +86,7 @@ public class User {
             throw new ApplicationException(ErrorCode.INVALID_NEW_PASSWORD);
         }
         this.password = newPassword;
-        this.passwordLastModifiedDate = LocalDateTime.now();
+        this.lastPasswordModifiedDate = LocalDateTime.now();
     }
 
     public void updateLastActivityDate() {

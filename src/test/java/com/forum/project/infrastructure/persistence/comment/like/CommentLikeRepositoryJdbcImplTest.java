@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 @Slf4j
 @JdbcTest
@@ -134,12 +135,12 @@ class CommentLikeRepositoryJdbcImplTest {
     @Test
     void delete() {
         insertTestData(1L, 1L, LikeStatus.LIKE.name());
+        assertThat(findData(1L)).isPresent();
 
         commentLikeRepository.delete(1L);
+        assertThat(findData(1L)).isEmpty();
 
-        Optional<CommentLike> result = findData(1L);
-
-        assertThat(result).isEmpty();
+        assertThatCode(() -> commentLikeRepository.delete(999L)).doesNotThrowAnyException();
     }
 
     @Test

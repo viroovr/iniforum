@@ -1,28 +1,28 @@
 package com.forum.project.infrastructure.persistence.question.like;
 
 public class QuestionLikeQueries {
-    public static final String INSERT = """
-        INSERT INTO question_likes
-        (user_id, status, ip_address, question_id)
-        VALUES (:userId, :status, :ipAddress, :questionId)
-        """.stripIndent();
+    public static String insertAndReturnGeneratedKeys() {
+        return "INSERT INTO question_likes " +
+                "(user_id, status, ip_address, question_id) " +
+                "VALUES (:userId, :status, :ipAddress, :questionId)";
+    }
 
-    public static final String EXISTS_BY_QUESTION_ID_AND_USER_ID = """
-        SELECT EXISTS
-        (SELECT * FROM question_likes
-        WHERE question_id = :questionId
-        AND user_id = :userId)
-    """;
+    public static String existsByQuestionIdAndUserId() {
+        return "SELECT EXISTS (SELECT 1 FROM question_likes " +
+                "WHERE question_id = :questionId AND user_id = :userId)";
+    }
 
-    public static final String FIND_BY_QUESTION_ID_AND_USER_ID = """
-        SELECT * FROM question_likes
-        WHERE question_id = :questionId
-        AND user_id = :userId
-    """;
+    public static String findById() {
+        return "SELECT * FROM question_likes WHERE id = :id";
+    }
 
-    public static final String DELETE_BY_QUESTION_ID_AND_USER_ID = """
-        DELETE FROM question_likes
-        WHERE question_id = :questionId
-        AND user_id = :userId
-    """;
+    public static String findByQuestionIdAndUserId() {
+        return "SELECT * FROM question_likes " +
+                "WHERE question_id = :questionId AND user_id = :userId";
+    }
+
+    public static String deleteByQuestionIdAndUserId() {
+        return "DELETE FROM question_likes " +
+                "WHERE question_id = :questionId AND user_id = :userId";
+    }
 }

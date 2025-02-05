@@ -4,18 +4,12 @@ import lombok.Getter;
 
 @Getter
 public enum UserRole {
-    ADMIN("ADMIN"),
-    USER("USER");
-
-    private final String name;
-
-    UserRole(String name) {
-        this.name = name;
-    }
+    ADMIN,
+    USER;
 
     public static boolean isValid (String name) {
         for (UserRole role : UserRole.values()) {
-            if (role.name.equalsIgnoreCase(name)) {
+            if (role.name().equalsIgnoreCase(name)) {
                 return true;
             }
         }

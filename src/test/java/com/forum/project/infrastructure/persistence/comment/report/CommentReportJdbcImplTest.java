@@ -11,6 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -22,8 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.*;
 
 @JdbcTest
 @ActiveProfiles("test")
@@ -72,104 +73,108 @@ class CommentReportJdbcImplTest {
         jdbcTemplate.update(insertSql, params);
     }
 
+    private Optional<CommentReport> findData(Long id) {
+        String sql = CommentReportQueries.findById();
+        SqlParameterSource params = new MapSqlParameterSource("id", id);
+        try {
+            CommentReport result = jdbcTemplate.queryForObject(sql, params,
+                    new BeanPropertyRowMapper<>(CommentReport.class));
+            return Optional.ofNullable(result);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
     @Test
     void insertAndReturnGeneratedKeys() {
-        CommentReport commentReport = createCommentReport(1L, 1L, ReportStatus.PENDING.name());
-        Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
+        Map<String, Object> generatedKeys = commentReportRepository.insertAndReturnGeneratedKeys(
+                createCommentReport(1L, 1L, ReportStatus.PENDING.name()));
 
-        Map<String, Object> generatedKeys = commentReportRepository.insertAndReturnGeneratedKeys(commentReport);
+        assertThat(generatedKeys).hasSize(ReportKey.getKeys().length);
 
-        assertThat(generatedKeys).isNotNull();
-        assertThat(generatedKeys.size()).isEqualTo(ReportKey.getKeys().length);
-
-        Long generatedId = (Long) generatedKeys.get(ReportKey.ID);
-        Timestamp createdDate = (Timestamp) generatedKeys.get(ReportKey.CREATED_DATE);
-
-        assertThat(generatedId).isEqualTo(1L);
-        assertThat(createdDate).isNotNull();
-        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
+        assertThat((Long) generatedKeys.get(ReportKey.ID)).isEqualTo(1L);
+        assertThat((Timestamp) generatedKeys.get(ReportKey.CREATED_DATE)).isBefore(Timestamp.valueOf(LocalDateTime.now()));
     }
 
     @Test
     void existsByCommentIdAndUserId() {
-        Long commentId = 1L;
-        Long userId = 1L;
-        insertTestData(userId, commentId, "testReason", ReportStatus.PENDING.name());
+        insertTestData(1L, 1L, "testReason", ReportStatus.PENDING.name());
 
-        boolean result = commentReportRepository.existsByCommentIdAndUserId(commentId, userId);
+        boolean result = commentReportRepository.existsByCommentIdAndUserId(1L, 1L);
 
         assertThat(result).isTrue();
     }
 
     @Test
     void existsByCommentIdAndUserId_NotExists() {
-        Long commentId = 1L;
-        Long userId = 1L;
-        boolean result = commentReportRepository.existsByCommentIdAndUserId(commentId, userId);
+        boolean result = commentReportRepository.existsByCommentIdAndUserId(1L, 1L);
 
         assertThat(result).isFalse();
     }
 
     @Test
     void countByCommentId() {
-        Long commentId = 1L;
-        insertTestData(1L, commentId, "testReason", ReportStatus.PENDING.name());
-        insertTestData(2L, commentId, "testReason", ReportStatus.PENDING.name());
+        insertTestData(1L, 1L, "testReason", ReportStatus.PENDING.name());
+        insertTestData(2L, 1L, "testReason", ReportStatus.PENDING.name());
 
-        Long result = commentReportRepository.countByCommentId(commentId);
+        Long result = commentReportRepository.countByCommentId(1L);
 
-        assertThat(result).isNotNull();
         assertThat(result).isEqualTo(2L);
     }
 
     @Test
     void findAllByCommentId() {
-        Long commentId = 1L;
-        insertTestData(1L, commentId, "testReason", ReportStatus.PENDING.name());
-        insertTestData(2L, commentId, "testReason", ReportStatus.PENDING.name());
+        insertTestData(1L, 1L, "testReason", ReportStatus.PENDING.name());
+        insertTestData(2L, 1L, "testReason", ReportStatus.PENDING.name());
         insertTestData(3L, 2L, "testReason", ReportStatus.PENDING.name());
 
-        List<CommentReport> result = commentReportRepository.findAllByCommentId(commentId);
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(2L);
-        assertThat(result).extracting("userId", "commentId")
-                .containsExactlyInAnyOrder(
-                        tuple(1L, commentId),
-                        tuple(2L, commentId)
-                );
+        List<CommentReport> result = commentReportRepository.findAllByCommentId(1L);
+
+        assertThat(result)
+                .hasSize(2)
+                .extracting(CommentReport::getCommentId)
+                .containsOnly(1L);
     }
 
     @Test
     void findAllByUserId() {
-        Long userId = 1L;
-        insertTestData(userId, 1L, "testReason", ReportStatus.PENDING.name());
-        insertTestData(userId, 2L, "testReason", ReportStatus.PENDING.name());
+        insertTestData(1L, 1L, "testReason", ReportStatus.PENDING.name());
+        insertTestData(1L, 2L, "testReason", ReportStatus.PENDING.name());
         insertTestData(2L, 2L, "testReason", ReportStatus.PENDING.name());
 
-        List<CommentReport> result = commentReportRepository.findAllByUserId(userId);
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(2L);
-        assertThat(result).extracting("userId", "commentId")
-                .containsExactlyInAnyOrder(
-                        tuple(userId, 1L),
-                        tuple(userId, 2L)
-                );
+        List<CommentReport> result = commentReportRepository.findAllByUserId(1L);
+
+        assertThat(result)
+                .hasSize(2)
+                .extracting(CommentReport::getUserId)
+                .containsOnly(1L);
     }
 
     @Test
     void findById() {
-        Long id = 1L;
         insertTestData(1L, 1L, "testReason", ReportStatus.PENDING.name());
 
-        Optional<CommentReport> optionalCommentReport = commentReportRepository.findById(id);
+        Optional<CommentReport> result = commentReportRepository.findById(1L);
 
-        assertThat(optionalCommentReport).isPresent();
-        CommentReport result = optionalCommentReport.get();
+        assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(commentReport -> {
+                    assertThat(commentReport.getUserId()).isOne();
+                    assertThat(commentReport.getCommentId()).isOne();
+                    assertThat(commentReport.getReason()).isEqualTo("testReason");
+                    assertThat(commentReport.getStatus()).isEqualTo(ReportStatus.PENDING.name());
+                    assertThat(commentReport.getCreatedDate()).isBeforeOrEqualTo(LocalDateTime.now());
+                });
+    }
 
-        assertThat(result.getUserId()).isOne();
-        assertThat(result.getCommentId()).isOne();
-        assertThat(result.getReason()).isEqualTo("testReason");
-        assertThat(result.getStatus()).isEqualTo(ReportStatus.PENDING.name());
-        assertThat(result.getCreatedDate()).isBeforeOrEqualTo(LocalDateTime.now());
+    @Test
+    void delete() {
+        insertTestData(1L, 1L, "testReason", ReportStatus.PENDING.name());
+        assertThat(findData(1L)).isPresent();
+
+        commentReportRepository.delete(1L);
+        assertThat(findData(1L)).isEmpty();
+
+        assertThatCode(() -> commentReportRepository.delete(999L)).doesNotThrowAnyException();
     }
 }

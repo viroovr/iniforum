@@ -18,9 +18,9 @@ import java.util.List;
 public class UserSearchService {
     private final UserRepository userRepository;
 
-    public Page<UserInfoDto> searchUsers(String keyword, String role, String status, int offset, int limit) {
-        List<User> users = userRepository.searchByKeywordAndFilters(keyword, role, status, offset, limit);
-        long total = userRepository.countByKeywordAndFilters(keyword, role, status);
+    public Page<UserInfoDto> searchUsers(String keyword, String role, int offset, int limit) {
+        List<User> users = userRepository.searchByLoginIdAndStatus(keyword, role, offset, limit);
+        long total = userRepository.countByLoginIdAndStatus(keyword, role);
         List<UserInfoDto> userInfoDtos = users.stream()
                 .map(UserDtoConverterFactory::toUserInfoDto)
                 .toList();

@@ -68,7 +68,7 @@ public class TestDtoFactory {
                 .nickname("testNickName")
                 .role(UserRole.USER.name())
                 .status(UserStatus.ACTIVE.name())
-                .passwordLastModifiedDate(DATETIME)
+                .lastPasswordModifiedDate(DATETIME)
                 .build();
     }
 

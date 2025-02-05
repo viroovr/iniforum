@@ -38,6 +38,6 @@ public class PasswordResetService {
 
         String encodedPassword = passwordService.encode(newPassword);
         user.setPassword(encodedPassword);
-        userRepository.update(user);
+        userRepository.updateProfile(user);
     }
 }

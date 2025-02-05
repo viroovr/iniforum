@@ -7,13 +7,12 @@ import java.util.Optional;
 public interface CommentReportRepository {
     Map<String, Object> insertAndReturnGeneratedKeys(CommentReport commentReport);
 
+    List<CommentReport> findAllByCommentId(Long commentId);
+    List<CommentReport> findAllByUserId(Long userId);
+    Optional<CommentReport> findById(Long reportId);
     boolean existsByCommentIdAndUserId(Long commentId, Long userId);
 
     Long countByCommentId(Long commentId);
 
-    List<CommentReport> findAllByCommentId(Long commentId);
-
-    List<CommentReport> findAllByUserId(Long userId);
-
-    Optional<CommentReport> findById(Long reportId);
+    void delete(Long id);
 }

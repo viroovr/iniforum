@@ -29,7 +29,12 @@ public class CommentReportQueries {
     }
 
     public static String findById() {
-        return "SELECT * FROM comment_reports " +
-                "WHERE id=:id";
+        return "SELECT * FROM comment_reports WHERE id=:id";
     }
+
+    public static String delete() {
+        return "DELETE FROM comment_reports WHERE id=:id";
+    }
+
+
 }

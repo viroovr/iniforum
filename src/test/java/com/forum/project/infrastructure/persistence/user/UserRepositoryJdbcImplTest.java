@@ -1,0 +1,325 @@
+package com.forum.project.infrastructure.persistence.user;
+
+import com.forum.project.domain.user.*;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+
+@Slf4j
+@JdbcTest
+@ActiveProfiles("test")
+class UserRepositoryJdbcImplTest {
+    @Autowired
+    private NamedParameterJdbcTemplate jdbcTemplate;
+
+    private UserRepository userRepository;
+
+    @BeforeEach
+    void setUp() {
+        userRepository = new UserRepositoryJdbcImpl(jdbcTemplate);
+
+        jdbcTemplate.getJdbcTemplate().execute("CREATE TABLE users (" +
+                "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
+                "login_id VARCHAR(255) NOT NULL UNIQUE, " +
+                "email VARCHAR(255) NOT NULL UNIQUE, " +
+                "password VARCHAR(255) NOT NULL, " +
+                "last_name VARCHAR(255) NOT NULL, " +
+                "first_name VARCHAR(255) NOT NULL, " +
+                "nickname VARCHAR(255), " +
+                "profile_image_path VARCHAR(255), " +
+                "status VARCHAR(50) NOT NULL, " +
+                "role VARCHAR(50) NOT NULL, " +
+                "last_activity_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "last_password_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "last_login_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP " +
+                ");");
+    }
+
+    @AfterEach
+    void tearDown() {
+        jdbcTemplate.getJdbcTemplate().execute("DROP TABLE IF EXISTS USERS");
+    }
+
+    private User createUser(String loginId, String email) {
+        return User.builder()
+                .loginId(loginId)
+                .email(email)
+                .password("testPassword")
+                .lastName("testLastName")
+                .firstName("testFirstName")
+                .nickname("testNickname")
+                .profileImagePath("test/path")
+                .status(UserStatus.ACTIVE.name())
+                .role(UserRole.USER.name())
+                .build();
+    }
+
+    private User createUser(String password, String profileImagePath, String nickname, String status) {
+        return User.builder()
+                .id(1L)
+                .loginId("testLoginId")
+                .email("testEmail")
+                .password(password)
+                .lastName("testLastName")
+                .firstName("testFirstName")
+                .nickname(nickname)
+                .profileImagePath(profileImagePath)
+                .status(status)
+                .role(UserRole.USER.name())
+                .build();
+    }
+
+    private void insertData(String loginId, String email) {
+        String sql = UserQueries.insertAndReturnGeneratedKeys();
+        SqlParameterSource params = new MapSqlParameterSource()
+                .addValue("loginId", loginId)
+                .addValue("email", email)
+                .addValue("password", "testPassword")
+                .addValue("lastName", "testLastname")
+                .addValue("firstName", "testFirstname")
+                .addValue("nickname", "testNickname")
+                .addValue("profileImagePath", "test/path")
+                .addValue("status", UserStatus.ACTIVE.name())
+                .addValue("role", UserRole.USER.name());
+        jdbcTemplate.update(sql, params);
+    }
+
+    private Optional<User> findData(Long id) {
+        String sql = UserQueries.findById();
+        try {
+            User result = jdbcTemplate.queryForObject(sql, new MapSqlParameterSource("id", id),
+                    new BeanPropertyRowMapper<>(User.class));
+            return Optional.ofNullable(result);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Test
+    void findById() {
+        insertData("testLoginId", "test@email.com");
+
+        Optional<User> result = userRepository.findById(1L);
+
+        assertThat(result)
+                .isNotEmpty()
+                .hasValueSatisfying(user -> {
+                    assertThat(user.getLoginId()).isEqualTo("testLoginId");
+                    assertThat(user.getEmail()).isEqualTo("test@email.com");
+                });
+    }
+
+    @Test
+    void findByLoginId() {
+        insertData("testLoginId", "test@email.com");
+
+        Optional<User> result = userRepository.findByLoginId("testLoginId");
+
+        assertThat(result)
+                .isNotEmpty()
+                .hasValueSatisfying(user ->
+                        assertThat(user.getLoginId()).isEqualTo("testLoginId")
+                );
+    }
+
+    @Test
+    void findByEmail() {
+        insertData("testLoginId", "test@email.com");
+
+        Optional<User> result = userRepository.findByEmail("test@email.com");
+
+        assertThat(result)
+                .isNotEmpty()
+                .hasValueSatisfying(user ->
+                    assertThat(user.getEmail()).isEqualTo("test@email.com")
+                );
+    }
+
+    @Test
+    void findAllByLastActivityDateBefore() {
+        insertData("testLoginId", "test@email.com");
+        insertData("testLoginId1", "test1@email.com");
+        LocalDateTime thresholdDate = LocalDateTime.now().plusDays(1);
+
+        List<User> result = userRepository.findAllByLastActivityDateBefore(thresholdDate);
+
+        assertThat(result)
+                .hasSize(2)
+                .allSatisfy(user -> assertThat(user.getLastActivityDate()).isBefore(thresholdDate));
+
+        result.forEach(user -> log.info(user.toString()));
+    }
+
+    @Test
+    void insertAndReturnGeneratedKeys() {
+        User user = createUser("testLoginId", "test@email.com");
+        Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
+
+        Map<String, Object> result = userRepository.insertAndReturnGeneratedKeys(user);
+        assertThat(result)
+                .isNotEmpty()
+                .hasSize(UserKey.getKeys().length);
+
+        assertThat((Long) result.get(UserKey.ID)).isOne();
+        assertThat((Timestamp) result.get(UserKey.CREATED_DATE)).isAfter(expectedTimestamp);
+        assertThat((Timestamp) result.get(UserKey.LAST_ACTIVITY_DATE)).isAfter(expectedTimestamp);
+        assertThat((Timestamp) result.get(UserKey.LAST_LOGIN_DATE)).isAfter(expectedTimestamp);
+        assertThat((Timestamp) result.get(UserKey.LAST_PASSWORD_MODIFIED_DATE)).isAfter(expectedTimestamp);
+    }
+
+    @Test
+    void updateProfile() {
+        insertData("testLoginId", "test@email.com");
+        User user = createUser("newPassword", "newImage/path",
+                "newNickname", UserStatus.SUSPENDED.name());
+
+        int result = userRepository.updateProfile(user);
+
+        assertThat(result).isOne();
+        assertThat(findData(1L))
+                .isNotEmpty()
+                .hasValueSatisfying(aUser -> {
+                    assertThat(aUser.getPassword()).isEqualTo("newPassword");
+                    assertThat(aUser.getProfileImagePath()).isEqualTo("newImage/path");
+                    assertThat(aUser.getNickname()).isEqualTo("newNickname");
+                    assertThat(aUser.getStatus()).isEqualTo(UserStatus.SUSPENDED.name());
+                });
+    }
+
+    @Test
+    void updateAllStatus() {
+        insertData("testLoginId", "test@email.com");
+        insertData("testLoginId1", "test1@email.com");
+
+        List<Long> userIds = List.of(1L, 2L);
+        List<String> statuses = List.of(UserStatus.INACTIVE.name(), UserStatus.DELETED.name());
+
+        int result = userRepository.updateAllStatus(userIds, statuses);
+
+        assertThat(result).isEqualTo(2);
+
+        Map<Long, String> expectedStatuses = Map.of(
+                1L, UserStatus.INACTIVE.name(),
+                2L, UserStatus.DELETED.name()
+        );
+
+        expectedStatuses.forEach((id, expectedStatus) ->
+            assertThat(findData(id))
+                    .isNotEmpty()
+                    .hasValueSatisfying(
+                            user -> assertThat(user.getStatus()).isEqualTo(expectedStatus)
+                    )
+        );
+    }
+
+    @Test
+    void searchByLoginIdAndStatus() {
+        insertData("keywordLoginId", "test@email.com");
+        insertData("3KEYWordLoginId", "test1@email.com");
+
+        List<User> result = userRepository.searchByLoginIdAndStatus("keyword", UserStatus.ACTIVE.name()
+                ,0, 10);
+
+        assertThat(result)
+                .hasSize(2)
+                .allSatisfy(user -> {
+                    assertThat(user.getLoginId()).containsIgnoringCase("keyword");
+                    assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE.name());
+                });
+    }
+
+    @Test
+    void countByLoginIdAndStatus() {
+        insertData("keywordLoginId", "test@email.com");
+        insertData("3KEYWordLoginId", "test1@email.com");
+
+        Long result = userRepository.countByLoginIdAndStatus("keyword", UserStatus.ACTIVE.name());
+
+        assertThat(result).isEqualTo(2L);
+    }
+
+    @Test
+    void existsByEmail() {
+        insertData("loginId", "test@email.com");
+
+        boolean result = userRepository.existsByEmail("test@email.com");
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void existsByEmail_notExists() {
+        assertThat(userRepository.existsByEmail("test@email.com")).isFalse();
+    }
+
+    @Test
+    void existsByLoginId() {
+        insertData("loginId", "test@email.com");
+
+        boolean result = userRepository.existsByLoginId("loginId");
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void existsByLoginId_notExists() {
+        boolean result = userRepository.existsByLoginId("loginId");
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void existsById() {
+        insertData("loginId", "test@email.com");
+
+        boolean result = userRepository.existsById(1L);
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void existsById_notExists() {
+        boolean result = userRepository.existsById(1L);
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void getLoginIdById() {
+        insertData("testLoginId", "testEmail@email.com");
+
+        String result = userRepository.getLoginIdById(1L);
+
+        assertThat(result).isEqualTo("testLoginId");
+    }
+
+    @Test
+    void delete() {
+        insertData("testLoginId", "testEmail@email.com");
+        assertThat(findData(1L)).isPresent();
+
+        userRepository.delete(1L);
+
+        assertThat(findData(1L)).isEmpty();
+        assertThatCode(() -> userRepository.delete(999L)).doesNotThrowAnyException();
+    }
+}

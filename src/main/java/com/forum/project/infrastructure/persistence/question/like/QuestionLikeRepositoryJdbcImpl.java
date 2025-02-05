@@ -27,7 +27,7 @@ public class QuestionLikeRepositoryJdbcImpl implements QuestionLikeRepository {
 
     @Override
     public Map<String, Object> insertAndReturnGeneratedKeys(QuestionLike build) {
-        String sql = QuestionLikeQueries.INSERT;
+        String sql = QuestionLikeQueries.insertAndReturnGeneratedKeys();
         SqlParameterSource sqlParameterSource = new BeanPropertySqlParameterSource(build);
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -37,7 +37,7 @@ public class QuestionLikeRepositoryJdbcImpl implements QuestionLikeRepository {
 
     @Override
     public boolean existsByQuestionIdAndUserId(Long questionId, Long userId) {
-        String sql = QuestionLikeQueries.EXISTS_BY_QUESTION_ID_AND_USER_ID;
+        String sql = QuestionLikeQueries.existsByQuestionIdAndUserId();
         SqlParameterSource sqlParameterSource = createSqlParameterSource(questionId, userId);
         Boolean exists = namedParameterJdbcTemplate.queryForObject(sql, sqlParameterSource, Boolean.class);
         return Boolean.TRUE.equals(exists);
@@ -45,7 +45,7 @@ public class QuestionLikeRepositoryJdbcImpl implements QuestionLikeRepository {
 
     @Override
     public Optional<QuestionLike> findByQuestionIdAndUserId(Long questionId, Long userId) {
-        String sql = QuestionLikeQueries.FIND_BY_QUESTION_ID_AND_USER_ID;
+        String sql = QuestionLikeQueries.findByQuestionIdAndUserId();
         SqlParameterSource sqlParameterSource = createSqlParameterSource(questionId, userId);
         try {
             QuestionLike result = namedParameterJdbcTemplate.queryForObject(
@@ -57,8 +57,21 @@ public class QuestionLikeRepositoryJdbcImpl implements QuestionLikeRepository {
     }
 
     @Override
-    public void delete(Long questionId, Long userId) {
-        String sql = QuestionLikeQueries.DELETE_BY_QUESTION_ID_AND_USER_ID;
+    public Optional<QuestionLike> findById(Long id) {
+        String sql = QuestionLikeQueries.findById();
+        SqlParameterSource sqlParameterSource = new MapSqlParameterSource("id", id);
+        try {
+            QuestionLike result = namedParameterJdbcTemplate.queryForObject(
+                    sql, sqlParameterSource, new BeanPropertyRowMapper<>(QuestionLike.class));
+            return Optional.ofNullable(result);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public void deleteByQuestionIdAndUserId(Long questionId, Long userId) {
+        String sql = QuestionLikeQueries.deleteByQuestionIdAndUserId();
         SqlParameterSource source = createSqlParameterSource(questionId, userId);
         namedParameterJdbcTemplate.update(sql, source);
     }

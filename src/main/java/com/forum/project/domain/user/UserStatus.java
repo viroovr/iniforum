@@ -4,21 +4,15 @@ import lombok.Getter;
 
 @Getter
 public enum UserStatus {
-    ACTIVE("ACTIVE"),
-    INACTIVE("INACTIVE"),
-    LOCKED("LOCKED"),
-    SUSPENDED("SUSPENDED"),
-    DELETED("DELETED");
-
-    private final String name;
-
-    UserStatus(String name) {
-        this.name = name;
-    }
+    ACTIVE,
+    INACTIVE,
+    LOCKED,
+    SUSPENDED,
+    DELETED;
 
     public static UserStatus fromString(String name) {
         for (UserStatus status : UserStatus.values()) {
-            if (status.name.equalsIgnoreCase(name)) {
+            if (status.name().equalsIgnoreCase(name)) {
                 return status;
             }
         }

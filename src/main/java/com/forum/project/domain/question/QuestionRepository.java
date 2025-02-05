@@ -7,26 +7,20 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface QuestionRepository {
+    Map<String, Object> insertAndReturnGeneratedKeys(Question question);
+
     Optional<Question> findById(Long id);
     List<Question> findByUserId(Long userId, int page, int size);
     List<Question> findQuestionByIds(List<Long> questionIds);
     List<Question> findByStatus(String status, int page, int size);
 
-    Map<String, Object> insertAndReturnGeneratedKeys(Question question);
-
-    void deleteById(Long id);
-
     List<Question> getByPage(int page, int size);
+    List<Question> getByPageable(Pageable pageable);
     Long getViewCountById(Long questionId);
 
     List<Question> searchByTitle(String keyword, int page, int size);
     List<Question> searchByContent(String keyword, int page, int size);
     List<Question> searchByTitleOrContent(String keyword, int page, int size);
-
-    void updateViewCount(Long id, Long plus);
-    void updateTitleAndContent(Long id, String title, String content);
-    void updateUpVotedCount(Long questionId, Long delta);
-    void updateDownVotedCount(Long questionId, Long delta);
 
     Long countAll();
     Long countByStatus(String status);
@@ -38,7 +32,10 @@ public interface QuestionRepository {
 
     boolean existsById(Long id);
 
+    int updateViewCount(Long id, Long plus);
+    int updateTitleAndContent(Long id, String title, String content);
+    int updateUpVotedCount(Long questionId, Long delta);
+    int updateDownVotedCount(Long questionId, Long delta);
 
-    List<Question> getByPageable(Pageable pageable);
-
+    void deleteById(Long id);
 }

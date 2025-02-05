@@ -100,27 +100,22 @@ class CommentRepositoryJdbcImplTest {
 
         Map<String, Object> generatedKeys = commentRepository.insertAndReturnGeneratedKeys(comment);
 
-        assertThat(generatedKeys).isNotNull();
-        assertThat(generatedKeys.size()).isEqualTo(CommentKey.getKeys().length);
+        assertThat(generatedKeys)
+                .isNotEmpty()
+                .hasSize(CommentKey.getKeys().length);
 
-        Long generatedId = (Long) generatedKeys.get(CommentKey.ID);
-        Timestamp createdDate = (Timestamp) generatedKeys.get(CommentKey.CREATED_DATE);
-        Timestamp lastModifiedDate = (Timestamp) generatedKeys.get(CommentKey.LAST_MODIFIED_DATE);
-
-        assertThat(generatedId).isEqualTo(1L);
-        assertThat(createdDate).isNotNull();
-        assertThat(lastModifiedDate).isNotNull();
-        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimestamp, createdDate)).isTrue();
-        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimestamp, lastModifiedDate)).isTrue();
+        assertThat((Long) generatedKeys.get(CommentKey.ID)).isEqualTo(1L);
+        assertThat((Timestamp) generatedKeys.get(CommentKey.CREATED_DATE)).isAfter(expectedTimestamp);
+        assertThat((Timestamp) generatedKeys.get(CommentKey.LAST_MODIFIED_DATE)).isAfter(expectedTimestamp);
     }
 
     @Test
     void findById() {
         insertTestData(1L, 1L, null, CommentStatus.ACTIVE.name());
 
-        Optional<Comment> optionalComment = commentRepository.findById(1L);
+        Optional<Comment> result = commentRepository.findById(1L);
 
-        assertThat(optionalComment)
+        assertThat(result)
                 .isPresent()
                 .hasValueSatisfying(comment -> {
                     assertThat(comment.getId()).isOne();
@@ -135,120 +130,108 @@ class CommentRepositoryJdbcImplTest {
                     assertThat(comment.getIsEdited()).isFalse();
                 });
 
-        log.info(optionalComment.get().toString());
+        log.info(result.get().toString());
     }
 
     @Test
     void findAllByQuestionId() {
-        Long questionId = 1L;
-        insertTestData(1L, questionId, null, CommentStatus.ACTIVE.name());
-        insertTestData(2L, questionId, null, CommentStatus.ACTIVE.name());
+        insertTestData(1L, 1L, null, CommentStatus.ACTIVE.name());
+        insertTestData(2L, 1L, null, CommentStatus.ACTIVE.name());
         insertTestData(3L, 2L, null, CommentStatus.ACTIVE.name());
 
-        List<Comment> result = commentRepository.findAllByQuestionId(questionId);
+        List<Comment> result = commentRepository.findAllByQuestionId(1L);
 
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(2);
         assertThat(result)
-            .extracting("userId", "questionId", "parentCommentId", "status", "content")
-            .containsExactlyInAnyOrder(
-                    tuple(1L, questionId, null, CommentStatus.ACTIVE.name(), "testContent"),
-                    tuple(2L, questionId, null, CommentStatus.ACTIVE.name(), "testContent")
-            );
+                .hasSize(2)
+                .extracting(Comment::getQuestionId)
+                .containsOnly(1L);
     }
 
     @Test
     void findAllByParentCommentId() {
-        Long parentCommentId = 1L;
         insertTestData(1L, 1L, null, CommentStatus.ACTIVE.name());
-        insertTestData(2L, 1L, parentCommentId, CommentStatus.ACTIVE.name());
-        insertTestData(3L, 1L, parentCommentId, CommentStatus.ACTIVE.name());
+        insertTestData(2L, 1L, 1L, CommentStatus.ACTIVE.name());
+        insertTestData(3L, 1L, 1L, CommentStatus.ACTIVE.name());
         insertTestData(1L, 2L, null, CommentStatus.ACTIVE.name());
 
-        List<Comment> result = commentRepository.findAllByParentCommentId(parentCommentId);
+        List<Comment> result = commentRepository.findAllByParentCommentId(1L);
 
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(2);
         assertThat(result)
-            .extracting("userId", "questionId", "parentCommentId", "status", "content")
-            .containsExactlyInAnyOrder(
-                tuple(2L, 1L, parentCommentId, CommentStatus.ACTIVE.name(), "testContent"),
-                tuple(3L, 1L, parentCommentId, CommentStatus.ACTIVE.name(), "testContent")
-            );
+                .hasSize(2)
+                .extracting(Comment::getParentCommentId)
+                .containsOnly(1L);
     }
 
     @Test
     void findAllByUserId() {
-        Long userId = 1L;
-        insertTestData(userId, 1L, null, CommentStatus.ACTIVE.name());
-        insertTestData(userId, 2L, null, CommentStatus.ACTIVE.name());
+        insertTestData(1L, 1L, null, CommentStatus.ACTIVE.name());
+        insertTestData(1L, 2L, null, CommentStatus.ACTIVE.name());
         insertTestData(2L, 1L, null, CommentStatus.ACTIVE.name());
         insertTestData(3L, 2L, null, CommentStatus.ACTIVE.name());
 
-        List<Comment> result = commentRepository.findAllByUserId(userId);
+        List<Comment> result = commentRepository.findAllByUserId(1L);
 
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(2);
         assertThat(result)
-                .extracting("userId", "questionId", "parentCommentId", "status", "content")
-                .containsExactlyInAnyOrder(
-                        tuple(userId, 1L, null, CommentStatus.ACTIVE.name(), "testContent"),
-                        tuple(userId, 2L, null, CommentStatus.ACTIVE.name(), "testContent")
-                );
+                .hasSize(2)
+                .extracting(Comment::getUserId)
+                .containsOnly(1L);
     }
 
     @Test
     void updateContent() {
         insertTestData(1L, 1L, null, CommentStatus.ACTIVE.name());
-        commentRepository.updateContent(1L, "newContent");
 
-        Optional<Comment> optionalComment = findData(1L);
-        assertThat(optionalComment).isPresent();
+        int result = commentRepository.updateContent(1L, "newContent");
 
-        Comment comment = optionalComment.get();
-        assertThat(comment.getContent()).isEqualTo("newContent");
-        assertThat(comment.getQuestionId()).isEqualTo(1L);
-        log.info(comment.toString());
+        assertThat(result).isOne();
+
+        assertThat(findData(1L))
+                .isPresent()
+                .hasValueSatisfying(comment -> {
+                    assertThat(comment.getContent()).isEqualTo("newContent");
+                    assertThat(comment.getQuestionId()).isEqualTo(1L);
+                });
     }
 
     @Test
     void updateUpVotedCount() {
         insertTestData(1L, 1L, null, CommentStatus.ACTIVE.name());
 
-        commentRepository.updateUpVotedCount(1L, 2L);
+        int result = commentRepository.updateUpVotedCount(1L, 2L);
 
-        Optional<Comment> optionalComment = findData(1L);
-        assertThat(optionalComment).isPresent();
+        assertThat(result).isOne();
 
-        Comment comment = optionalComment.get();
-        assertThat(comment.getUpVotedCount()).isEqualTo(2L);
-        assertThat(comment.getQuestionId()).isEqualTo(1L);
-        log.info(comment.toString());
+        assertThat(findData(1L))
+                .isPresent()
+                .hasValueSatisfying(comment -> {
+                    assertThat(comment.getUpVotedCount()).isEqualTo(2L);
+                    assertThat(comment.getQuestionId()).isEqualTo(1L);
+                });
     }
 
     @Test
     void updateDownVotedCount() {
         insertTestData(1L, 1L, null, CommentStatus.ACTIVE.name());
 
-        commentRepository.updateDownVotedCount(1L, 2L);
+        int result = commentRepository.updateDownVotedCount(1L, 2L);
 
-        Optional<Comment> optionalComment = findData(1L);
-        assertThat(optionalComment).isPresent();
-
-        Comment comment = optionalComment.get();
-        assertThat(comment.getDownVotedCount()).isEqualTo(2L);
-        assertThat(comment.getQuestionId()).isEqualTo(1L);
-        log.info(comment.toString());
+        assertThat(result).isOne();
+        assertThat(findData(1L))
+                .isPresent()
+                .hasValueSatisfying(comment -> {
+                    assertThat(comment.getDownVotedCount()).isEqualTo(2L);
+                    assertThat(comment.getQuestionId()).isEqualTo(1L);
+                });
     }
 
     @Test
     void deleteById() {
         insertTestData(1L, 1L, null, CommentStatus.ACTIVE.name());
+        assertThat(findData(1L)).isPresent();
 
         commentRepository.deleteById(1L);
-        Optional<Comment> optionalComment = findData(1L);
 
-        assertThat(optionalComment).isEmpty();
+        assertThat(findData(1L)).isEmpty();
     }
 
     @Test

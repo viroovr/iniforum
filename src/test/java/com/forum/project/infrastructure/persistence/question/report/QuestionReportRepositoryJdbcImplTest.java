@@ -11,10 +11,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -23,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 @JdbcTest
 @ActiveProfiles("test")
@@ -70,19 +74,28 @@ class QuestionReportRepositoryJdbcImplTest {
         jdbcTemplate.update(sql, params);
     }
 
+    private Optional<QuestionReport> findData(Long id) {
+        String sql = QuestionReportQueries.findById();
+        SqlParameterSource params = new MapSqlParameterSource("id", id);
+        try {
+            QuestionReport result = jdbcTemplate.queryForObject(sql, params,
+                    new BeanPropertyRowMapper<>(QuestionReport.class));
+            return Optional.ofNullable(result);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
     @Test
     void insertAndReturnGeneratedKeys() {
         QuestionReport report = createQuestionReport(1L, 1L, ReportStatus.PENDING.name());
-        Timestamp expectedTimeStamp = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp beforeTimeStamp = Timestamp.valueOf(LocalDateTime.now());
 
         Map<String, Object> generatedKeys = questionReportRepository.insertAndReturnGeneratedKeys(report);
-        assertThat(generatedKeys).isNotNull();
+        assertThat(generatedKeys).hasSize(QuestionReportKey.getKeys().length);
 
-        Long id = (Long) generatedKeys.get(QuestionReportKey.ID);
-        Timestamp createdDate = (Timestamp) generatedKeys.get(QuestionReportKey.CREATED_DATE);
-
-        assertThat(id).isOne();
-        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimeStamp, createdDate)).isTrue();
+        assertThat((Long) generatedKeys.get(QuestionReportKey.ID)).isOne();
+        assertThat((Timestamp) generatedKeys.get(QuestionReportKey.CREATED_DATE)).isAfter(beforeTimeStamp);
     }
 
     @Test
@@ -105,28 +118,30 @@ class QuestionReportRepositoryJdbcImplTest {
     void findById() {
         insertTestData(1L, 1L, ReportStatus.PENDING.name());
 
-        Optional<QuestionReport> optionalQuestionReport = questionReportRepository.findById(1L);
-        assertThat(optionalQuestionReport).isNotEmpty();
-
-        QuestionReport result = optionalQuestionReport.get();
+        Optional<QuestionReport> result = questionReportRepository.findById(1L);
 
         assertThat(result)
-                .extracting(QuestionReport::getQuestionId, QuestionReport::getUserId, QuestionReport::getStatus)
-                .containsExactly(1L, 1L, ReportStatus.PENDING.name());
+                .isNotEmpty()
+                .hasValueSatisfying(questionReport -> {
+                    assertThat(questionReport.getQuestionId()).isEqualTo(1L);
+                    assertThat(questionReport.getUserId()).isEqualTo(1L);
+                    assertThat(questionReport.getStatus()).isEqualTo(ReportStatus.PENDING.name());
+                });
     }
 
     @Test
     void findById_givenStatusResolved() {
         insertTestData(1L, 1L, ReportStatus.RESOLVED.name());
 
-        Optional<QuestionReport> optionalQuestionReport = questionReportRepository.findById(1L);
-        assertThat(optionalQuestionReport).isNotEmpty();
-
-        QuestionReport result = optionalQuestionReport.get();
+        Optional<QuestionReport> result = questionReportRepository.findById(1L);
 
         assertThat(result)
-                .extracting(QuestionReport::getQuestionId, QuestionReport::getUserId, QuestionReport::getStatus)
-                .containsExactly(1L, 1L, ReportStatus.RESOLVED.name());
+                .isNotEmpty()
+                .hasValueSatisfying(questionReport -> {
+                    assertThat(questionReport.getQuestionId()).isEqualTo(1L);
+                    assertThat(questionReport.getUserId()).isEqualTo(1L);
+                    assertThat(questionReport.getStatus()).isEqualTo(ReportStatus.RESOLVED.name());
+                });
     }
 
     @Test
@@ -136,9 +151,9 @@ class QuestionReportRepositoryJdbcImplTest {
         insertTestData(2L, 1L, ReportStatus.PENDING.name());
 
         List<QuestionReport> result = questionReportRepository.findAllByUserId(1L);
-        assertThat(result).hasSize(2);
 
         assertThat(result)
+                .hasSize(2)
                 .allSatisfy(report -> assertThat(report.getUserId()).isOne());
     }
 
@@ -149,9 +164,9 @@ class QuestionReportRepositoryJdbcImplTest {
         insertTestData(2L, 1L, ReportStatus.PENDING.name());
 
         List<QuestionReport> result = questionReportRepository.findAllByQuestionId(1L);
-        assertThat(result).hasSize(2);
 
         assertThat(result)
+                .hasSize(2)
                 .allSatisfy(report -> assertThat(report.getQuestionId()).isOne());
     }
 
@@ -163,6 +178,18 @@ class QuestionReportRepositoryJdbcImplTest {
         insertTestData(3L, 2L, ReportStatus.PENDING.name());
 
         Long result = questionReportRepository.countByQuestionId(1L);
+
         assertThat(result).isEqualTo(3L);
+    }
+
+    @Test
+    void delete() {
+        insertTestData(1L, 1L, ReportStatus.PENDING.name());
+        assertThat(findData(1L)).isPresent();
+
+        questionReportRepository.delete(1L);
+        assertThat(findData(1L)).isEmpty();
+
+        assertThatCode(() -> questionReportRepository.delete(999L)).doesNotThrowAnyException();
     }
 }

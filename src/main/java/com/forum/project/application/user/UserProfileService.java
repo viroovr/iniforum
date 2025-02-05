@@ -33,11 +33,11 @@ public class UserProfileService {
         user.setNickname(userRequestDto.getNickname());
         user.setProfileImagePath(uploadDir);
 
-        User updatedUser = userRepository.update(user);
-        return UserDtoConverterFactory.toUserResponseDto(updatedUser);
+        userRepository.updateProfile(user);
+        return UserDtoConverterFactory.toUserResponseDto(user);
     }
 
     public String getLoginId(Long userId) {
-        return userRepository.getLoginId(userId);
+        return userRepository.getLoginIdById(userId);
     }
 }

@@ -38,7 +38,7 @@ class UserDeactivationSchedulerTest {
 
         when(userRepository.findAllByLastActivityDateBefore(thresholdDate))
                 .thenReturn(Collections.singletonList(inactiveUser));
-        when(userRepository.updateAll(anyList())).thenReturn(new int[] {1});
+        when(userRepository.updateAllStatus(anyList(), anyList())).thenReturn(1);
 
         // When: 스케줄러 강제 실행
         userDeactivationScheduler.deactivateInactiveUsers();

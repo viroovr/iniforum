@@ -71,33 +71,33 @@ public class CommentRepositoryJdbcImpl implements CommentRepository {
     }
 
     @Override
-    public void updateContent(Long id, String content) {
+    public int updateContent(Long id, String content) {
         String sql = CommentQueries.updateContent();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("content", content);
 
-        jdbcTemplate.update(sql, params);
+        return jdbcTemplate.update(sql, params);
     }
 
     @Override
-    public void updateUpVotedCount(Long id, Long upVotedCount) {
+    public int updateUpVotedCount(Long id, Long upVotedCount) {
         String sql = CommentQueries.updateUpVotedCount();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("upVotedCount", upVotedCount);
 
-        jdbcTemplate.update(sql, params);
+        return jdbcTemplate.update(sql, params);
     }
 
     @Override
-    public void updateDownVotedCount(Long id, Long downVotedCount) {
+    public int updateDownVotedCount(Long id, Long downVotedCount) {
         String sql = CommentQueries.updateDownVotedCount();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("downVotedCount", downVotedCount);
 
-        jdbcTemplate.update(sql, params);
+        return jdbcTemplate.update(sql, params);
     }
 
 
