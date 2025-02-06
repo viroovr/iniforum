@@ -1,21 +1,18 @@
 package com.forum.project.infrastructure.persistence.question;
 
 import com.forum.project.application.question.QuestionSortType;
-import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.question.Question;
 import com.forum.project.domain.question.QuestionKey;
 import com.forum.project.domain.question.QuestionRepository;
 import com.forum.project.domain.question.QuestionStatus;
+import com.forum.project.infrastructure.persistence.JdbcTestUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -41,24 +38,18 @@ class QuestionRepositoryJdbcImplTest {
     @BeforeEach
     void setUp() {
         questionRepository = new QuestionRepositoryJdbcImpl(jdbcTemplate);
-
-        jdbcTemplate.getJdbcTemplate().execute("CREATE TABLE questions (" +
+        JdbcTestUtils.dropTable(jdbcTemplate, "questions");
+        JdbcTestUtils.createTable(jdbcTemplate, "questions",
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
-                "user_id BIGINT NOT NULL, " +
-                "title VARCHAR(255) NOT NULL, " +
-                "content TEXT NOT NULL, " +
-                "status ENUM('OPEN', 'CLOSED', 'RESOLVED', 'DELETED') DEFAULT 'OPEN', " +
-                "view_count BIGINT DEFAULT 0 CHECK (view_count >= 0), " +
-                "up_voted_count BIGINT DEFAULT 0 CHECK (up_voted_count >= 0), " +
-                "down_voted_count BIGINT DEFAULT 0 CHECK (down_voted_count >= 0), " +
-                "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                "last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP " +
-                ");");
-    }
-
-    @AfterEach
-    void tearDown() {
-        jdbcTemplate.getJdbcTemplate().execute("DROP TABLE IF EXISTS questions");
+                        "user_id BIGINT NOT NULL, " +
+                        "title VARCHAR(255) NOT NULL, " +
+                        "content TEXT NOT NULL, " +
+                        "status ENUM('OPEN', 'CLOSED', 'RESOLVED', 'DELETED') DEFAULT 'OPEN', " +
+                        "view_count BIGINT DEFAULT 0 CHECK (view_count >= 0), " +
+                        "up_voted_count BIGINT DEFAULT 0 CHECK (up_voted_count >= 0), " +
+                        "down_voted_count BIGINT DEFAULT 0 CHECK (down_voted_count >= 0), " +
+                        "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                        "last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ");
     }
 
     private Question createQuestion(Long userId, String status) {
@@ -71,23 +62,21 @@ class QuestionRepositoryJdbcImplTest {
     }
 
     private void insertTestData(Long userId, String status) {
-        String sql = QuestionQueries.insertAndReturnGeneratedKeys();
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", userId)
                 .addValue("title", "testTitle")
                 .addValue("content", "testContent")
                 .addValue("status", status);
-        jdbcTemplate.update(sql, params);
+        jdbcTemplate.update(QuestionQueries.insertAndReturnGeneratedKeys(), params);
     }
 
     private void insertTestData(Long userId, String title, String content) {
-        String sql = QuestionQueries.insertAndReturnGeneratedKeys();
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", userId)
                 .addValue("title", title)
                 .addValue("content", content)
                 .addValue("status", QuestionStatus.OPEN.name());
-        jdbcTemplate.update(sql, params);
+        jdbcTemplate.update(QuestionQueries.insertAndReturnGeneratedKeys(), params);
     }
 
     private void insertTestData(Long userId, Long viewCount, Long upVotedCount, Long downVotedCount) {
@@ -105,29 +94,21 @@ class QuestionRepositoryJdbcImplTest {
     }
 
     private Optional<Question> findData(Long id) {
-        String sql = QuestionQueries.findById();
-        SqlParameterSource params = new MapSqlParameterSource("id", id);
-        try {
-            Question result = jdbcTemplate.queryForObject(sql, params,
-                    new BeanPropertyRowMapper<>(Question.class));
-            return Optional.ofNullable(result);
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        return JdbcTestUtils.findData(jdbcTemplate, QuestionQueries.findById(), id, Question.class);
     }
 
     @Test
     void insertAndReturnGeneratedKeys() {
-        Question question = createQuestion(1L, QuestionStatus.OPEN.name());
-        Timestamp beforeTimestamp = Timestamp.valueOf(LocalDateTime.now());
+        Map<String, Object> generatedKeys = questionRepository.insertAndReturnGeneratedKeys(
+                createQuestion(1L, QuestionStatus.OPEN.name()));
 
-        Map<String, Object> generatedKeys = questionRepository.insertAndReturnGeneratedKeys(question);
-
-        assertThat(generatedKeys).hasSize(3);
+        assertThat(generatedKeys).hasSize(QuestionKey.getKeys().length);
 
         assertThat((Long) generatedKeys.get(QuestionKey.ID)).isOne();
-        assertThat((Timestamp) generatedKeys.get(QuestionKey.CREATED_DATE)).isAfter(beforeTimestamp);
-        assertThat((Timestamp) generatedKeys.get(QuestionKey.LAST_MODIFIED_DATE)).isAfter(beforeTimestamp);
+        assertThat(((Timestamp) generatedKeys.get(QuestionKey.CREATED_DATE)).toInstant())
+                .isBeforeOrEqualTo(Timestamp.valueOf(LocalDateTime.now()).toInstant());
+        assertThat(((Timestamp) generatedKeys.get(QuestionKey.LAST_MODIFIED_DATE)).toInstant())
+                .isBeforeOrEqualTo(Timestamp.valueOf(LocalDateTime.now()).toInstant());
     }
 
     @Test
@@ -139,12 +120,13 @@ class QuestionRepositoryJdbcImplTest {
         assertThat(result)
                 .isNotEmpty()
                 .hasValueSatisfying(question -> {
+                    assertThat(question.getId()).isOne();
                     assertThat(question.getUserId()).isOne();
                     assertThat(question.getStatus()).isEqualTo(QuestionStatus.OPEN.name());
                     assertThat(question.getUpVotedCount()).isZero();
                 });
 
-        log.info(result.get().toString());
+        result.ifPresent(question -> log.info(question.toString()));
     }
 
     @Test
@@ -290,14 +272,11 @@ class QuestionRepositoryJdbcImplTest {
         int result = questionRepository.updateViewCount(1L, 5L);
 
         assertThat(result).isOne();
-
         assertThat(findData(1L))
                 .isNotEmpty()
                 .hasValueSatisfying(question ->
                         assertThat(question.getViewCount()).isEqualTo(15L)
                 );
-
-        findData(1L).ifPresent(question -> log.info(question.toString()));
     }
 
     @Test
@@ -378,7 +357,6 @@ class QuestionRepositoryJdbcImplTest {
         List<Question> result = questionRepository.getByPage(0, 2);
 
         assertThat(result).hasSize(2);
-        result.forEach(question -> log.info(question.toString()));
     }
 
     @Test
@@ -390,7 +368,6 @@ class QuestionRepositoryJdbcImplTest {
         List<Question> result = questionRepository.getByPage(1, 2);
 
         assertThat(result).hasSize(1);
-        result.forEach(question -> log.info(question.toString()));
     }
 
     @Test

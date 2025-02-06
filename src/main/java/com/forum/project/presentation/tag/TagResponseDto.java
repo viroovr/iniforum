@@ -11,11 +11,9 @@ import lombok.NoArgsConstructor;
 public class TagResponseDto {
     private Long id;
     private String name;
-    private String category;
 
     public TagResponseDto(Tag tag) {
         this.id = tag.getId();
         this.name = tag.getName();
-        this.category = tag.getCategory();
     }
 }

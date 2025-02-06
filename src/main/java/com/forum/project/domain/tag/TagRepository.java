@@ -1,26 +1,26 @@
 package com.forum.project.domain.tag;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface TagRepository {
-    List<Tag> findByNameContainingIgnoreCase(String keyword);
-    boolean existsByName(String name);
-    Tag save(Tag tag);
 
-    List<Tag> findAll();
-    List<Tag> findAllById(List<Long> tagIds);
+    Map<String, Object> insertAndReturnGeneratedKeys(Tag tag);
+    List<Map<String, Object>> saveAll(List<Tag> tags);
 
     Optional<Tag> findById(Long id);
-
     Optional<Tag> findByName(String name);
+    List<Tag> findByIds(List<Long> tagIds);
+    List<Tag> findTagsByQuestionId(Long questionId);
+    List<Tag> findByNames(List<String> tagNames);
+    List<Tag> getByPage(int page, int size);
+    List<Tag> searchByName(String keyword, int page, int size);
+    List<Tag> searchByNames(List<String> tagNames, int page, int size);
 
-    List<Tag> findTagsByQuestionId(Long id);
+    boolean existsByName(String name);
 
-    List<Tag> findAllByName(List<String> tagNames);
+    int updateName(Long id, String name);
 
-    Collection<Object> findAllByNameIn(List<String> tagNames);
-
-    List<Tag> saveAll(List<Tag> newTags);
+    void delete(Long id);
 }

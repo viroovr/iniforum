@@ -1,23 +1,19 @@
 package com.forum.project.infrastructure.persistence.question.report;
 
-import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.question.report.QuestionReport;
 import com.forum.project.domain.question.report.QuestionReportKey;
 import com.forum.project.domain.question.report.QuestionReportRepository;
 import com.forum.project.domain.report.ReportStatus;
+import com.forum.project.infrastructure.persistence.JdbcTestUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -39,20 +35,15 @@ class QuestionReportRepositoryJdbcImplTest {
     @BeforeEach
     void setUp() {
         questionReportRepository = new QuestionReportRepositoryJdbcImpl(jdbcTemplate);
-        jdbcTemplate.getJdbcTemplate().execute("CREATE TABLE question_reports (" +
+        JdbcTestUtils.dropTable(jdbcTemplate, "question_reports");
+        JdbcTestUtils.createTable(jdbcTemplate,"question_reports",
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
                 "user_id BIGINT NOT NULL, " +
                 "question_id BIGINT NOT NULL, " +
                 "reason VARCHAR(500) NOT NULL, " +
                 "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 "status ENUM('PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED') DEFAULT 'PENDING', " +
-                "is_resolved BOOLEAN DEFAULT FALSE" +
-                ");");
-    }
-
-    @AfterEach
-    void tearDown() {
-        jdbcTemplate.getJdbcTemplate().execute("DROP TABLE IF EXISTS question_reports");
+                "is_resolved BOOLEAN DEFAULT FALSE ");
     }
 
     private QuestionReport createQuestionReport(Long userId, Long questionId, String status) {
@@ -65,37 +56,28 @@ class QuestionReportRepositoryJdbcImplTest {
     }
 
     private void insertTestData(Long userId, Long questionId, String status) {
-        String sql = QuestionReportQueries.insertAndReturnGeneratedKeys();
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", userId)
                 .addValue("questionId", questionId)
                 .addValue("reason", "validReason")
                 .addValue("status", status);
-        jdbcTemplate.update(sql, params);
+        jdbcTemplate.update(QuestionReportQueries.insertAndReturnGeneratedKeys(), params);
     }
 
     private Optional<QuestionReport> findData(Long id) {
-        String sql = QuestionReportQueries.findById();
-        SqlParameterSource params = new MapSqlParameterSource("id", id);
-        try {
-            QuestionReport result = jdbcTemplate.queryForObject(sql, params,
-                    new BeanPropertyRowMapper<>(QuestionReport.class));
-            return Optional.ofNullable(result);
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        return JdbcTestUtils.findData(jdbcTemplate, QuestionReportQueries.findById(), id, QuestionReport.class);
     }
 
     @Test
     void insertAndReturnGeneratedKeys() {
-        QuestionReport report = createQuestionReport(1L, 1L, ReportStatus.PENDING.name());
-        Timestamp beforeTimeStamp = Timestamp.valueOf(LocalDateTime.now());
+        Map<String, Object> generatedKeys = questionReportRepository.insertAndReturnGeneratedKeys(
+                createQuestionReport(1L, 1L, ReportStatus.PENDING.name()));
 
-        Map<String, Object> generatedKeys = questionReportRepository.insertAndReturnGeneratedKeys(report);
         assertThat(generatedKeys).hasSize(QuestionReportKey.getKeys().length);
 
         assertThat((Long) generatedKeys.get(QuestionReportKey.ID)).isOne();
-        assertThat((Timestamp) generatedKeys.get(QuestionReportKey.CREATED_DATE)).isAfter(beforeTimeStamp);
+        assertThat(((Timestamp) generatedKeys.get(QuestionReportKey.CREATED_DATE)).toInstant())
+                .isBeforeOrEqualTo(Timestamp.valueOf(LocalDateTime.now()).toInstant());
     }
 
     @Test
@@ -123,6 +105,7 @@ class QuestionReportRepositoryJdbcImplTest {
         assertThat(result)
                 .isNotEmpty()
                 .hasValueSatisfying(questionReport -> {
+                    assertThat(questionReport.getId()).isEqualTo(1L);
                     assertThat(questionReport.getQuestionId()).isEqualTo(1L);
                     assertThat(questionReport.getUserId()).isEqualTo(1L);
                     assertThat(questionReport.getStatus()).isEqualTo(ReportStatus.PENDING.name());

@@ -1,21 +1,17 @@
 package com.forum.project.infrastructure.persistence.tag;
 
 import com.forum.project.domain.tag.Tag;
+import com.forum.project.domain.tag.TagKey;
 import com.forum.project.domain.tag.TagRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.namedparam.*;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -23,83 +19,127 @@ public class TagRepositoryJdbcImpl implements TagRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
+    public Map<String, Object> insertAndReturnGeneratedKeys(Tag tag) {
+        String sql = TagQueries.insert();
+        SqlParameterSource namedParameters = new BeanPropertySqlParameterSource(tag);
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(sql, namedParameters, keyHolder, TagKey.getKeys());
+
+        return keyHolder.getKeys();
+    }
+
+    @Override
+    public List<Map<String, Object>> saveAll(List<Tag> newTags) {
+        String sql = TagQueries.insert();
+        SqlParameterSource[] params = SqlParameterSourceUtils.createBatch(newTags.toArray());
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.batchUpdate(sql, params, keyHolder, TagKey.getKeys());
+
+        return keyHolder.getKeyList();
+    }
+
+    private Optional<Tag> findSingleResult(String sql, SqlParameterSource params) {
+        try {
+            Tag result = jdbcTemplate.queryForObject(sql, params,
+                    new BeanPropertyRowMapper<>(Tag.class));
+            return Optional.ofNullable(result);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public Optional<Tag> findById(Long id) {
-        String sql = "SELECT * FROM tags WHERE id = :id";
-        SqlParameterSource namedParameters = new MapSqlParameterSource("id", id);
-        return jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<>(Tag.class))
-                .stream()
-                .findFirst();
+        return findSingleResult(TagQueries.findById(), new MapSqlParameterSource("id", id));
     }
 
     @Override
     public Optional<Tag> findByName(String name) {
-        String sql = "SELECT * FROM tags WHERE name = :name";
-        SqlParameterSource namedParameters = new MapSqlParameterSource("name", name);
-        return Optional.ofNullable(jdbcTemplate
-                .queryForObject(sql, namedParameters, new BeanPropertyRowMapper<>(Tag.class)));
+        return findSingleResult(TagQueries.findByName(), new MapSqlParameterSource("name", name));
+    }
+
+    private List<Tag> executeQuery(String sql, SqlParameterSource params) {
+        return jdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(Tag.class));
+    }
+
+    private MapSqlParameterSource createPaginationParams(String keyword, int page, int size) {
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("limit", size)
+                .addValue("offset", page * size);
+        if (keyword != null) params.addValue("keyword",keyword);
+        return params;
     }
 
     @Override
-    public List<Tag> findByNameContainingIgnoreCase(String keyword) {
-        String sql = "SELECT * FROM tags WHERE LOWER(name) LIKE :keyword";
-        SqlParameterSource namedParameters = new MapSqlParameterSource("keyword", "%" + keyword.toLowerCase() + "%");
-        return jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<>(Tag.class));
+    public List<Tag> searchByName(String keyword, int page, int size) {
+        return executeQuery(TagQueries.searchByName(), createPaginationParams(keyword, page, size));
     }
 
     @Override
-    public List<Tag> findAllById(List<Long> tagIds) {
-        String sql = "SELECT * FROM tags WHERE id IN (:tagIds)";
-        SqlParameterSource namedParameters = new MapSqlParameterSource("tagIds", tagIds);
-        return jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<>(Tag.class));
+    public List<Tag> findByIds(List<Long> ids) {
+        return executeQuery(TagQueries.findByIds(), new MapSqlParameterSource("ids", ids));
     }
 
     @Override
-    public List<Tag> findAll() {
-        String sql = "SELECT * FROM tags";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Tag.class));
-    }
-
-    @Override
-    public Tag save(Tag tag) {
-        String sql = "INSERT INTO tags (name) VALUES (:name)";
-        SqlParameterSource namedParameters = new BeanPropertySqlParameterSource(tag);
-
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(sql, namedParameters, keyHolder, new String[]{"id"});
-        tag.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
-
-        return tag;
+    public List<Tag> getByPage(int page, int size) {
+        return executeQuery(TagQueries.getByPage(), createPaginationParams(null, page, size));
     }
 
     @Override
     public List<Tag> findTagsByQuestionId(Long questionId) {
-        String sql = "SELECT t.* FROM tags t " +
-                "JOIN question_tag qt ON t.id = qt.tag_id " +
-                "WHERE qt.question_id = :questionId";
-
-        SqlParameterSource namedParameters = new MapSqlParameterSource("questionId", questionId);
-        return jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<>(Tag.class));
+        return executeQuery(TagQueries.findTagsByQuestionId(),
+                new MapSqlParameterSource("questionId", questionId));
     }
 
     @Override
-    public List<Tag> findAllByName(List<String> tagNames) {
-        return List.of();
+    public List<Tag> findByNames(List<String> tagNames) {
+        return executeQuery(TagQueries.findByNames(), new MapSqlParameterSource("names", tagNames));
     }
 
     @Override
-    public Collection<Object> findAllByNameIn(List<String> tagNames) {
-        return List.of();
+    public List<Tag> searchByNames(List<String> tagNames, int page, int size) {
+        StringBuilder sql = new StringBuilder(TagQueries.searchByNames());
+        MapSqlParameterSource params = createPaginationParams(null, page, size);
+
+        buildLikeConditions(tagNames, sql, params);
+
+        return executeQuery(sql.toString(), params);
     }
 
-    @Override
-    public List<Tag> saveAll(List<Tag> newTags) {
-        return List.of();
+    private void buildLikeConditions(List<String> tagNames, StringBuilder sql, MapSqlParameterSource params) {
+        for (int i = 0; i < tagNames.size(); i++) {
+            sql.append("LOWER(name) LIKE '%' || :").append("keyword").append(i).append(" || '%' ");
+
+            params.addValue("keyword" + i, tagNames.get(i));
+
+            if (i < tagNames.size() - 1) {
+                sql.append("OR ");
+            }
+        }
+        sql.append(" LIMIT :limit OFFSET :offset");
     }
 
     public boolean existsByName(String name) {
-        String sql = "SELECT EXISTS (SELECT * FROM tags WHERE name = :name)";
+        String sql = TagQueries.existsByName();
         SqlParameterSource namedParameters = new MapSqlParameterSource("name", name);
         Boolean exists = jdbcTemplate.queryForObject(sql, namedParameters, Boolean.class);
         return Boolean.TRUE.equals(exists);
+    }
+
+    @Override
+    public int updateName(Long id, String name) {
+        String sql = TagQueries.updateName();
+        SqlParameterSource params = new MapSqlParameterSource("name", name)
+                .addValue("id", id);
+        return jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public void delete(Long id) {
+        String sql = TagQueries.delete();
+        SqlParameterSource params = new MapSqlParameterSource("id", id);
+        jdbcTemplate.update(sql, params);
     }
 }

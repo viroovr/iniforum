@@ -30,4 +30,8 @@ public class CommentLikeQueries {
     public static String updateStatus() {
         return "UPDATE comment_likes SET status =:status WHERE id = :id";
     }
+
+    public static String findById() {
+        return "SELECT * FROM comment_likes WHERE id = :id";
+    }
 }

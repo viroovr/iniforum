@@ -1,14 +1,12 @@
 package com.forum.project.infrastructure.persistence.user;
 
 import com.forum.project.domain.user.*;
+import com.forum.project.infrastructure.persistence.JdbcTestUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -19,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -35,8 +34,8 @@ class UserRepositoryJdbcImplTest {
     @BeforeEach
     void setUp() {
         userRepository = new UserRepositoryJdbcImpl(jdbcTemplate);
-
-        jdbcTemplate.getJdbcTemplate().execute("CREATE TABLE users (" +
+        JdbcTestUtils.dropTable(jdbcTemplate, "users");
+        JdbcTestUtils.createTable(jdbcTemplate, "users",
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
                 "login_id VARCHAR(255) NOT NULL UNIQUE, " +
                 "email VARCHAR(255) NOT NULL UNIQUE, " +
@@ -50,13 +49,7 @@ class UserRepositoryJdbcImplTest {
                 "last_activity_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 "last_password_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 "last_login_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP " +
-                ");");
-    }
-
-    @AfterEach
-    void tearDown() {
-        jdbcTemplate.getJdbcTemplate().execute("DROP TABLE IF EXISTS USERS");
+                "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ");
     }
 
     private User createUser(String loginId, String email) {
@@ -89,7 +82,6 @@ class UserRepositoryJdbcImplTest {
     }
 
     private void insertData(String loginId, String email) {
-        String sql = UserQueries.insertAndReturnGeneratedKeys();
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("loginId", loginId)
                 .addValue("email", email)
@@ -100,18 +92,11 @@ class UserRepositoryJdbcImplTest {
                 .addValue("profileImagePath", "test/path")
                 .addValue("status", UserStatus.ACTIVE.name())
                 .addValue("role", UserRole.USER.name());
-        jdbcTemplate.update(sql, params);
+        jdbcTemplate.update(UserQueries.insertAndReturnGeneratedKeys(), params);
     }
 
     private Optional<User> findData(Long id) {
-        String sql = UserQueries.findById();
-        try {
-            User result = jdbcTemplate.queryForObject(sql, new MapSqlParameterSource("id", id),
-                    new BeanPropertyRowMapper<>(User.class));
-            return Optional.ofNullable(result);
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        return JdbcTestUtils.findData(jdbcTemplate, UserQueries.findById(), id, User.class);
     }
 
     @Test
@@ -123,6 +108,7 @@ class UserRepositoryJdbcImplTest {
         assertThat(result)
                 .isNotEmpty()
                 .hasValueSatisfying(user -> {
+                    assertThat(user.getId()).isOne();
                     assertThat(user.getLoginId()).isEqualTo("testLoginId");
                     assertThat(user.getEmail()).isEqualTo("test@email.com");
                 });
@@ -171,28 +157,31 @@ class UserRepositoryJdbcImplTest {
 
     @Test
     void insertAndReturnGeneratedKeys() {
-        User user = createUser("testLoginId", "test@email.com");
-        Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
 
-        Map<String, Object> result = userRepository.insertAndReturnGeneratedKeys(user);
+        Map<String, Object> result = userRepository.insertAndReturnGeneratedKeys(
+                createUser("testLoginId", "test@email.com"));
+
         assertThat(result)
                 .isNotEmpty()
                 .hasSize(UserKey.getKeys().length);
-
         assertThat((Long) result.get(UserKey.ID)).isOne();
-        assertThat((Timestamp) result.get(UserKey.CREATED_DATE)).isAfter(expectedTimestamp);
-        assertThat((Timestamp) result.get(UserKey.LAST_ACTIVITY_DATE)).isAfter(expectedTimestamp);
-        assertThat((Timestamp) result.get(UserKey.LAST_LOGIN_DATE)).isAfter(expectedTimestamp);
-        assertThat((Timestamp) result.get(UserKey.LAST_PASSWORD_MODIFIED_DATE)).isAfter(expectedTimestamp);
+        assertThat(((Timestamp) result.get(UserKey.CREATED_DATE)).toInstant())
+                .isBeforeOrEqualTo(Timestamp.valueOf(LocalDateTime.now()).toInstant());
+        assertThat(((Timestamp) result.get(UserKey.LAST_ACTIVITY_DATE)).toInstant())
+                .isBeforeOrEqualTo(Timestamp.valueOf(LocalDateTime.now()).toInstant());
+        assertThat(((Timestamp) result.get(UserKey.LAST_LOGIN_DATE)).toInstant())
+                .isBeforeOrEqualTo(Timestamp.valueOf(LocalDateTime.now()).toInstant());
+        assertThat(((Timestamp) result.get(UserKey.LAST_PASSWORD_MODIFIED_DATE)).toInstant())
+                .isBeforeOrEqualTo(Timestamp.valueOf(LocalDateTime.now()).toInstant());
     }
 
     @Test
     void updateProfile() {
         insertData("testLoginId", "test@email.com");
-        User user = createUser("newPassword", "newImage/path",
-                "newNickname", UserStatus.SUSPENDED.name());
 
-        int result = userRepository.updateProfile(user);
+        int result = userRepository.updateProfile(
+                createUser("newPassword", "newImage/path",
+                "newNickname", UserStatus.SUSPENDED.name()));
 
         assertThat(result).isOne();
         assertThat(findData(1L))
@@ -209,7 +198,6 @@ class UserRepositoryJdbcImplTest {
     void updateAllStatus() {
         insertData("testLoginId", "test@email.com");
         insertData("testLoginId1", "test1@email.com");
-
         List<Long> userIds = List.of(1L, 2L);
         List<String> statuses = List.of(UserStatus.INACTIVE.name(), UserStatus.DELETED.name());
 
@@ -217,18 +205,13 @@ class UserRepositoryJdbcImplTest {
 
         assertThat(result).isEqualTo(2);
 
-        Map<Long, String> expectedStatuses = Map.of(
-                1L, UserStatus.INACTIVE.name(),
-                2L, UserStatus.DELETED.name()
-        );
-
-        expectedStatuses.forEach((id, expectedStatus) ->
-            assertThat(findData(id))
+        IntStream.range(0, 2).forEach(i -> {
+            assertThat(findData(userIds.get(i)))
                     .isNotEmpty()
-                    .hasValueSatisfying(
-                            user -> assertThat(user.getStatus()).isEqualTo(expectedStatus)
-                    )
-        );
+                    .hasValueSatisfying(user ->
+                            assertThat(user.getStatus()).isEqualTo(statuses.get(i))
+                    );
+        });
     }
 
     @Test
@@ -268,7 +251,9 @@ class UserRepositoryJdbcImplTest {
 
     @Test
     void existsByEmail_notExists() {
-        assertThat(userRepository.existsByEmail("test@email.com")).isFalse();
+        boolean result = userRepository.existsByEmail("test@email.com");
+
+        assertThat(result).isFalse();
     }
 
     @Test

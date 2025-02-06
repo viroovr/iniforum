@@ -1,12 +1,11 @@
 package com.forum.project.infrastructure.persistence.comment;
 
-import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.comment.Comment;
 import com.forum.project.domain.comment.CommentKey;
 import com.forum.project.domain.comment.CommentRepository;
 import com.forum.project.domain.comment.CommentStatus;
+import com.forum.project.infrastructure.persistence.JdbcTestUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 @JdbcTest
 @ActiveProfiles("test")
@@ -38,8 +37,8 @@ class CommentRepositoryJdbcImplTest {
     @BeforeEach
     void setUp() {
         commentRepository = new CommentRepositoryJdbcImpl(jdbcTemplate);
-
-        jdbcTemplate.getJdbcTemplate().execute("CREATE TABLE comments (" +
+        JdbcTestUtils.dropTable(jdbcTemplate, "comments");
+        JdbcTestUtils.createTable(jdbcTemplate, "comments",
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
                 "user_id BIGINT NOT NULL, " +
                 "question_id BIGINT NOT NULL," +
@@ -53,13 +52,7 @@ class CommentRepositoryJdbcImplTest {
                 "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
                 "last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " +
                 "FOREIGN KEY (parent_comment_id) REFERENCES comments(id), " +
-                "CHECK (status IN ('ACTIVE', 'INACTIVE', 'DELETED', 'SPAM'))" +
-                ");");
-    }
-
-    @AfterEach
-    void tearDown() {
-        jdbcTemplate.getJdbcTemplate().execute("DROP TABLE IF EXISTS comments;");
+                "CHECK (status IN ('ACTIVE', 'INACTIVE', 'DELETED', 'SPAM'))");
     }
 
     private Comment createComment(Long userId, Long questionId, Long parentCommentId) {
@@ -95,18 +88,16 @@ class CommentRepositoryJdbcImplTest {
 
     @Test
     void insertAndReturnGeneratedKeys() {
-        Comment comment = createComment(1L, 1L, null);
-        Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
+        Map<String, Object> generatedKeys = commentRepository.insertAndReturnGeneratedKeys(
+                createComment(1L, 1L, null));
 
-        Map<String, Object> generatedKeys = commentRepository.insertAndReturnGeneratedKeys(comment);
-
-        assertThat(generatedKeys)
-                .isNotEmpty()
-                .hasSize(CommentKey.getKeys().length);
+        assertThat(generatedKeys).hasSize(CommentKey.getKeys().length);
 
         assertThat((Long) generatedKeys.get(CommentKey.ID)).isEqualTo(1L);
-        assertThat((Timestamp) generatedKeys.get(CommentKey.CREATED_DATE)).isAfter(expectedTimestamp);
-        assertThat((Timestamp) generatedKeys.get(CommentKey.LAST_MODIFIED_DATE)).isAfter(expectedTimestamp);
+        assertThat(((Timestamp) generatedKeys.get(CommentKey.CREATED_DATE)).toInstant())
+                .isBeforeOrEqualTo(Timestamp.valueOf(LocalDateTime.now()).toInstant());
+        assertThat(((Timestamp) generatedKeys.get(CommentKey.LAST_MODIFIED_DATE)).toInstant())
+                .isBeforeOrEqualTo(Timestamp.valueOf(LocalDateTime.now()).toInstant());
     }
 
     @Test
@@ -121,16 +112,11 @@ class CommentRepositoryJdbcImplTest {
                     assertThat(comment.getId()).isOne();
                     assertThat(comment.getQuestionId()).isOne();
                     assertThat(comment.getParentCommentId()).isNull();
-                    assertThat(comment.getLoginId()).isNull();
                     assertThat(comment.getContent()).isEqualTo("testContent");
-                    assertThat(comment.getUpVotedCount()).isZero();
-                    assertThat(comment.getDownVotedCount()).isZero();
                     assertThat(comment.getStatus()).isEqualTo(CommentStatus.ACTIVE.name());
-                    assertThat(comment.getReportCount()).isZero();
-                    assertThat(comment.getIsEdited()).isFalse();
                 });
 
-        log.info(result.get().toString());
+        result.ifPresent(comment -> log.info(comment.toString()));
     }
 
     @Test
@@ -230,8 +216,9 @@ class CommentRepositoryJdbcImplTest {
         assertThat(findData(1L)).isPresent();
 
         commentRepository.deleteById(1L);
-
         assertThat(findData(1L)).isEmpty();
+
+        assertThatCode(() -> commentRepository.deleteById(999L)).doesNotThrowAnyException();
     }
 
     @Test

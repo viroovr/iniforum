@@ -1,18 +1,15 @@
 package com.forum.project.infrastructure.persistence.comment.like;
 
-import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.like.LikeStatus;
 import com.forum.project.domain.like.commentlike.CommentLike;
 import com.forum.project.domain.like.commentlike.CommentLikeKey;
 import com.forum.project.domain.like.commentlike.CommentLikeRepository;
+import com.forum.project.infrastructure.persistence.JdbcTestUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -39,19 +36,14 @@ class CommentLikeRepositoryJdbcImplTest {
     @BeforeEach
     void setUp() {
         commentLikeRepository = new CommentLikeRepositoryJdbcImpl(jdbcTemplate);
-        jdbcTemplate.getJdbcTemplate().execute("CREATE TABLE comment_likes (" +
+        JdbcTestUtils.dropTable(jdbcTemplate, "comment_likes");
+        JdbcTestUtils.createTable(jdbcTemplate, "comment_likes",
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
                 "user_id BIGINT NOT NULL, " +
                 "comment_id BIGINT NOT NULL, " +
                 "status ENUM('LIKE', 'DISLIKE', 'NONE') DEFAULT 'LIKE', " +
                 "ip_address VARCHAR(255), " +
-                "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP " +
-                ");");
-    }
-
-    @AfterEach
-    void tearDown() {
-        jdbcTemplate.getJdbcTemplate().execute("DROP TABLE IF EXISTS comment_likes");
+                "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ");
     }
 
     private CommentLike createCommentLike(Long userId, Long commentId, String status) {
@@ -74,33 +66,19 @@ class CommentLikeRepositoryJdbcImplTest {
     }
 
     private Optional<CommentLike> findData(Long id) {
-        String sql = "SELECT * FROM comment_likes WHERE id = :id";
-        SqlParameterSource params = new MapSqlParameterSource("id", id);
-        try {
-            CommentLike result = jdbcTemplate.queryForObject(sql, params,
-                    new BeanPropertyRowMapper<>(CommentLike.class));
-            return Optional.ofNullable(result);
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        return JdbcTestUtils.findData(jdbcTemplate, CommentLikeQueries.findById(), id, CommentLike.class);
     }
 
     @Test
     void insertAndReturnGeneratedKeys() {
-        CommentLike commentLike = createCommentLike(1L, 1L, LikeStatus.LIKE.name());
-        Timestamp expectedTimeStamp = Timestamp.valueOf(LocalDateTime.now());
-        Map<String, Object> result = commentLikeRepository.insertAndReturnGeneratedKeys(commentLike);
+        Map<String, Object> result = commentLikeRepository.insertAndReturnGeneratedKeys(
+                createCommentLike(1L, 1L, LikeStatus.LIKE.name()));
 
-        assertThat(result)
-                .isNotNull()
-                .hasSize(CommentLikeKey.getKeys().length);
+        assertThat(result).hasSize(CommentLikeKey.getKeys().length);
 
-        Long generatedId = (Long) result.get(CommentLikeKey.ID);
-        Timestamp createdDate = (Timestamp) result.get(CommentLikeKey.CREATED_DATE);
-
-        assertThat(generatedId).isEqualTo(1L);
-        assertThat(createdDate).isNotNull();
-        assertThat(DateUtils.timeDifferenceWithinLimit(expectedTimeStamp, createdDate)).isTrue();
+        assertThat((Long) result.get(CommentLikeKey.ID)).isEqualTo(1L);
+        assertThat(((Timestamp) result.get(CommentLikeKey.CREATED_DATE)).toInstant())
+                .isBeforeOrEqualTo(Timestamp.valueOf(LocalDateTime.now()).toInstant());
     }
 
     @Test
@@ -124,12 +102,12 @@ class CommentLikeRepositoryJdbcImplTest {
         insertTestData(1L, 1L, LikeStatus.LIKE.name());
         Optional<CommentLike> result = commentLikeRepository.findByUserIdAndCommentId(1L, 1L);
 
-        assertThat(result).isNotEmpty();
-        CommentLike commentLike = result.get();
-
-        assertThat(commentLike)
-                .extracting(CommentLike::getCommentId, CommentLike::getUserId, CommentLike::getStatus)
-                .containsExactly(1L, 1L, LikeStatus.LIKE.name());
+        assertThat(result)
+                .isNotEmpty()
+                .hasValueSatisfying(commentLike -> {
+                    assertThat(commentLike.getUserId()).isOne();
+                    assertThat(commentLike.getCommentId()).isOne();
+                });
     }
 
     @Test
@@ -152,9 +130,9 @@ class CommentLikeRepositoryJdbcImplTest {
 
         List<Long> result = commentLikeRepository.findCommentIdsByUserIdAndStatus(1L, LikeStatus.LIKE.name());
 
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        assertThat(result).containsExactlyInAnyOrder(1L, 2L);
+        assertThat(result)
+                .hasSize(2)
+                .containsExactlyInAnyOrder(1L, 2L);
     }
 
     @Test
@@ -164,10 +142,9 @@ class CommentLikeRepositoryJdbcImplTest {
         int result = commentLikeRepository.updateStatus(1L, LikeStatus.DISLIKE.name());
         assertThat(result).isEqualTo(1);
 
-        Optional<CommentLike> likeOptional = findData(1L);
-        assertThat(likeOptional).isPresent();
-
-        CommentLike commentLike = likeOptional.get();
-        assertThat(commentLike.getStatus()).isEqualTo(LikeStatus.DISLIKE.name());
+        assertThat(findData(1L)).isPresent()
+                .hasValueSatisfying(commentLike ->
+                        assertThat(commentLike.getStatus()).isEqualTo(LikeStatus.DISLIKE.name())
+                );
     }
 }

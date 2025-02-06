@@ -11,6 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -19,10 +23,9 @@ public class TagService {
     private final TagRepository tagRepository;
     private final QuestionTagService questionTagService;
 
-    public Tag buildTag(String name, String category) {
+    public Tag buildTag(String name) {
         return Tag.builder()
                 .name(name)
-                .category(category)
                 .build();
     }
 
@@ -43,18 +46,27 @@ public class TagService {
     @Transactional
     public List<Tag> createTags(TagRequestDto tagRequestDto) {
         List<String> tagNames = tagRequestDto.getNames();
-        TagCategory tagCategory = tagRequestDto.getValidatedCategory();
+
+        Set<String> existingTags = tagRepository.findByNames(tagNames).stream()
+                .map(Tag::getName)
+                .collect(Collectors.toSet());
 
         List<Tag> newTags = tagNames.stream()
-                .map(name -> {
-                    if (tagRepository.existsByName(name)) {
+                .filter(name -> {
+                    if(existingTags.contains(name)) {
                         throw new ApplicationException(ErrorCode.TAG_ALREADY_EXISTS, "Tag already exists: " + name);
                     }
-                    return buildTag(name, tagCategory.name());
+                    return true;
                 })
+                .map(this::buildTag)
                 .toList();
+        List<Map<String, Object>> generatedKeys = tagRepository.saveAll(newTags);
 
-        return tagRepository.saveAll(newTags);
+        return IntStream.range(0, newTags.size())
+                .mapToObj(i -> {
+                    newTags.get(i).setKeys(generatedKeys.get(i));
+                    return newTags.get(i);
+                }).toList();
     }
 
     public List<String> getStringUpdateTags(TagRequestDto tagRequestDto) {
@@ -64,15 +76,15 @@ public class TagService {
     @Transactional
     public List<Tag> updateTags(TagRequestDto tagRequestDto) {
         List<String> tagNames = tagRequestDto.getNames();
-        TagCategory tagCategory = tagRequestDto.getValidatedCategory();
 
         List<Tag> updatedTags = new ArrayList<>();
 
         for (String tagName : tagNames) {
             Tag tag = tagRepository.findByName(tagName)
                     .orElseGet(() -> {
-                        Tag newTag = buildTag(tagName, tagCategory.name());
-                        return tagRepository.save(newTag);
+                        Tag newTag = buildTag(tagName);
+                        newTag.setKeys(tagRepository.insertAndReturnGeneratedKeys(newTag));
+                        return newTag;
                     });
             updatedTags.add(tag);
         }
@@ -82,11 +94,14 @@ public class TagService {
 
     public List<Long> getOrCreateTagIds(TagRequestDto tagRequestDto) {
         List<Long> tagIds = new ArrayList<>();
-        TagCategory validatedCategory = tagRequestDto.getValidatedCategory();
 
         for (String tagName : tagRequestDto.getNames()) {
             Tag tag = tagRepository.findByName(tagName)
-                    .orElseGet(() -> tagRepository.save(buildTag(tagName, validatedCategory.name())));
+                    .orElseGet(() -> {
+                        Tag newTag = buildTag(tagName);
+                        newTag.setKeys(tagRepository.insertAndReturnGeneratedKeys(buildTag(tagName)));
+                        return newTag;
+                    });
             tagIds.add(tag.getId());
         }
 
@@ -101,7 +116,7 @@ public class TagService {
 
     public List<Tag> getTagsByQuestionId(Long questionId) {
         List<Long> tagIds = questionTagService.getTagIdsByQuestionId(questionId);
-        return tagRepository.findAllById(tagIds);
+        return tagRepository.findByIds(tagIds);
     }
 
     public List<Long> getQuestionIdsByTagName(String tagName) {
@@ -111,8 +126,8 @@ public class TagService {
     }
 
     @Transactional(readOnly = true)
-    public List<TagResponseDto> getRecommendedTags(String keyword) {
-        List<Tag> tags = tagRepository.findByNameContainingIgnoreCase(keyword);
+    public List<TagResponseDto> getRecommendedTags(String keyword, int page, int size) {
+        List<Tag> tags = tagRepository.searchByName(keyword, page, size);
         return tags.stream()
                 .map(TagResponseDto::new)
                 .toList();

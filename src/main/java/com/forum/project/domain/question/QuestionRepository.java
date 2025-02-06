@@ -16,7 +16,7 @@ public interface QuestionRepository {
 
     List<Question> getByPage(int page, int size);
     List<Question> getByPageable(Pageable pageable);
-    Long getViewCountById(Long questionId);
+    Long getViewCountById(Long id);
 
     List<Question> searchByTitle(String keyword, int page, int size);
     List<Question> searchByContent(String keyword, int page, int size);

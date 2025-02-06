@@ -16,8 +16,12 @@ public class TagController {
     private final TagService tagService;
 
     @GetMapping("/recommendations")
-    public ResponseEntity<List<TagResponseDto>> getRecommendedTags(@RequestParam String keyword) {
-        List<TagResponseDto> recommendedTags = tagService.getRecommendedTags(keyword);
+    public ResponseEntity<List<TagResponseDto>> getRecommendedTags(
+            @RequestParam String keyword,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        List<TagResponseDto> recommendedTags = tagService.getRecommendedTags(keyword, page, size);
         return ResponseEntity.ok(recommendedTags);
     }
 

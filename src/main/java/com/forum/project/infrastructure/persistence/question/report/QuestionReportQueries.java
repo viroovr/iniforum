@@ -13,18 +13,15 @@ public class QuestionReportQueries {
     }
 
     public static String findById() {
-        return "SELECT * FROM question_reports " +
-                "WHERE id =:id";
+        return "SELECT * FROM question_reports WHERE id =:id";
     }
 
     public static String findAllByUserId() {
-        return "SELECT * FROM question_reports " +
-                "WHERE user_id =:userId";
+        return "SELECT * FROM question_reports WHERE user_id =:userId";
     }
 
     public static String findAllByQuestionId() {
-        return "SELECT * FROM question_reports " +
-                "WHERE question_id =:questionId";
+        return "SELECT * FROM question_reports WHERE question_id =:questionId";
     }
 
     public static String countByQuestionId() {

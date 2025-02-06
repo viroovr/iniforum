@@ -2,12 +2,13 @@ package com.forum.project.application.tag;
 
 import com.forum.project.application.exception.ApplicationException;
 import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.domain.tag.QuestionTag;
-import com.forum.project.domain.tag.QuestionTagRepository;
+import com.forum.project.domain.question.tag.QuestionTag;
+import com.forum.project.domain.question.tag.QuestionTagRepository;
 import com.forum.project.domain.tag.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -17,7 +18,10 @@ public class QuestionTagService {
 
     private List<QuestionTag> buildQuestionTags(Long questionId, List<Tag> tags) {
         return tags.stream()
-                .map(tag -> new QuestionTag(questionId, tag.getId()))
+                .map(tag -> QuestionTag.builder()
+                        .questionId(questionId)
+                        .tagId(tag.getId())
+                        .build())
                 .toList();
     }
 
@@ -31,8 +35,10 @@ public class QuestionTagService {
     public List<QuestionTag> saveQuestionTag(Long questionId, List<Tag> tags) {
         validateTags(tags);
         List<QuestionTag> questionTags = buildQuestionTags(questionId, tags);
+        if (Arrays.stream(questionTagRepository.saveAll(questionTags)).anyMatch(r -> r ==0))
+            throw new ApplicationException(ErrorCode.DATABASE_ERROR);
 
-        return questionTagRepository.saveAll(questionTags);
+        return questionTags;
     }
 
     public List<Long> getTagIdsByQuestionId(Long questionId) {
@@ -42,6 +48,4 @@ public class QuestionTagService {
     public List<Long> getQuestionIdsByTagId(Long tagId) {
         return questionTagRepository.findQuestionIdsByTagId(tagId);
     }
-
-
 }

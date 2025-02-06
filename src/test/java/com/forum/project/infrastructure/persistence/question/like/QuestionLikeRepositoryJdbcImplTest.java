@@ -4,14 +4,12 @@ import com.forum.project.domain.like.LikeStatus;
 import com.forum.project.domain.question.like.QuestionLike;
 import com.forum.project.domain.question.like.QuestionLikeKey;
 import com.forum.project.domain.question.like.QuestionLikeRepository;
+import com.forum.project.infrastructure.persistence.JdbcTestUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -24,8 +22,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @JdbcTest
@@ -40,31 +36,24 @@ class QuestionLikeRepositoryJdbcImplTest {
     @BeforeEach
     void setUp() {
         questionLikeRepository = new QuestionLikeRepositoryJdbcImpl(jdbcTemplate);
-
-        jdbcTemplate.getJdbcTemplate().execute("CREATE TABLE question_likes (" +
+        JdbcTestUtils.dropTable(jdbcTemplate, "question_likes");
+        JdbcTestUtils.createTable(jdbcTemplate, "question_likes",
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
                 "user_id BIGINT NOT NULL, " +
                 "question_id BIGINT NOT NULL, " +
                 "status VARCHAR(255), " +
                 "ip_address VARCHAR(255), " +
-                "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-                ");");
-    }
-
-    @AfterEach
-    void tearDown() {
-        jdbcTemplate.getJdbcTemplate().execute("DROP TABLE IF EXISTS question_likes;");
+                "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ");
     }
 
     private void insertTestData(Long userId, String status, Long questionId) {
-        String insertSql = QuestionLikeQueries.insertAndReturnGeneratedKeys();
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", userId)
                 .addValue("status", status)
                 .addValue("ipAddress", "192.168.0.1")
                 .addValue("questionId", questionId);
 
-        jdbcTemplate.update(insertSql, params);
+        jdbcTemplate.update(QuestionLikeQueries.insertAndReturnGeneratedKeys(), params);
     }
 
     private QuestionLike createQuestionLike(Long userId, String status, Long questionId) {
@@ -77,44 +66,35 @@ class QuestionLikeRepositoryJdbcImplTest {
     }
 
     private Optional<QuestionLike> findData(Long id) {
-        String sql = QuestionLikeQueries.findById();
-        SqlParameterSource params = new MapSqlParameterSource("id", id);
-        try {
-            QuestionLike result = jdbcTemplate.queryForObject(sql, params,
-                    new BeanPropertyRowMapper<>(QuestionLike.class));
-            return Optional.ofNullable(result);
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        return JdbcTestUtils.findData(jdbcTemplate, QuestionLikeQueries.findById(), id, QuestionLike.class);
     }
 
     @Test
     void insertAndReturnGeneratedKeys() {
-        QuestionLike questionLike = createQuestionLike(1L, LikeStatus.LIKE.name(), 1L);
-        Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
-
-        Map<String, Object> result = questionLikeRepository.insertAndReturnGeneratedKeys(questionLike);
+        Map<String, Object> result = questionLikeRepository.insertAndReturnGeneratedKeys(
+                createQuestionLike(1L, LikeStatus.LIKE.name(), 1L));
 
         assertThat(result).hasSize(QuestionLikeKey.getKeys().length);
 
         assertThat((Long) result.get(QuestionLikeKey.ID)).isEqualTo(1L);
-        assertThat((Timestamp) result.get(QuestionLikeKey.CREATED_DATE)).isAfter(expectedTimestamp);
+        assertThat(((Timestamp) result.get(QuestionLikeKey.CREATED_DATE)).toInstant())
+                .isBeforeOrEqualTo(Timestamp.valueOf(LocalDateTime.now()).toInstant());
     }
 
     @Test
     void existsByQuestionIdAndUserId() {
         insertTestData(1L, LikeStatus.LIKE.name(), 100L);
 
-        boolean exists = questionLikeRepository.existsByQuestionIdAndUserId(100L, 1L);
+        boolean result = questionLikeRepository.existsByQuestionIdAndUserId(100L, 1L);
 
-        assertTrue(exists);
+        assertThat(result).isTrue();
     }
 
     @Test
     void existsByQuestionIdAndUserId_notExists() {
-        boolean exists = questionLikeRepository.existsByQuestionIdAndUserId(100L, 1L);
+        boolean result = questionLikeRepository.existsByQuestionIdAndUserId(100L, 1L);
 
-        assertFalse(exists);
+        assertThat(result).isFalse();
     }
 
     @Test
@@ -126,10 +106,10 @@ class QuestionLikeRepositoryJdbcImplTest {
         assertThat(result)
                 .isPresent()
                 .hasValueSatisfying(questionLike -> {
+                    assertThat(questionLike.getQuestionId()).isEqualTo(100L);
                     assertThat(questionLike.getUserId()).isOne();
                     assertThat(questionLike.getStatus()).isEqualTo(LikeStatus.LIKE.name());
                     assertThat(questionLike.getIpAddress()).isEqualTo("192.168.0.1");
-                    assertThat(questionLike.getQuestionId()).isEqualTo(100L);
                 });
     }
 
@@ -158,5 +138,4 @@ class QuestionLikeRepositoryJdbcImplTest {
         assertThat(findData(1L)).isEmpty();
         assertThatCode(() -> questionLikeRepository.deleteByQuestionIdAndUserId(999L, 999L)).doesNotThrowAnyException();
     }
-
 }

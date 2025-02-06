@@ -31,7 +31,10 @@ CREATE TABLE questions (
 
 CREATE TABLE tags (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE
+    name VARCHAR(255) NOT NULL UNIQUE,
+    usage_count BIGINT DEFAULT 0 CHECK (usage_count >= 0),
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 );
 
 CREATE TABLE question_tags (

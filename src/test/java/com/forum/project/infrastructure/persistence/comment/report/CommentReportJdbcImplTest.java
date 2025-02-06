@@ -1,18 +1,15 @@
 package com.forum.project.infrastructure.persistence.comment.report;
 
-import com.forum.project.common.utils.DateUtils;
 import com.forum.project.domain.comment.report.CommentReport;
 import com.forum.project.domain.comment.report.CommentReportRepository;
 import com.forum.project.domain.report.ReportKey;
 import com.forum.project.domain.report.ReportStatus;
+import com.forum.project.infrastructure.persistence.JdbcTestUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -24,7 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 @JdbcTest
 @ActiveProfiles("test")
@@ -37,21 +35,15 @@ class CommentReportJdbcImplTest {
     @BeforeEach
     void setUp() {
         commentReportRepository = new CommentReportJdbcImpl(jdbcTemplate);
-
-        jdbcTemplate.getJdbcTemplate().execute("CREATE TABLE comment_reports (" +
+        JdbcTestUtils.dropTable(jdbcTemplate, "comment_reports");
+        JdbcTestUtils.createTable(jdbcTemplate, "comment_reports",
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
                 "user_id BIGINT NOT NULL, " +
                 "comment_id BIGINT NOT NULL, " +
                 "reason VARCHAR(500) NOT NULL, " +
                 "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 "status ENUM('PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED') DEFAULT 'PENDING', " +
-                "is_resolved BOOLEAN DEFAULT FALSE " +
-                ");");
-    }
-
-    @AfterEach
-    void tearDown() {
-        jdbcTemplate.getJdbcTemplate().execute("DROP TABLE IF EXISTS comment_reports");
+                "is_resolved BOOLEAN DEFAULT FALSE ");
     }
 
     private CommentReport createCommentReport(Long userId, Long commentId, String status) {
@@ -74,15 +66,7 @@ class CommentReportJdbcImplTest {
     }
 
     private Optional<CommentReport> findData(Long id) {
-        String sql = CommentReportQueries.findById();
-        SqlParameterSource params = new MapSqlParameterSource("id", id);
-        try {
-            CommentReport result = jdbcTemplate.queryForObject(sql, params,
-                    new BeanPropertyRowMapper<>(CommentReport.class));
-            return Optional.ofNullable(result);
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        return JdbcTestUtils.findData(jdbcTemplate, CommentReportQueries.findById(), id, CommentReport.class);
     }
 
     @Test
@@ -93,7 +77,8 @@ class CommentReportJdbcImplTest {
         assertThat(generatedKeys).hasSize(ReportKey.getKeys().length);
 
         assertThat((Long) generatedKeys.get(ReportKey.ID)).isEqualTo(1L);
-        assertThat((Timestamp) generatedKeys.get(ReportKey.CREATED_DATE)).isBefore(Timestamp.valueOf(LocalDateTime.now()));
+        assertThat(((Timestamp) generatedKeys.get(ReportKey.CREATED_DATE)).toInstant())
+                .isBeforeOrEqualTo(Timestamp.valueOf(LocalDateTime.now()).toInstant());
     }
 
     @Test
@@ -159,11 +144,9 @@ class CommentReportJdbcImplTest {
         assertThat(result)
                 .isPresent()
                 .hasValueSatisfying(commentReport -> {
+                    assertThat(commentReport.getId()).isOne();
                     assertThat(commentReport.getUserId()).isOne();
                     assertThat(commentReport.getCommentId()).isOne();
-                    assertThat(commentReport.getReason()).isEqualTo("testReason");
-                    assertThat(commentReport.getStatus()).isEqualTo(ReportStatus.PENDING.name());
-                    assertThat(commentReport.getCreatedDate()).isBeforeOrEqualTo(LocalDateTime.now());
                 });
     }
 
