@@ -1,7 +1,7 @@
 package com.forum.project.presentation;
 
-import com.forum.project.application.exception.ApplicationException;
-import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.core.exception.ApplicationException;
+import com.forum.project.core.exception.ErrorCode;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 

@@ -1,6 +1,5 @@
 package com.forum.project.infrastructure.jwt;
 
-import com.forum.project.infrastructure.jwt.AccessRedisTokenBlacklistHandler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

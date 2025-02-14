@@ -1,132 +1,131 @@
 package com.forum.project.application.email;
 
-import com.forum.project.infrastructure.config.AppProperties;
-import com.forum.project.infrastructure.email.EmailSender;
-import com.forum.project.common.utils.RandomStringGenerator;
-import com.forum.project.application.exception.ApplicationException;
-import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.domain.email.EmailVerification;
-import com.forum.project.infrastructure.persistence.email.VerificationCodeStore;
+import com.forum.project.core.common.LogHelper;
+import com.forum.project.core.common.RandomStringGenerator;
+import com.forum.project.core.exception.ApplicationException;
+import com.forum.project.core.exception.ErrorCode;
+import com.forum.project.domain.auth.entity.EmailVerification;
+import com.forum.project.domain.auth.repository.VerificationCodeService;
+import com.forum.project.domain.auth.service.EmailService;
+import com.forum.project.domain.auth.service.EmailVerificationService;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class EmailVerificationServiceTest {
-
-    @Mock
-    private EmailSender emailSender;
-    @Mock
-    private VerificationCodeStore verificationCodeStore;
-    @Mock
-    private RandomStringGenerator randomStringGenerator;
-    @Mock
-    private AppProperties appProperties;
     @InjectMocks
     private EmailVerificationService emailVerificationService;
 
-    @Test
-    void testSendVerificationCode_success() {
-        String toEmail = "valid@email.com";
-        String code = "123456";
-        EmailVerification emailVerification = new EmailVerification(code, false);
+    @Mock
+    private EmailService emailService;
+    @Mock
+    private VerificationCodeService verificationCodeService;
+    @Mock
+    private RandomStringGenerator randomStringGenerator;
 
-        when(randomStringGenerator.generate(6)).thenReturn(code);
-        doNothing().when(verificationCodeStore).save(toEmail, emailVerification, 3);
-        doNothing().when(emailSender).sendEmail(eq(toEmail), anyString(), anyString());
+    private static final int CODE_LENGTH = 6;
+    private static final int CODE_EXPIRATION_TIME = 3;
+    private static final int REGISTER_EXPIRATION_TIME = 10;
 
-        emailVerificationService.sendVerificationCode(toEmail);
+    private static final String EMAIL = "valid@email.com";
+    private static final String CODE = "123456";
 
-        verify(randomStringGenerator).generate(6);
-        verify(verificationCodeStore).save(toEmail, emailVerification, 3);
-        verify(emailSender).sendEmail(eq(toEmail), anyString(), anyString());
+    private EmailVerification emailVerification;
+
+    @BeforeEach
+    void setUp() {
+        emailVerification = new EmailVerification(CODE, false);
     }
 
     @Test
-    void testVerifyEmailCode_success() {
-        String toEmail = "valid@email.com";
-        String code = "valid.";
-        EmailVerification verification = new EmailVerification(code, false);
+    void sendVerificationCode() {
+        when(randomStringGenerator.generate(CODE_LENGTH)).thenReturn(CODE);
 
-        when(verificationCodeStore.getValue(toEmail)).thenReturn(verification);
-        doNothing().when(verificationCodeStore).update(toEmail, verification, 10);
+        emailVerificationService.sendVerificationCode(EMAIL);
 
-        emailVerificationService.verifyEmailCode(toEmail, code);
-
-        assertTrue(verification.isVerified());
-        verify(verificationCodeStore).getValue(toEmail);
-        verify(verificationCodeStore).update(toEmail, verification, 10L);
+        verify(randomStringGenerator).generate(CODE_LENGTH);
+        verify(verificationCodeService).save(EMAIL, emailVerification, CODE_EXPIRATION_TIME);
+        verify(emailService).sendVerificationEmail(EMAIL, CODE);
     }
 
     @Test
-    void testVerifyEmailCode_NullInput_ThrowsInvalidCode() {
-        String toEmail = "valid@email.com";
-        String code = "123456";
+    void verifyEmailCode() {
+        when(verificationCodeService.get(EMAIL)).thenReturn(emailVerification);
 
-        when(verificationCodeStore.getValue(toEmail)).thenReturn(null);
+        emailVerificationService.verifyEmailCode(EMAIL, CODE);
 
-        ApplicationException applicationException = assertThrows(ApplicationException.class,
-                () -> emailVerificationService.verifyEmailCode(toEmail, code));
-
-        assertEquals(ErrorCode.INVALID_VERIFICATION_CODE, applicationException.getErrorCode());
+        assertThat(emailVerification).returns(true, EmailVerification::isVerified);
+        verify(verificationCodeService).get(EMAIL);
+        verify(verificationCodeService).save(EMAIL, emailVerification, REGISTER_EXPIRATION_TIME);
     }
 
     @Test
-    void testVerifyEmailCode_DifferCode_ThrowsInvalidCode() {
-        String toEmail = "valid@email.com";
-        String code = "123456";
-        EmailVerification emailVerification = new EmailVerification("invalid", false);
+    void verifyEmailCode_notExists() {
+        when(verificationCodeService.get(EMAIL)).thenReturn(null);
 
-        when(verificationCodeStore.getValue(toEmail)).thenReturn(emailVerification);
+        ApplicationException exception = catchThrowableOfType(
+                () -> emailVerificationService.verifyEmailCode(EMAIL, CODE),
+                ApplicationException.class
+        );
 
-        ApplicationException applicationException = assertThrows(ApplicationException.class,
-                () -> emailVerificationService.verifyEmailCode(toEmail, code));
-
-        assertEquals(ErrorCode.INVALID_VERIFICATION_CODE, applicationException.getErrorCode());
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_VERIFICATION_CODE);
+        LogHelper.logApplicationException(exception);
     }
 
     @Test
-    void testValidateEmailCode_success() {
-        String toEmail = "valid@email.com";
-        String code = "123456";
-        EmailVerification emailVerification = new EmailVerification(code, true);
+    void verifyEmailCode_notCodeMatch() {
+        when(verificationCodeService.get(EMAIL)).thenReturn(new EmailVerification("differentCode", true));
 
-        when(verificationCodeStore.getValue(toEmail)).thenReturn(emailVerification);
+        ApplicationException exception = catchThrowableOfType(
+                () -> emailVerificationService.verifyEmailCode(EMAIL, CODE),
+                ApplicationException.class
+        );
 
-        assertDoesNotThrow(() -> emailVerificationService.validateEmailCode(toEmail));
-
-        assertTrue(emailVerification.isVerified());
-        verify(verificationCodeStore).getValue(toEmail);
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_VERIFICATION_CODE);
+        LogHelper.logApplicationException(exception);
     }
 
     @Test
-    void testValidateEmailCode_NullInput_ThrowsInvalidCode() {
-        String toEmail = "valid@email.com";
-        when(verificationCodeStore.getValue(toEmail)).thenReturn(null);
+    void validateEmailCode() {
+        when(verificationCodeService.get(EMAIL)).thenReturn(new EmailVerification(CODE, true));
 
-        ApplicationException applicationException = assertThrows(ApplicationException.class,
-                () -> emailVerificationService.validateEmailCode(toEmail));
+        assertThatCode(() -> emailVerificationService.validateEmailCode(EMAIL))
+                .doesNotThrowAnyException();
 
-        assertEquals(ErrorCode.INVALID_VERIFICATION_CODE, applicationException.getErrorCode());
-        verify(verificationCodeStore).getValue(toEmail);
+        verify(verificationCodeService).get(EMAIL);
     }
 
     @Test
-    void testValidateEmailCode_NotVerified_ThrowsInvalidCode() {
-        String toEmail = "valid@email.com";
-        String code = "123456";
-        EmailVerification emailVerification = new EmailVerification(code, false);
-        when(verificationCodeStore.getValue(toEmail)).thenReturn(emailVerification);
+    void validateEmailCode_notExists() {
+        when(verificationCodeService.get(EMAIL)).thenReturn(null);
 
-        ApplicationException applicationException = assertThrows(ApplicationException.class,
-                () -> emailVerificationService.validateEmailCode(toEmail));
+        ApplicationException exception = catchThrowableOfType(
+                () -> emailVerificationService.validateEmailCode(EMAIL),
+                ApplicationException.class
+        );
 
-        assertEquals(ErrorCode.INVALID_VERIFICATION_CODE, applicationException.getErrorCode());
-        verify(verificationCodeStore).getValue(toEmail);
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_VERIFICATION_CODE);
+        LogHelper.logApplicationException(exception);
+    }
+
+    @Test
+    void validateEmailCode_notVerified() {
+        when(verificationCodeService.get(EMAIL)).thenReturn(emailVerification);
+
+        ApplicationException exception = catchThrowableOfType(
+                () -> emailVerificationService.validateEmailCode(EMAIL),
+                ApplicationException.class
+        );
+
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_VERIFICATION_CODE);
+        LogHelper.logApplicationException(exception);
     }
 }

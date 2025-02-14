@@ -1,7 +1,8 @@
 package com.forum.project.application.user.auth;
 
-import com.forum.project.application.exception.ApplicationException;
-import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.domain.auth.service.UserPasswordService;
+import com.forum.project.core.exception.ApplicationException;
+import com.forum.project.core.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,6 +1,6 @@
 package com.forum.project.presentation.config;
 
-import com.forum.project.application.user.auth.CustomUserDetailsService;
+import com.forum.project.domain.auth.service.CustomUserDetailsService;
 import com.forum.project.infrastructure.jwt.JwtUtils;
 import com.forum.project.infrastructure.security.JwtAuthFilter;
 import lombok.extern.slf4j.Slf4j;

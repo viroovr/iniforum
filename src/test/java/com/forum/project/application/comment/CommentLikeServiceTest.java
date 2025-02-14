@@ -1,8 +1,9 @@
 package com.forum.project.application.comment;
 
-import com.forum.project.domain.like.LikeStatus;
-import com.forum.project.domain.like.commentlike.CommentLike;
-import com.forum.project.domain.like.commentlike.CommentLikeRepository;
+import com.forum.project.domain.like.service.CommentLikeService;
+import com.forum.project.domain.like.vo.LikeStatus;
+import com.forum.project.domain.like.entity.CommentLike;
+import com.forum.project.domain.like.repository.CommentLikeRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

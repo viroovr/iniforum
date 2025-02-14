@@ -1,11 +1,12 @@
 package com.forum.project.presentation.question;
 
-import com.forum.project.application.question.QuestionQueryService;
-import com.forum.project.application.question.QuestionSortType;
-import com.forum.project.application.user.auth.AuthenticationService;
-import com.forum.project.domain.question.QuestionStatus;
+import com.forum.project.domain.question.service.QuestionQueryService;
+import com.forum.project.domain.question.vo.QuestionSortType;
+import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.question.controller.QuestionQueryController;
+import com.forum.project.domain.question.vo.QuestionStatus;
 import com.forum.project.presentation.config.TestSecurityConfig;
-import com.forum.project.presentation.question.dto.QuestionPageResponseDto;
+import com.forum.project.domain.question.dto.QuestionPageResponseDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;

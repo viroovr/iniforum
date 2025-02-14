@@ -1,9 +1,8 @@
 package com.forum.project.infrastructure.email;
 
-import com.forum.project.application.exception.ApplicationException;
-import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.application.exception.InfraErrorCode;
-import com.forum.project.application.exception.InfraException;
+import com.forum.project.core.exception.InfraErrorCode;
+import com.forum.project.core.exception.InfraException;
+import com.forum.project.infrastructure.jwt.EmailSender;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;

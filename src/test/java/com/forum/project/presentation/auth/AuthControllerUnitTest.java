@@ -3,13 +3,13 @@
 //import com.fasterxml.jackson.databind.ObjectMapper;
 //import com.forum.project.infrastructure.security.CookieManager;
 //import com.forum.project.application.user.auth.AuthService;
-//import com.forum.project.application.email.EmailVerificationService;
-//import com.forum.project.application.jwt.TokenService;
+//import com.forum.project.domain.auth.service.EmailVerificationService;
+//import com.forum.project.domain.auth.service.TokenService;
 //import com.forum.project.application.exception.ApplicationException;
 //import com.forum.project.application.exception.ErrorCode;
 //import com.forum.project.presentation.config.TestSecurityConfig;
 //import com.forum.project.presentation.dtos.TestDtoFactory;
-//import com.forum.project.presentation.dtos.TokenResponseDto;
+//import com.forum.project.domain.auth.dto.TokenResponseDto;
 //import jakarta.servlet.http.Cookie;
 //import jakarta.servlet.http.HttpServletRequest;
 //import org.junit.jupiter.api.BeforeEach;

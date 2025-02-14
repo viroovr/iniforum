@@ -1,15 +1,15 @@
 package com.forum.project.application.email;
 
-import com.forum.project.domain.user.User;
-import com.forum.project.infrastructure.config.AppProperties;
-import com.forum.project.infrastructure.email.EmailSender;
+import com.forum.project.domain.auth.service.EmailUserService;
+import com.forum.project.domain.user.entity.User;
+import com.forum.project.core.config.AppProperties;
+import com.forum.project.infrastructure.jwt.EmailSender;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

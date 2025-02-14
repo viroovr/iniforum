@@ -1,12 +1,12 @@
 //package com.forum.project.presentation.controller;
 //
 //import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.forum.project.application.comment.CommentService;
-//import com.forum.project.application.jwt.TokenService;
-//import com.forum.project.presentation.comment.CommentController;
+//import com.forum.project.domain.comment.service.CommentService;
+//import com.forum.project.domain.auth.service.TokenService;
+//import com.forum.project.domain.comment.controller.CommentController;
 //import com.forum.project.presentation.config.TestSecurityConfig;
-//import com.forum.project.presentation.comment.CommentRequestDto;
-//import com.forum.project.presentation.comment.CommentResponseDto;
+//import com.forum.project.domain.comment.dto.CommentRequestDto;
+//import com.forum.project.domain.comment.dto.CommentResponseDto;
 //import org.junit.jupiter.api.Test;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

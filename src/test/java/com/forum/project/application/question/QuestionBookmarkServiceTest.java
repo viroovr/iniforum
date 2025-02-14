@@ -1,8 +1,9 @@
 package com.forum.project.application.question;
 
-import com.forum.project.domain.bookmark.Bookmark;
-import com.forum.project.domain.bookmark.BookmarkKey;
-import com.forum.project.domain.bookmark.BookmarkRepository;
+import com.forum.project.domain.bookmark.entity.Bookmark;
+import com.forum.project.domain.bookmark.service.QuestionBookmarkService;
+import com.forum.project.infrastructure.persistence.key.BookmarkKey;
+import com.forum.project.domain.bookmark.repository.BookmarkRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

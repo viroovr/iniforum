@@ -1,18 +1,18 @@
 package com.forum.project.application.jwt;
 
-import com.forum.project.domain.user.UserRole;
-import com.forum.project.infrastructure.jwt.ClaimRequestDto;
+import com.forum.project.domain.user.vo.UserRole;
+import com.forum.project.domain.auth.dto.ClaimRequestDto;
 import com.forum.project.infrastructure.jwt.JwtUtils;
 import com.forum.project.infrastructure.jwt.TokenCacheHandler;
-import com.forum.project.presentation.user.UserInfoDto;
+import com.forum.project.domain.auth.service.TokenService;
+import com.forum.project.domain.user.dto.UserInfoDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Clock;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
@@ -25,8 +25,6 @@ class TokenServiceTest {
     private TokenCacheHandler tokenCacheHandler;
     @Mock
     private JwtUtils jwtUtils;
-    @Mock
-    private Clock clock;
     private long accessTokenExpTime;
     private long refreshTokenExpTime;
     private long passwordResetTokenExpTime;
@@ -35,14 +33,12 @@ class TokenServiceTest {
 
     @BeforeEach
     void setUp() {
-        clock = Clock.fixed(Instant.parse("2024-01-11T00:00:00Z"), ZoneId.of("Asia/Seoul"));
         accessTokenExpTime = 3600L;
         refreshTokenExpTime = 64800;
         passwordResetTokenExpTime = 360L;
         this.tokenService = new TokenService(
                 tokenCacheHandler,
                 jwtUtils,
-                clock,
                 accessTokenExpTime,
                 refreshTokenExpTime,
                 passwordResetTokenExpTime
@@ -88,12 +84,12 @@ class TokenServiceTest {
     @Test
     void testGetExpirationTime_success() {
         String token = "validToken";
-        Date expirationDate = new Date(clock.instant().toEpochMilli() + 60000);
+        Date expirationDate = Date.from(LocalDateTime.now().plusSeconds(60).atZone(ZoneId.systemDefault()).toInstant());
         when(tokenCacheHandler.getExpirationDate(token)).thenReturn(expirationDate);
 
         long actual = tokenService.getExpirationTime(token);
 
-        assertEquals(60, actual);
+        assertEquals(60, actual, 1);
     }
 
     @Test

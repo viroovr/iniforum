@@ -1,10 +1,9 @@
 package com.forum.project.infrastructure.web;
 
-import com.forum.project.application.exception.ApplicationException;
-import com.forum.project.application.exception.InfraErrorCode;
-import com.forum.project.common.utils.LogHelper;
-import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.presentation.error.ErrorResponseDto;
+import com.forum.project.core.exception.ApplicationException;
+import com.forum.project.core.exception.InfraErrorCode;
+import com.forum.project.core.common.LogHelper;
+import com.forum.project.core.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;

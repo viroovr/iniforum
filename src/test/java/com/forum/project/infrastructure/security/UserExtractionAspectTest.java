@@ -1,8 +1,8 @@
 package com.forum.project.infrastructure.security;
 
 import com.forum.project.application.TestService;
-import com.forum.project.application.user.auth.AuthenticationService;
-import com.forum.project.domain.user.User;
+import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.user.entity.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

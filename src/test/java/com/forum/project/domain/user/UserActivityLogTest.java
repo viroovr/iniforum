@@ -1,6 +1,9 @@
 package com.forum.project.domain.user;
 
-import com.forum.project.application.user.UserFacade;
+import com.forum.project.domain.user.service.UserFacade;
+import com.forum.project.domain.user.entity.User;
+import com.forum.project.domain.user.repository.UserActivityLogRepository;
+import com.forum.project.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

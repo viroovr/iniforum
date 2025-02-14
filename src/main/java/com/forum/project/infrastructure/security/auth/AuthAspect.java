@@ -1,9 +1,9 @@
 package com.forum.project.infrastructure.security.auth;
 
-import com.forum.project.application.exception.ApplicationException;
-import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.application.user.auth.AuthenticationService;
-import com.forum.project.domain.user.User;
+import com.forum.project.core.exception.ApplicationException;
+import com.forum.project.core.exception.ErrorCode;
+import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

@@ -1,6 +1,6 @@
 package com.forum.project.presentation.dtos.auth;
 
-import com.forum.project.presentation.auth.SignupRequestDto;
+import com.forum.project.domain.auth.dto.SignupRequestDto;
 import com.forum.project.presentation.dtos.messages.ValidationMessages;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;

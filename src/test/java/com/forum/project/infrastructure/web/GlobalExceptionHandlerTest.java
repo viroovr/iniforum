@@ -1,6 +1,6 @@
 package com.forum.project.infrastructure.web;
 
-import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.core.exception.ErrorCode;
 import com.forum.project.presentation.TestController;
 import com.forum.project.presentation.config.TestSecurityConfig;
 import org.junit.jupiter.api.BeforeEach;

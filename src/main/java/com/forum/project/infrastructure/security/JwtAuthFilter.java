@@ -1,7 +1,6 @@
 package com.forum.project.infrastructure.security;
 
-import com.forum.project.application.user.auth.CustomUserDetailsService;
-import com.forum.project.application.jwt.TokenService;
+import com.forum.project.domain.auth.service.CustomUserDetailsService;
 import com.forum.project.infrastructure.jwt.JwtUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;

@@ -2,15 +2,15 @@
 //
 //import com.forum.project.application.email.EmailService;
 //import com.forum.project.application.user.auth.UserPasswordService;
-//import com.forum.project.application.user.io.FileService;
-//import com.forum.project.application.jwt.TokenService;
-//import com.forum.project.application.user.UserFacade;
+//import com.forum.project.domain.user.infrastructure.FileService;
+//import com.forum.project.domain.auth.service.TokenService;
+//import com.forum.project.domain.user.service.UserFacade;
 //import com.forum.project.domain.user.*;
-//import com.forum.project.domain.user.UserActivityLogRepository;
-//import com.forum.project.domain.user.UserRepository;
-//import com.forum.project.presentation.user.UserInfoDto;
-//import com.forum.project.presentation.user.UserRequestDto;
-//import com.forum.project.presentation.user.UserResponseDto;
+//import com.forum.project.domain.user.repository.UserActivityLogRepository;
+//import com.forum.project.domain.user.repository.UserRepository;
+//import com.forum.project.domain.user.dto.UserInfoDto;
+//import com.forum.project.domain.user.dto.UserRequestDto;
+//import com.forum.project.domain.user.dto.UserResponseDto;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;
 //import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,11 +1,13 @@
 package com.forum.project.application.question;
 
-import com.forum.project.application.email.EmailAdminService;
-import com.forum.project.application.exception.ApplicationException;
-import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.domain.question.report.QuestionReport;
-import com.forum.project.domain.question.report.QuestionReportRepository;
-import com.forum.project.domain.report.ReportStatus;
+import com.forum.project.domain.auth.service.EmailAdminService;
+import com.forum.project.core.exception.ApplicationException;
+import com.forum.project.core.exception.ErrorCode;
+import com.forum.project.domain.question.validator.QuestionValidator;
+import com.forum.project.domain.report.entity.QuestionReport;
+import com.forum.project.domain.report.repository.QuestionReportRepository;
+import com.forum.project.domain.report.service.QuestionReportService;
+import com.forum.project.domain.report.vo.ReportStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

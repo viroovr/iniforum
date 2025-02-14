@@ -1,9 +1,10 @@
 package com.forum.project.application.user.auth;
 
-import com.forum.project.application.exception.ApplicationException;
-import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.domain.user.User;
-import com.forum.project.domain.user.UserRepository;
+import com.forum.project.domain.auth.service.CustomUserDetailsService;
+import com.forum.project.core.exception.ApplicationException;
+import com.forum.project.core.exception.ErrorCode;
+import com.forum.project.domain.user.entity.User;
+import com.forum.project.domain.user.repository.UserRepository;
 import com.forum.project.presentation.dtos.TestDtoFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

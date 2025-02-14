@@ -1,6 +1,5 @@
 package com.forum.project.infrastructure.jwt;
 
-import com.forum.project.application.jwt.TokenService;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 

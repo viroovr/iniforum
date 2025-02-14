@@ -1,6 +1,6 @@
 package com.forum.project.common.util;
 
-import com.forum.project.common.utils.IpAddressUtil;
+import com.forum.project.core.common.IpAddressUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 

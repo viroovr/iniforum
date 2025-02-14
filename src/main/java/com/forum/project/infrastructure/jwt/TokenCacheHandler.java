@@ -1,5 +1,6 @@
 package com.forum.project.infrastructure.jwt;
 
+import com.forum.project.domain.auth.dto.ClaimRequestDto;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

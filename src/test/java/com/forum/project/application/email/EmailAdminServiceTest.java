@@ -1,7 +1,8 @@
 package com.forum.project.application.email;
 
-import com.forum.project.infrastructure.config.AppProperties;
-import com.forum.project.infrastructure.email.EmailSender;
+import com.forum.project.core.config.AppProperties;
+import com.forum.project.domain.auth.service.EmailAdminService;
+import com.forum.project.infrastructure.jwt.EmailSender;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

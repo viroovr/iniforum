@@ -2,15 +2,15 @@ package com.forum.project.presentation.question;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.forum.project.application.question.QuestionCrudService;
-import com.forum.project.application.user.auth.AuthenticationService;
-import com.forum.project.domain.user.User;
+import com.forum.project.domain.question.service.QuestionCrudService;
+import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.question.controller.QuestionCrudController;
+import com.forum.project.domain.user.entity.User;
 import com.forum.project.presentation.config.TestSecurityConfig;
-import com.forum.project.presentation.dtos.BaseResponseDto;
-import com.forum.project.presentation.question.dto.QuestionCreateDto;
-import com.forum.project.presentation.question.dto.QuestionRequestDto;
-import com.forum.project.presentation.question.dto.QuestionResponseDto;
-import com.forum.project.presentation.question.dto.QuestionUpdateDto;
+import com.forum.project.core.base.BaseResponseDto;
+import com.forum.project.domain.question.dto.QuestionCreateDto;
+import com.forum.project.domain.question.dto.QuestionRequestDto;
+import com.forum.project.domain.question.dto.QuestionResponseDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;

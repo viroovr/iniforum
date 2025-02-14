@@ -1,8 +1,9 @@
 package com.forum.project.presentation.question;
 
-import com.forum.project.application.question.QuestionLikeService;
-import com.forum.project.application.user.auth.AuthenticationService;
-import com.forum.project.domain.like.LikeStatus;
+import com.forum.project.domain.like.service.QuestionLikeService;
+import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.like.vo.LikeStatus;
+import com.forum.project.domain.question.controller.QuestionLikeController;
 import com.forum.project.presentation.config.TestSecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

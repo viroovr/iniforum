@@ -1,11 +1,12 @@
 package com.forum.project.application.comment;
 
-import com.forum.project.application.email.EmailAdminService;
-import com.forum.project.application.exception.ApplicationException;
-import com.forum.project.application.exception.ErrorCode;
-import com.forum.project.domain.comment.report.CommentReport;
-import com.forum.project.domain.comment.report.CommentReportRepository;
-import com.forum.project.domain.report.ReportStatus;
+import com.forum.project.domain.auth.service.EmailAdminService;
+import com.forum.project.core.exception.ApplicationException;
+import com.forum.project.core.exception.ErrorCode;
+import com.forum.project.domain.report.entity.CommentReport;
+import com.forum.project.domain.report.repository.CommentReportRepository;
+import com.forum.project.domain.report.service.CommentReportService;
+import com.forum.project.domain.report.vo.ReportStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

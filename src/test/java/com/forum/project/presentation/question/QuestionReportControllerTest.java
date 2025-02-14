@@ -1,10 +1,11 @@
 package com.forum.project.presentation.question;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.forum.project.application.question.QuestionReportService;
-import com.forum.project.application.user.auth.AuthenticationService;
-import com.forum.project.presentation.report.ReportRequestDto;
-import com.forum.project.domain.question.report.QuestionReport;
+import com.forum.project.domain.report.service.QuestionReportService;
+import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.question.controller.QuestionReportController;
+import com.forum.project.domain.report.dto.ReportRequestDto;
+import com.forum.project.domain.report.entity.QuestionReport;
 import com.forum.project.presentation.config.TestSecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

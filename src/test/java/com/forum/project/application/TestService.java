@@ -1,6 +1,6 @@
 package com.forum.project.application;
 
-import com.forum.project.domain.user.User;
+import com.forum.project.domain.user.entity.User;
 import com.forum.project.infrastructure.security.auth.ExtractUser;
 import org.springframework.stereotype.Service;
 

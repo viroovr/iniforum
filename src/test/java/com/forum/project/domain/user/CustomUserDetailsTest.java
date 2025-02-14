@@ -1,6 +1,8 @@
 package com.forum.project.domain.user;
 
-import com.forum.project.presentation.user.UserInfoDto;
+import com.forum.project.domain.entity.CustomUserDetails;
+import com.forum.project.domain.user.vo.UserStatus;
+import com.forum.project.domain.user.dto.UserInfoDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;

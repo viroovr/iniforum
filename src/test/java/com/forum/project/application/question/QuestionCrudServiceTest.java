@@ -1,13 +1,16 @@
 package com.forum.project.application.question;
 
-import com.forum.project.application.tag.TagService;
-import com.forum.project.domain.question.Question;
-import com.forum.project.domain.question.QuestionKey;
-import com.forum.project.domain.question.QuestionRepository;
-import com.forum.project.domain.user.User;
-import com.forum.project.presentation.question.dto.QuestionCreateDto;
-import com.forum.project.presentation.question.dto.QuestionResponseDto;
-import com.forum.project.presentation.tag.TagRequestDto;
+import com.forum.project.domain.tag.service.TagService;
+import com.forum.project.domain.question.entity.Question;
+import com.forum.project.domain.question.service.QuestionCrudService;
+import com.forum.project.domain.question.service.QuestionViewCountService;
+import com.forum.project.domain.question.validator.QuestionValidator;
+import com.forum.project.infrastructure.persistence.key.QuestionKey;
+import com.forum.project.domain.question.repository.QuestionRepository;
+import com.forum.project.domain.user.entity.User;
+import com.forum.project.domain.question.dto.QuestionCreateDto;
+import com.forum.project.domain.question.dto.QuestionResponseDto;
+import com.forum.project.domain.tag.dto.TagRequestDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -52,7 +55,7 @@ public class QuestionCrudServiceTest {
         QuestionCreateDto questionCreateDto = QuestionCreateDto.builder()
                 .content("testContent")
                 .title("testTitle")
-                .tagRequestDto(new TagRequestDto(stringTags, "testCategory"))
+                .tagRequestDto(new TagRequestDto(stringTags))
                 .user(User.builder().id(1L).loginId("loginId").build())
                 .build();
         Question savedQuestion = Question.builder()

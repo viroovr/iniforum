@@ -1,8 +1,8 @@
 package com.forum.project.application;
 
-import com.forum.project.application.jwt.TokenService;
-import com.forum.project.application.exception.ApplicationException;
-import com.forum.project.application.exception.ErrorCode;
+import com.forum.project.domain.auth.service.TokenService;
+import com.forum.project.core.exception.ApplicationException;
+import com.forum.project.core.exception.ErrorCode;
 import com.forum.project.infrastructure.security.CookieManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

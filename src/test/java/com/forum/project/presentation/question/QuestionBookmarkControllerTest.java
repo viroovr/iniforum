@@ -1,8 +1,9 @@
 package com.forum.project.presentation.question;
 
-import com.forum.project.application.question.QuestionBookmarkService;
-import com.forum.project.application.user.auth.AuthenticationService;
-import com.forum.project.domain.bookmark.Bookmark;
+import com.forum.project.domain.bookmark.service.QuestionBookmarkService;
+import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.bookmark.entity.Bookmark;
+import com.forum.project.domain.question.controller.QuestionBookmarkController;
 import com.forum.project.presentation.config.TestSecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

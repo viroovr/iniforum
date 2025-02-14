@@ -1,13 +1,10 @@
 package com.forum.project.presentation.dtos;
 
-import com.forum.project.domain.user.UserRole;
-import com.forum.project.domain.user.User;
-import com.forum.project.domain.user.UserStatus;
-import com.forum.project.presentation.auth.EmailRequestDto;
-import com.forum.project.presentation.auth.LoginRequestDto;
-import com.forum.project.presentation.auth.SignupRequestDto;
-import com.forum.project.presentation.auth.SignupResponseDto;
-import com.forum.project.presentation.user.UserInfoDto;
+import com.forum.project.domain.auth.dto.*;
+import com.forum.project.domain.user.vo.UserRole;
+import com.forum.project.domain.user.entity.User;
+import com.forum.project.domain.user.vo.UserStatus;
+import com.forum.project.domain.user.dto.UserInfoDto;
 
 import java.time.LocalDateTime;
 
