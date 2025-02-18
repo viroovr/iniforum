@@ -1,6 +1,7 @@
 package com.forum.project.domain.auth.service;
 
 import com.forum.project.domain.auth.dto.ClaimRequestDto;
+import com.forum.project.domain.auth.dto.TokenResponseDto;
 import com.forum.project.domain.user.vo.UserRole;
 import com.forum.project.domain.user.dto.UserInfoDto;
 import com.forum.project.infrastructure.jwt.JwtUtils;
@@ -72,6 +73,10 @@ public class TokenService {
 
     private String createToken(ClaimRequestDto dto, long expirationTime) {
         return jwtUtils.createToken(dto.toMap(), expirationTime);
+    }
+
+    public TokenResponseDto createTokenResponseDto(UserInfoDto member) {
+        return new TokenResponseDto(createAccessToken(member), createRefreshToken(member));
     }
 
     public String createAccessToken(UserInfoDto member) {

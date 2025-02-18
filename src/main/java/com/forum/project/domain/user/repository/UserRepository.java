@@ -1,14 +1,15 @@
 package com.forum.project.domain.user.repository;
 
+import com.forum.project.domain.user.dto.UserCreateDto;
 import com.forum.project.domain.user.entity.User;
+import com.forum.project.domain.user.vo.UserKey;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public interface UserRepository{
-    Map<String, Object> insertAndReturnGeneratedKeys(User user);
+    Optional<UserKey> insertAndReturnGeneratedKeys(UserCreateDto dto);
 
     Optional<User> findById(Long id);
     Optional<User> findByLoginId(String userId);

@@ -1,11 +1,12 @@
 package com.forum.project.infrastructure.persistence.repository;
 
+import com.forum.project.domain.user.dto.UserCreateDto;
 import com.forum.project.domain.user.entity.User;
 import com.forum.project.domain.user.repository.UserRepository;
+import com.forum.project.domain.user.vo.UserKey;
 import com.forum.project.domain.user.vo.UserRole;
 import com.forum.project.domain.user.vo.UserStatus;
 import com.forum.project.infrastructure.persistence.JdbcTestUtils;
-import com.forum.project.infrastructure.persistence.key.UserKey;
 import com.forum.project.infrastructure.persistence.queries.UserQueries;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,10 +18,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
@@ -57,14 +56,13 @@ class UserRepositoryJdbcImplTest {
                 "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ");
     }
 
-    private User createUser(String loginId, String email) {
-        return User.builder()
+    private UserCreateDto createUserCreateDto(String loginId, String email) {
+        return UserCreateDto.builder()
                 .loginId(loginId)
                 .email(email)
                 .password("testPassword")
                 .lastName("testLastName")
                 .firstName("testFirstName")
-                .nickname("testNickname")
                 .profileImagePath("test/path")
                 .status(UserStatus.ACTIVE.name())
                 .role(UserRole.USER.name())
@@ -176,19 +174,20 @@ class UserRepositoryJdbcImplTest {
 
     @Test
     void insertAndReturnGeneratedKeys() {
-        Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
+        LocalDateTime beforeNow = LocalDateTime.now();
 
-        Map<String, Object> result = userRepository.insertAndReturnGeneratedKeys(
-                createUser("testLoginId", "test@email.com"));
+        Optional<UserKey> result = userRepository.insertAndReturnGeneratedKeys(
+                createUserCreateDto("testLoginId", "test@email.com"));
 
         assertThat(result)
                 .isNotEmpty()
-                .hasSize(UserKey.getKeys().length);
-        assertThat((Long) result.get(UserKey.ID)).isOne();
-        assertThat(((Timestamp) result.get(UserKey.CREATED_DATE))).isAfter(expectedTimestamp);
-        assertThat(((Timestamp) result.get(UserKey.LAST_ACTIVITY_DATE))).isAfter(expectedTimestamp);
-        assertThat(((Timestamp) result.get(UserKey.LAST_LOGIN_DATE))).isAfter(expectedTimestamp);
-        assertThat(((Timestamp) result.get(UserKey.LAST_PASSWORD_MODIFIED_DATE))).isAfter(expectedTimestamp);
+                .hasValueSatisfying(key -> {
+                    assertThat(key.getId()).isOne();
+                    assertThat(key.getCreatedDate()).isAfter(beforeNow);
+                    assertThat(key.getLastActivityDate()).isAfter(beforeNow);
+                    assertThat(key.getLastLoginDate()).isAfter(beforeNow);
+                    assertThat(key.getLastPasswordModifiedDate()).isAfter(beforeNow);
+                });
     }
 
     @Test

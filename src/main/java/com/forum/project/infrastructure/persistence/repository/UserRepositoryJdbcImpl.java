@@ -1,8 +1,9 @@
 package com.forum.project.infrastructure.persistence.repository;
 
+import com.forum.project.domain.user.dto.UserCreateDto;
 import com.forum.project.domain.user.entity.User;
 import com.forum.project.domain.user.repository.UserRepository;
-import com.forum.project.infrastructure.persistence.key.UserKey;
+import com.forum.project.domain.user.vo.UserKey;
 import com.forum.project.infrastructure.persistence.queries.UserQueries;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -16,7 +17,8 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -59,14 +61,14 @@ public class UserRepositoryJdbcImpl implements UserRepository {
     }
 
     @Override
-    public Map<String, Object> insertAndReturnGeneratedKeys(User user) {
+    public Optional<UserKey> insertAndReturnGeneratedKeys(UserCreateDto dto) {
         String sql = UserQueries.insertAndReturnGeneratedKeys();
-        SqlParameterSource params = new BeanPropertySqlParameterSource(user);
+        SqlParameterSource params = new BeanPropertySqlParameterSource(dto);
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(sql, params, keyHolder, UserKey.getKeys());
+        int updatedRows = jdbcTemplate.update(sql, params, keyHolder, UserKey.getKeys());
 
-        return keyHolder.getKeys();
+        return updatedRows > 0 ? Optional.of(new UserKey(keyHolder.getKeys())) : Optional.empty();
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.forum.project.domain.auth.service;
 
-import com.forum.project.domain.user.mapper.UserDtoConverterFactory;
-import com.forum.project.domain.entity.CustomUserDetails;
+import com.forum.project.domain.user.mapper.UserDtoMapper;
+import com.forum.project.domain.user.entity.CustomUserDetails;
 import com.forum.project.domain.user.entity.User;
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
@@ -23,7 +23,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findById(Long.parseLong(id))
                 .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
 
-        UserInfoDto userInfoDto = UserDtoConverterFactory.toUserInfoDto(user);
+        UserInfoDto userInfoDto = UserDtoMapper.toUserInfoDto(user);
         return new CustomUserDetails(userInfoDto);
     }
 }

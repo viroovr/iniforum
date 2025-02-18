@@ -1,15 +1,16 @@
 package com.forum.project.domain.auth.dto;
 
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class TokenResponseDto {
-    private String accessToken;
-    private String refreshToken;
+public class EmailVerificationRequestDto {
+    @Email
+    private String email;
 }

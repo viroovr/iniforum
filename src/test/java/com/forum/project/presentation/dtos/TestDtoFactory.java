@@ -47,6 +47,19 @@ public class TestDtoFactory {
                 .build();
     }
 
+    public static EmailVerificationRequestDto createEmailVerificationRequestDto() {
+        return EmailVerificationRequestDto.builder()
+                .email("test@test.com")
+                .build();
+    }
+
+    public static EmailVerificationConfirmDto createEmailVerificationConfirmDto() {
+        return EmailVerificationConfirmDto.builder()
+                .email("test@test.com")
+                .code("123456")
+                .build();
+    }
+
     public static EmailRequestDto createEmailRequestDto() {
         return EmailRequestDto.builder()
                 .email("test@test.com")

@@ -1,5 +1,6 @@
 package com.forum.project.infrastructure.security;
 
+import com.forum.project.domain.auth.dto.CookieBuilder;
 import com.forum.project.domain.auth.service.TokenService;
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
@@ -17,12 +18,19 @@ public class CookieManager {
     private final TokenService tokenService;
 
     public Cookie createRefreshTokenCookie(String refreshToken) {
-        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge((int) tokenService.getRefreshTokenExpTime());
+        return new CookieBuilder("refreshToken", refreshToken)
+                .httpOnly(true)
+                .path("/")
+                .maxAge((int) tokenService.getRefreshTokenExpTime())
+                .build();
+    }
 
-        return refreshTokenCookie;
+    public Cookie createEmtpyRefreshTokenCookie() {
+        return new CookieBuilder("refreshToken", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .build();
     }
 
     public String getRefreshTokenFromCookies(HttpServletRequest request) {
@@ -30,6 +38,7 @@ public class CookieManager {
                 .filter(cookie -> "refreshToken".equals(cookie.getName()))
                 .map(Cookie::getValue)
                 .findFirst()
-                .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_REFRESH_TOKEN));
+                .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_REFRESH_TOKEN,
+                        "쿠키에 refreshToken 이름이 존재하지 않습니다."));
     }
 }

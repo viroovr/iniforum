@@ -1,50 +1,53 @@
 package com.forum.project.domain.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
-import com.forum.project.core.common.DateUtils;
-import com.forum.project.core.base.BaseEntity;
-import com.forum.project.infrastructure.persistence.key.UserKey;
+import com.forum.project.domain.user.vo.UserKey;
 import com.forum.project.domain.user.vo.UserRole;
 import com.forum.project.domain.user.vo.UserStatus;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@SuperBuilder
-@ToString(callSuper = true)
-public class User extends BaseEntity {
+@Builder
+public class User {
+    private Long id;
+
     private String loginId;
     private String email;
+
+    @JsonIgnore
     private String password;
+
     private String lastName;
     private String firstName;
     private String nickname;
     private String profileImagePath;
+
     @Builder.Default
     private String status = UserStatus.ACTIVE.name();
     @Builder.Default
     private String role = UserRole.USER.name();
+
     private LocalDateTime lastActivityDate;
     private LocalDateTime lastPasswordModifiedDate;
     private LocalDateTime lastLoginDate;
 
-    public void setKeys(Map<String, Object> keys) {
-        if (keys == null) {
-            throw new IllegalArgumentException("Keys map cannot be null");
-        }
+    private LocalDateTime createdDate;
 
-        setId((Long) keys.get(UserKey.ID));
-        setCreatedDate(DateUtils.convertToLocalDateTime(keys.get(UserKey.CREATED_DATE)));
-        this.lastActivityDate = DateUtils.convertToLocalDateTime(keys.get(UserKey.LAST_ACTIVITY_DATE));
-        this.lastPasswordModifiedDate = DateUtils.convertToLocalDateTime(keys.get(UserKey.LAST_PASSWORD_MODIFIED_DATE));
-        this.lastLoginDate = DateUtils.convertToLocalDateTime(keys.get(UserKey.LAST_LOGIN_DATE));
+    public void setKeys(UserKey keys) {
+        this.id = keys.getId();
+        this.createdDate = keys.getCreatedDate();
+        this.lastActivityDate = keys.getLastActivityDate();
+        this.lastPasswordModifiedDate = keys.getLastPasswordModifiedDate();
+        this.lastLoginDate = keys.getLastLoginDate();
     }
 
     public void activate() {
@@ -68,7 +71,6 @@ public class User extends BaseEntity {
         this.status = "SUSPENDED";
     }
 
-    // 유효성 검사 로직
     public void validate() {
         if (this.loginId == null || this.loginId.trim().isEmpty()) {
             throw new ApplicationException(ErrorCode.INVALID_LOGIN_ID);
@@ -82,14 +84,6 @@ public class User extends BaseEntity {
         if (this.role == null || this.role.trim().isEmpty()) {
             throw new ApplicationException(ErrorCode.INVALID_USER_ROLE);
         }
-    }
-
-    public void changePassword(String newPassword) {
-        if (newPassword == null || newPassword.trim().isEmpty() || newPassword.length() < 8) {
-            throw new ApplicationException(ErrorCode.INVALID_NEW_PASSWORD);
-        }
-        this.password = newPassword;
-        this.lastPasswordModifiedDate = LocalDateTime.now();
     }
 
     public void updateLastActivityDate() {

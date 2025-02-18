@@ -1,65 +1,64 @@
-//package com.forum.project.application.user.auth;
-//
-//import com.forum.project.application.user.auth.AuthService;
-//import com.forum.project.application.user.auth.UserPasswordService;
-//import com.forum.project.infrastructure.jwt.AccessRedisTokenBlacklistHandler;
-//import com.forum.project.infrastructure.jwt.RefreshRedisTokenBlacklistHandler;
-//import com.forum.project.domain.auth.service.TokenService;
-//import com.forum.project.domain.entitiy.User;
-//import com.forum.project.application.exception.ApplicationException;
-//import com.forum.project.application.exception.ErrorCode;
-//import com.forum.project.domain.user.repository.UserRepository;
-//import com.forum.project.presentation.dtos.TestDtoFactory;
-//import com.forum.project.domain.auth.dto.LoginRequestDto;
-//import com.forum.project.domain.auth.dto.SignupRequestDto;
-//import com.forum.project.domain.auth.dto.SignupResponseDto;
-//import com.forum.project.domain.auth.dto.TokenResponseDto;
-//import com.forum.project.domain.user.dto.UserInfoDto;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//
-//import java.util.Optional;
-//
-//import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.Mockito.*;
-//
-//@ExtendWith(MockitoExtension.class)
-//class AuthServiceTest {
-//
-//    @Mock
-//    private UserRepository userRepository;
-//    @Mock
-//    private UserPasswordService userPasswordService;
-//    @Mock
-//    private TokenService tokenService;
-//    @Mock
-//    private RefreshRedisTokenBlacklistHandler refreshTokenBlacklistService;
-//    @Mock
-//    private AccessRedisTokenBlacklistHandler accessTokenBlacklistService;
-//
-//    @InjectMocks
-//    private AuthService authService;
-//
-//    private SignupRequestDto signupRequestDto;
-//    private LoginRequestDto loginRequestDto;
-//    private User mockUser;
-//
-//    @BeforeEach
-//    void setUp() {
-//        signupRequestDto = TestDtoFactory.createSignupRequestDto();
-//        loginRequestDto = TestDtoFactory.createLoginRequestDto();
-//        mockUser = TestDtoFactory.createUserEntity();
-//    }
-//
+package com.forum.project.application.user.auth;
+
+import com.forum.project.domain.auth.dto.LoginRequestDto;
+import com.forum.project.domain.auth.dto.SignupRequestDto;
+import com.forum.project.domain.auth.repository.TokenBlacklistHandler;
+import com.forum.project.domain.auth.service.AuthService;
+import com.forum.project.domain.auth.service.TokenService;
+import com.forum.project.domain.auth.service.UserPasswordService;
+import com.forum.project.domain.user.entity.User;
+import com.forum.project.domain.user.repository.UserRepository;
+import com.forum.project.domain.user.service.UserFacade;
+import com.forum.project.presentation.dtos.TestDtoFactory;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class AuthServiceTest {
+    @InjectMocks
+    private AuthService authService;
+
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private UserPasswordService userPasswordService;
+    @Mock
+    private TokenService tokenService;
+    @Mock
+    private TokenBlacklistHandler tokenBlacklistHandler;
+    @Mock
+    private UserFacade userFacade;
+
+    private SignupRequestDto signupRequestDto;
+    private LoginRequestDto loginRequestDto;
+    private User mockUser;
+
+    @BeforeEach
+    void setUp() {
+        signupRequestDto = TestDtoFactory.createSignupRequestDto();
+        loginRequestDto = TestDtoFactory.createLoginRequestDto();
+        mockUser = TestDtoFactory.createUserEntity();
+    }
+
+    private void mockValidateExistEmail(boolean exists) {
+        when(userRepository.existsByEmail(signupRequestDto.getEmail())).thenReturn(false);
+    }
+
+    private void mockValidateExistsLoginId(boolean exists) {
+        when(userRepository.existsByEmail(signupRequestDto.getLoginId())).thenReturn(false);
+    }
+
 //    @Test
 //    void shouldSignupSuccessfully_WhenValidRequestSignupProvided() {
-//        when(userRepository.emailExists(signupRequestDto.getEmail())).thenReturn(false);
-//        when(userRepository.userLoginIdExists(signupRequestDto.getLoginId())).thenReturn(false);
-//        when(userRepository.save(any(User.class))).thenReturn(mockUser);
+//
+//        mockValidateExistEmail(false);
+//        mockValidateExistsLoginId(false);
+//        when(userRepository.insertAndReturnGeneratedKeys(any(UserCreateDto.class))).thenReturn(mockUser);
 //        when(userPasswordService.encode(signupRequestDto.getPassword())).thenReturn(mockUser.getPassword());
 //
 //        SignupResponseDto responseDto = authService.createUser(signupRequestDto);
@@ -69,12 +68,8 @@
 //        assertEquals("testId", responseDto.getLoginId());
 //        assertEquals("testLastName", responseDto.getLastName());
 //        assertEquals("testFirstName", responseDto.getFirstName());
-//        verify(userRepository).emailExists(signupRequestDto.getEmail());
-//        verify(userRepository).userLoginIdExists(signupRequestDto.getLoginId());
-//        verify(userPasswordService).encode(signupRequestDto.getPassword());
-//        verify(userRepository).save(any(User.class));
 //    }
-//
+
 //    @Test
 //    void shouldThrowEmailAlreadyExistException_WhenEmailAlreadyExists() {
 //        when(userRepository.emailExists(signupRequestDto.getEmail())).thenReturn(true);
@@ -209,4 +204,4 @@
 //        verify(refreshTokenBlacklistService).isBlacklistedToken(refreshToken);
 //        verify(tokenService).isValidToken(refreshToken);
 //    }
-//}
+}

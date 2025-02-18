@@ -7,7 +7,7 @@ import com.forum.project.domain.user.entity.User;
 import com.forum.project.domain.user.dto.UserInfoDto;
 import com.forum.project.domain.user.dto.UserRequestDto;
 import com.forum.project.domain.user.dto.UserResponseDto;
-import com.forum.project.domain.user.mapper.UserDtoConverterFactory;
+import com.forum.project.domain.user.mapper.UserDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class UserFacade {
 
     public UserInfoDto getUserProfileByHeader(String header) {
         User user = authenticationService.extractUserByHeader(header);
-        return UserDtoConverterFactory.toUserInfoDto(user);
+        return UserDtoMapper.toUserInfoDto(user);
     }
 
     public UserResponseDto updateUserProfileByHeader(

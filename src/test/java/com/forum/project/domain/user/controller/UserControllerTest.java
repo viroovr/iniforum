@@ -1,4 +1,4 @@
-package com.forum.project.presentation.controller;
+package com.forum.project.domain.user.controller;
 
 import com.forum.project.domain.auth.service.TokenService;
 import com.forum.project.domain.user.service.UserFacade;
@@ -6,7 +6,6 @@ import com.forum.project.domain.bookmark.service.QuestionBookmarkService;
 import com.forum.project.presentation.config.TestSecurityConfig;
 import com.forum.project.domain.user.dto.UserRequestDto;
 import com.forum.project.domain.user.dto.UserResponseDto;
-import com.forum.project.domain.user.controller.UserController;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;

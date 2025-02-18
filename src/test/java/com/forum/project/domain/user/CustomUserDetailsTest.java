@@ -1,6 +1,6 @@
 package com.forum.project.domain.user;
 
-import com.forum.project.domain.entity.CustomUserDetails;
+import com.forum.project.domain.user.entity.CustomUserDetails;
 import com.forum.project.domain.user.vo.UserStatus;
 import com.forum.project.domain.user.dto.UserInfoDto;
 import org.junit.jupiter.api.BeforeEach;

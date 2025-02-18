@@ -3,7 +3,7 @@ package com.forum.project.domain.user.service;
 import com.forum.project.domain.auth.service.UserPasswordService;
 import com.forum.project.domain.user.infrastructure.FileService;
 import com.forum.project.domain.user.entity.User;
-import com.forum.project.domain.user.mapper.UserDtoConverterFactory;
+import com.forum.project.domain.user.mapper.UserDtoMapper;
 import com.forum.project.domain.user.repository.UserRepository;
 import com.forum.project.domain.user.dto.UserRequestDto;
 import com.forum.project.domain.user.dto.UserResponseDto;
@@ -35,7 +35,7 @@ public class UserProfileService {
         user.setProfileImagePath(uploadDir);
 
         userRepository.updateProfile(user);
-        return UserDtoConverterFactory.toUserResponseDto(user);
+        return UserDtoMapper.toUserResponseDto(user);
     }
 
     public String getLoginId(Long userId) {

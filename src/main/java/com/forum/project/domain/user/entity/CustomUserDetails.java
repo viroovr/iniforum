@@ -1,4 +1,4 @@
-package com.forum.project.domain.entity;
+package com.forum.project.domain.user.entity;
 
 import com.forum.project.domain.user.vo.UserStatus;
 import com.forum.project.domain.user.dto.UserInfoDto;

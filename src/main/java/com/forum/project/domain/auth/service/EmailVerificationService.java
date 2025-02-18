@@ -5,7 +5,6 @@ import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
 import com.forum.project.domain.auth.entity.EmailVerification;
 import com.forum.project.domain.auth.repository.VerificationCodeService;
-import com.forum.project.infrastructure.jwt.EmailSender;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

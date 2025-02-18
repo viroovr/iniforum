@@ -1,5 +1,7 @@
 package com.forum.project.domain.auth.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,9 +11,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class SignupResponseDto {
-    private String loginId;
+public class EmailVerificationConfirmDto {
+    @NotBlank(message = "{email.required}")
+    @Email
     private String email;
-    private String lastName;
-    private String firstName;
+
+    private String code;
 }

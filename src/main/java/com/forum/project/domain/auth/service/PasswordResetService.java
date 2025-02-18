@@ -1,6 +1,6 @@
 package com.forum.project.domain.auth.service;
 
-import com.forum.project.domain.user.mapper.UserDtoConverterFactory;
+import com.forum.project.domain.user.mapper.UserDtoMapper;
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
 import com.forum.project.domain.user.entity.User;
@@ -20,7 +20,7 @@ public class PasswordResetService {
     public void requestPasswordReset(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
-        UserInfoDto userInfoDto = UserDtoConverterFactory.toUserInfoDto(user);
+        UserInfoDto userInfoDto = UserDtoMapper.toUserInfoDto(user);
 
         String resetToken = tokenService.createPasswordResetToken(userInfoDto);
         emailUserService.sendPasswordResetEmail(user.getEmail(), resetToken);
