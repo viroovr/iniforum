@@ -2,7 +2,7 @@ package com.forum.project.presentation.question;
 
 import com.forum.project.domain.question.service.QuestionQueryService;
 import com.forum.project.domain.question.vo.QuestionSortType;
-import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.auth.service.AuthorizationService;
 import com.forum.project.domain.question.controller.QuestionQueryController;
 import com.forum.project.domain.question.vo.QuestionStatus;
 import com.forum.project.presentation.config.TestSecurityConfig;
@@ -40,7 +40,7 @@ public class QuestionQueryControllerTest {
     @MockBean
     private QuestionQueryService questionQueryService;
     @MockBean
-    private AuthenticationService authenticationService;
+    private AuthorizationService authorizationService;
 
     @Test
     void testGetQuestionsByPage_success() throws Exception{

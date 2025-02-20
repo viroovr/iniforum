@@ -1,6 +1,7 @@
 package com.forum.project.presentation.dtos;
 
 import com.forum.project.domain.auth.dto.*;
+import com.forum.project.domain.user.dto.UserCreateDto;
 import com.forum.project.domain.user.vo.UserRole;
 import com.forum.project.domain.user.entity.User;
 import com.forum.project.domain.user.vo.UserStatus;
@@ -33,6 +34,13 @@ public class TestDtoFactory {
                 .build();
     }
 
+    public static TokenRequestDto createTokenRequestDto() {
+        return TokenRequestDto.builder()
+                .refreshToken("refreshToken")
+                .accessToken("accessToken")
+                .build();
+    }
+
     public static LoginRequestDto createLoginRequestDto() {
         return LoginRequestDto.builder()
                 .loginId("testId")
@@ -42,8 +50,22 @@ public class TestDtoFactory {
 
     public static TokenResponseDto createTokenResponseDto() {
         return TokenResponseDto.builder()
-                .refreshToken("refresh-token")
-                .accessToken("access-token")
+                .refreshToken("refreshToken")
+                .accessToken("accessToken")
+                .build();
+    }
+
+    public static UserCreateDto createUserCreateDto() {
+        return UserCreateDto.builder()
+                .loginId("testId")
+                .password("testPassword1!")
+                .email("test@test.com")
+                .lastName("testLastName")
+                .firstName("testFirstName")
+                .nickname("testNickname")
+                .status(UserStatus.ACTIVE.name())
+                .role(UserRole.USER.name())
+                .profileImagePath("test/path")
                 .build();
     }
 
@@ -60,10 +82,11 @@ public class TestDtoFactory {
                 .build();
     }
 
-    public static EmailRequestDto createEmailRequestDto() {
-        return EmailRequestDto.builder()
+    public static PasswordResetRequestDto createPasswordResetRequestDto() {
+        return PasswordResetRequestDto.builder()
+                .token("testToken")
                 .email("test@test.com")
-                .code("testCode")
+                .newPassword("newPassword")
                 .build();
     }
 

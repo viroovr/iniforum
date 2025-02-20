@@ -3,8 +3,7 @@ package com.forum.project.domain.auth.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.forum.project.domain.auth.dto.*;
 import com.forum.project.domain.auth.service.AuthService;
-import com.forum.project.domain.auth.service.AuthenticationService;
-import com.forum.project.domain.auth.service.EmailVerificationService;
+import com.forum.project.domain.email.service.EmailVerificationService;
 import com.forum.project.infrastructure.security.CookieManager;
 import com.forum.project.presentation.config.TestSecurityConfig;
 import com.forum.project.presentation.dtos.TestDtoFactory;
@@ -21,20 +20,19 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = AuthController.class)
 @Import(TestSecurityConfig.class)
+@WebMvcTest(controllers = AuthController.class)
 class AuthControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean private AuthService authService;
     @MockBean private CookieManager cookieManager;
-    @MockBean private AuthenticationService authenticationService;
     @MockBean private EmailVerificationService emailVerificationService;
 
     private static final String BASE_PATH = "/api/v1/auth";
@@ -44,6 +42,7 @@ class AuthControllerTest {
     private SignupResponseDto signupResponseDto;
     private LoginRequestDto loginRequestDto;
     private TokenResponseDto tokenResponseDto;
+    private TokenRequestDto tokenRequestDto;
 
     @BeforeEach
     void setUp() {
@@ -51,7 +50,8 @@ class AuthControllerTest {
         signupResponseDto = TestDtoFactory.createSignupResponseDto();
         loginRequestDto = TestDtoFactory.createLoginRequestDto();
         tokenResponseDto = TestDtoFactory.createTokenResponseDto();
-        header = "Bearer access-token";
+        tokenRequestDto = TestDtoFactory.createTokenRequestDto();
+        header = "Bearer accessToken";
     }
 
     private ResultActions testRequestWithValidDto(Object dto, String endpoint) throws Exception {
@@ -92,7 +92,6 @@ class AuthControllerTest {
     }
 
     private void mockExtractTokens() {
-        when(authenticationService.extractTokenByHeader(header)).thenReturn(tokenResponseDto.getAccessToken());
         when(cookieManager.getRefreshTokenFromCookies(any(HttpServletRequest.class)))
                 .thenReturn(tokenResponseDto.getRefreshToken());
     }
@@ -100,8 +99,7 @@ class AuthControllerTest {
     @Test
     void logout() throws Exception {
         mockExtractTokens();
-        when(cookieManager.createEmtpyRefreshTokenCookie())
-                .thenReturn(new Cookie("refreshToken", ""));
+        when(cookieManager.createEmtpyRefreshTokenCookie()).thenReturn(new Cookie("refreshToken", ""));
         testRequestByCookieAndHeader(tokenResponseDto.getRefreshToken(), "/logout")
                 .andExpect(cookie().value("refreshToken", ""));
     }
@@ -109,8 +107,7 @@ class AuthControllerTest {
     @Test
     void refreshAccessToken() throws Exception {
         mockExtractTokens();
-        when(authService.refreshAccessToken(tokenResponseDto.getRefreshToken(), tokenResponseDto.getAccessToken()))
-                .thenReturn(tokenResponseDto);
+        when(authService.refreshAccessToken(tokenRequestDto)).thenReturn(tokenResponseDto);
         when(cookieManager.createRefreshTokenCookie(tokenResponseDto.getRefreshToken()))
                 .thenReturn(new Cookie("refreshToken", tokenResponseDto.getRefreshToken()));
 

@@ -3,7 +3,7 @@ package com.forum.project.presentation.question;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.forum.project.domain.question.service.QuestionCrudService;
-import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.auth.service.AuthorizationService;
 import com.forum.project.domain.question.controller.QuestionCrudController;
 import com.forum.project.domain.user.entity.User;
 import com.forum.project.presentation.config.TestSecurityConfig;
@@ -39,7 +39,7 @@ public class QuestionCrudControllerTest {
     @MockBean
     private QuestionCrudService questionCrudService;
     @MockBean
-    private AuthenticationService authenticationService;
+    private AuthorizationService authorizationService;
 
     @Test
     void testPostQuestion_success() throws Exception {
@@ -52,7 +52,7 @@ public class QuestionCrudControllerTest {
                 .title("testTitle")
                 .content("testContent").build();
 
-        when(authenticationService.extractUserByHeader(header)).thenReturn(user);
+        when(authorizationService.extractUserByHeader(header)).thenReturn(user);
         when(questionCrudService.create(any(QuestionCreateDto.class))).thenReturn(questionResponseDto);
 
         mockMvc.perform(post("/api/v1/questions/post")
@@ -74,7 +74,7 @@ public class QuestionCrudControllerTest {
                 .title("testTitle")
                 .content("testContent").build();
 
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
+        when(authorizationService.extractUserId(header)).thenReturn(userId);
         when(questionCrudService.readQuestion(questionId, userId)).thenReturn(questionResponseDto);
 
         mockMvc.perform(get("/api/v1/questions/{id}", questionId)
@@ -97,7 +97,7 @@ public class QuestionCrudControllerTest {
                 .title("testTitle")
                 .content("testContent").build();
 
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
+        when(authorizationService.extractUserId(header)).thenReturn(userId);
         when(questionCrudService.updateTitleAndContent(questionId, userId, "testTitle", "testContent"))
                 .thenReturn(questionResponseDto);
 
@@ -119,7 +119,7 @@ public class QuestionCrudControllerTest {
         BaseResponseDto baseResponseDto = BaseResponseDto.builder()
                 .message("Question deleted successfully.").build();
 
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
+        when(authorizationService.extractUserId(header)).thenReturn(userId);
         doNothing().when(questionCrudService).delete(questionId, userId);
 
         mockMvc.perform(delete("/api/v1/questions/{id}", questionId)

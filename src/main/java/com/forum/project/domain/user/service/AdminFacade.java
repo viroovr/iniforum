@@ -1,6 +1,6 @@
 package com.forum.project.domain.user.service;
 
-import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.auth.service.AuthorizationService;
 import com.forum.project.domain.user.entity.User;
 import com.forum.project.domain.user.dto.UserInfoDto;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminFacade {
 
-    private final AuthenticationService authenticationService;
+    private final AuthorizationService authorizationService;
     private final UserManagementService userManagementService;
     private final UserSearchService userSearchService;
 
@@ -22,7 +22,7 @@ public class AdminFacade {
 
     @Transactional
     public void reactivateAccount(String header) {
-        User user = authenticationService.extractUserByHeader(header);
+        User user = authorizationService.extractUserByHeader(header);
         userManagementService.reactivateAccount(user);
     }
 

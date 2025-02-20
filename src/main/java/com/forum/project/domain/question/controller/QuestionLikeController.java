@@ -1,7 +1,7 @@
 package com.forum.project.domain.question.controller;
 
 import com.forum.project.domain.like.service.QuestionLikeService;
-import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.auth.service.AuthorizationService;
 import com.forum.project.core.common.IpAddressUtil;
 import com.forum.project.domain.like.vo.LikeStatus;
 import com.forum.project.core.base.BaseResponseDto;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/questions/like")
 @RequiredArgsConstructor
 public class QuestionLikeController {
-    private final AuthenticationService authenticationService;
+    private final AuthorizationService authorizationService;
     private final QuestionLikeService questionLikeService;
 
     @PutMapping("/{id}")
@@ -26,7 +26,7 @@ public class QuestionLikeController {
             HttpServletRequest request
     ) {
         String ipAddress = IpAddressUtil.getClientIp(request);
-        Long userId = authenticationService.extractUserId(header);
+        Long userId = authorizationService.extractUserId(header);
         LikeStatus likeStatus = LikeStatus.fromString(status);
 
         questionLikeService.addLike(questionId, userId, likeStatus, ipAddress);
@@ -40,7 +40,7 @@ public class QuestionLikeController {
             @RequestParam String status,
             @RequestHeader("Authorization") String header
     ) {
-        Long userId = authenticationService.extractUserId(header);
+        Long userId = authorizationService.extractUserId(header);
         LikeStatus likeStatus = LikeStatus.fromString(status);
         questionLikeService.cancelLike(questionId, userId, likeStatus);
         BaseResponseDto response = new BaseResponseDto(String.format("Delete %s Question successfully.", status));

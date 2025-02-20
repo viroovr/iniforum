@@ -1,7 +1,7 @@
 package com.forum.project.presentation.question;
 
 import com.forum.project.domain.like.service.QuestionLikeService;
-import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.auth.service.AuthorizationService;
 import com.forum.project.domain.like.vo.LikeStatus;
 import com.forum.project.domain.question.controller.QuestionLikeController;
 import com.forum.project.presentation.config.TestSecurityConfig;
@@ -32,7 +32,7 @@ public class QuestionLikeControllerTest {
     @MockBean
     private QuestionLikeService questionLikeService;
     @MockBean
-    private AuthenticationService authenticationService;
+    private AuthorizationService authorizationService;
 
     @Test
     void testAddQuestionLike_success() throws Exception {
@@ -42,7 +42,7 @@ public class QuestionLikeControllerTest {
         String header = "Bearer accessToken";
         String ipAddress = "192.168.0.1";
 
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
+        when(authorizationService.extractUserId(header)).thenReturn(userId);
         doNothing().when(questionLikeService).addLike(questionId, userId, likeStatus, ipAddress);
 
         mockMvc.perform(put("/api/v1/questions/like/{id}", questionId)
@@ -61,7 +61,7 @@ public class QuestionLikeControllerTest {
         LikeStatus likeStatus = LikeStatus.LIKE;
         String header = "Bearer accessToken";
 
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
+        when(authorizationService.extractUserId(header)).thenReturn(userId);
         doNothing().when(questionLikeService).cancelLike(questionId, userId, likeStatus);
 
         mockMvc.perform(delete("/api/v1/questions/like/{id}", questionId)

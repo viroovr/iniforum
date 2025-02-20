@@ -2,7 +2,7 @@ package com.forum.project.presentation.question;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.forum.project.domain.report.service.QuestionReportService;
-import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.auth.service.AuthorizationService;
 import com.forum.project.domain.question.controller.QuestionReportController;
 import com.forum.project.domain.report.dto.ReportRequestDto;
 import com.forum.project.domain.report.entity.QuestionReport;
@@ -39,7 +39,7 @@ public class QuestionReportControllerTest {
     @MockBean
     private QuestionReportService questionReportService;
     @MockBean
-    private AuthenticationService authenticationService;
+    private AuthorizationService authorizationService;
 
     @Test
     void testSaveReportQuestion_success() throws Exception {
@@ -48,7 +48,7 @@ public class QuestionReportControllerTest {
         String header = "Bearer accessToken";
         ReportRequestDto reportRequestDto = new ReportRequestDto("스팸");
 
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
+        when(authorizationService.extractUserId(header)).thenReturn(userId);
         doNothing().when(questionReportService).saveReport(questionId, userId, reportRequestDto.getReason());
 
         mockMvc.perform(post("/api/v1/questions/report/{id}", questionId)
@@ -69,7 +69,7 @@ public class QuestionReportControllerTest {
                 QuestionReport.builder().questionId(questionId).userId(1L).build(),
                 QuestionReport.builder().questionId(questionId).userId(2L).build()
         );
-        doNothing().when(authenticationService).validateAdminRole(header);
+        doNothing().when(authorizationService).validateAdminRole(header);
         when(questionReportService.getReportsById(questionId)).thenReturn(reportList);
 
         mockMvc.perform(get("/api/v1/questions/report/{id}", questionId)
@@ -90,7 +90,7 @@ public class QuestionReportControllerTest {
                 QuestionReport.builder().questionId(1L).userId(userId).build(),
                 QuestionReport.builder().questionId(2L).userId(userId).build()
         );
-        doNothing().when(authenticationService).validateUser(userId, header);
+        doNothing().when(authorizationService).validateUser(userId, header);
         when(questionReportService.getReportsByUserId(userId)).thenReturn(reportList);
 
         mockMvc.perform(get("/api/v1/questions/report/user/{id}", userId)
@@ -107,7 +107,7 @@ public class QuestionReportControllerTest {
         Long reportId = 1L;
         String header = "Bearer accessToken";
 
-        doNothing().when(authenticationService).validateAdminRole(header);
+        doNothing().when(authorizationService).validateAdminRole(header);
         doNothing().when(questionReportService).resolveReport(reportId);
 
         mockMvc.perform(post("/api/v1/questions/report/resolve/{id}", reportId)

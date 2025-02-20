@@ -17,7 +17,7 @@ public class UserPasswordService {
     }
 
     public void validatePassword(String rawPassword, String encodedPassword) {
-        if (passwordEncoder.matches(rawPassword, encodedPassword)) {
+        if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
             throw new ApplicationException(ErrorCode.AUTH_INVALID_PASSWORD);
         }
     }
@@ -25,5 +25,4 @@ public class UserPasswordService {
     public String encode(String rawPassword) {
         return passwordEncoder.encode(rawPassword);
     }
-
 }

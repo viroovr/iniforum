@@ -21,6 +21,7 @@ public interface UserRepository{
 
     Long countByLoginIdAndStatus(String keyword, String status);
 
+    int updatePassword(String email, String newPassword);
     int updateProfile(User user);
     int updateAllStatus(List<Long> userIds, List<String> statuses);
 

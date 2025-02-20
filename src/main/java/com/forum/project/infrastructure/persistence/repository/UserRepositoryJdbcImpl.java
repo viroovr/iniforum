@@ -126,6 +126,11 @@ public class UserRepositoryJdbcImpl implements UserRepository {
     }
 
     @Override
+    public int updatePassword(String email, String newPassword) {
+        return 0;
+    }
+
+    @Override
     public boolean existsByEmail(String email) {
         String sql = UserQueries.existsByEmail();
         SqlParameterSource namedParameters = new MapSqlParameterSource("email", email);

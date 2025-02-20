@@ -1,8 +1,8 @@
 package com.forum.project.application.question;
 
-import com.forum.project.domain.auth.service.EmailAdminService;
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
+import com.forum.project.domain.email.service.EmailService;
 import com.forum.project.domain.question.validator.QuestionValidator;
 import com.forum.project.domain.report.entity.QuestionReport;
 import com.forum.project.domain.report.repository.QuestionReportRepository;
@@ -33,7 +33,7 @@ public class QuestionReportServiceTest {
     @Mock
     private QuestionReportRepository questionReportRepository;
     @Mock
-    private EmailAdminService emailAdminService;
+    private EmailService emailAdminService;
 
     @Test
     void testSaveReport() {
@@ -107,12 +107,12 @@ public class QuestionReportServiceTest {
         Long reportCount = 11L;
 
         when(questionReportRepository.countByQuestionId(questionId)).thenReturn(reportCount);
-        doNothing().when(emailAdminService).sendEmail(anyString(), anyString());
+        doNothing().when(emailAdminService).sendEmailToAdmin(anyString(), anyString());
 
         questionReportService.notifyAdminIfHighReports(questionId);
 
         verify(questionReportRepository).countByQuestionId(questionId);
-        verify(emailAdminService).sendEmail(anyString(), anyString());
+        verify(emailAdminService).sendEmailToAdmin(anyString(), anyString());
     }
 
     @Test
@@ -125,7 +125,7 @@ public class QuestionReportServiceTest {
         questionReportService.notifyAdminIfHighReports(questionId);
 
         verify(questionReportRepository).countByQuestionId(questionId);
-        verify(emailAdminService, never()).sendEmail(anyString(), anyString());
+        verify(emailAdminService, never()).sendEmailToAdmin(anyString(), anyString());
     }
 
     @Test

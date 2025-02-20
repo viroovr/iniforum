@@ -2,7 +2,7 @@ package com.forum.project.infrastructure.security.auth;
 
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
-import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.auth.service.AuthorizationService;
 import com.forum.project.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -20,11 +20,11 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AuthAspect {
 
-    private final AuthenticationService authenticationService;
+    private final AuthorizationService authorizationService;
 
     @Before("@annotation(AuthCheck) && args(userId, header)")
     public void checkAuthorizationForUser(AuthCheck authCheck, Long userId, String header) {
-        Long jwtUserId = authenticationService.extractUserId(header);
+        Long jwtUserId = authorizationService.extractUserId(header);
 
         if (!Objects.equals(userId, jwtUserId)) {
             throw new ApplicationException(ErrorCode.AUTH_BAD_CREDENTIAL);
@@ -37,7 +37,7 @@ public class AuthAspect {
     @Around("extractUserPointcut() && args(.., token)")
     public Object extractUser(ProceedingJoinPoint joinPoint, String token) throws Throwable {
         // Extract user from token
-        User user = authenticationService.extractUserByHeader(token);
+        User user = authorizationService.extractUserByHeader(token);
 
         // Add user as the last argument to the method
         Object[] args = joinPoint.getArgs();

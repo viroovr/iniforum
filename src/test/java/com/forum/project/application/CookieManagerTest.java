@@ -1,8 +1,8 @@
 package com.forum.project.application;
 
-import com.forum.project.domain.auth.service.TokenService;
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
+import com.forum.project.domain.auth.vo.TokenExpirationProperties;
 import com.forum.project.infrastructure.security.CookieManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +23,7 @@ public class CookieManagerTest {
     private CookieManager cookieManager;
 
     @Mock
-    private TokenService tokenService;
+    private TokenExpirationProperties properties;
 
     private static final String REFRESH_TOKEN = "refresh-token";
     private static final String COOKIE_NAME = "refreshToken";
@@ -31,7 +31,7 @@ public class CookieManagerTest {
     @Test
     public void testCreateRefreshTokenCookie_Success() {
         long refreshTokenExpTime = 604800L;
-        when(tokenService.getRefreshTokenExpTime()).thenReturn(refreshTokenExpTime);
+        when(properties.getRefreshTokenExpTime()).thenReturn(refreshTokenExpTime);
 
         Cookie cookie = cookieManager.createRefreshTokenCookie(REFRESH_TOKEN);
 

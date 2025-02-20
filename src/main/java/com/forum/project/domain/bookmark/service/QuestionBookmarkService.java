@@ -5,6 +5,9 @@ import com.forum.project.core.exception.ErrorCode;
 import com.forum.project.domain.bookmark.entity.Bookmark;
 import com.forum.project.domain.bookmark.repository.BookmarkRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +40,8 @@ public class QuestionBookmarkService {
     }
 
     @Transactional(readOnly = true)
-    public List<Bookmark> getUserBookmarks(Long userId) {
-        return bookmarkRepository.findAllByUserId(userId);
+    public List<Bookmark> getUserBookmarks(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return bookmarkRepository.findAllByUserId(userId, pageable);
     }
 }

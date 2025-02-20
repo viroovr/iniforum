@@ -23,6 +23,7 @@ public enum ErrorCode {
     LIKE_NOT_FOUND("NOT_FOUND_008", "Like not found", HttpStatus.NOT_FOUND),
     QUESTION_REPORT_NOT_FOUND("NOT_FOUND_009", "Question Report not found", HttpStatus.NOT_FOUND),
     BOOKMARK_NOT_FOUND("NOT_FOUND_010", "Question Bookmark not found", HttpStatus.NOT_FOUND),
+    RESET_TOKEN_NOT_FOUND("NOT_FOUND_011", "Token not found", HttpStatus.NOT_FOUND),
 
 //  3. Conflict & Duplication
     EMAIL_ALREADY_EXISTS("EMAIL_ALREADY_EXISTS", "Email already exists", HttpStatus.CONFLICT),

@@ -1,172 +1,147 @@
 package com.forum.project.application.jwt;
 
+import com.forum.project.core.common.ClockUtil;
+import com.forum.project.domain.auth.dto.TokenResponseDto;
+import com.forum.project.domain.auth.vo.TokenExpirationProperties;
 import com.forum.project.domain.user.vo.UserRole;
-import com.forum.project.domain.auth.dto.ClaimRequestDto;
+import com.forum.project.domain.auth.vo.ClaimRequest;
 import com.forum.project.infrastructure.jwt.JwtUtils;
 import com.forum.project.infrastructure.jwt.TokenCacheHandler;
 import com.forum.project.domain.auth.service.TokenService;
 import com.forum.project.domain.user.dto.UserInfoDto;
+import com.forum.project.testUtils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TokenServiceTest {
-    @Mock
-    private TokenCacheHandler tokenCacheHandler;
-    @Mock
-    private JwtUtils jwtUtils;
-    private long accessTokenExpTime;
-    private long refreshTokenExpTime;
-    private long passwordResetTokenExpTime;
+    @Mock private JwtUtils jwtUtils;
+    @Mock private TokenCacheHandler tokenCacheHandler;
+    @Mock private TokenExpirationProperties properties;
 
+    @InjectMocks
     private TokenService tokenService;
+
+    private final String accessToken = "accessToken";
 
     @BeforeEach
     void setUp() {
-        accessTokenExpTime = 3600L;
-        refreshTokenExpTime = 64800;
-        passwordResetTokenExpTime = 360L;
-        this.tokenService = new TokenService(
-                tokenCacheHandler,
-                jwtUtils,
-                accessTokenExpTime,
-                refreshTokenExpTime,
-                passwordResetTokenExpTime
-        );
+        TestUtils.setFixedClock();
     }
 
     @Test
-    void testGetUserId_success() {
-        String token = "validToken";
-        when(tokenCacheHandler.extractClaim(token, ClaimRequestDto.USER_ID_CLAIM_KEY, Long.class))
-                .thenReturn(1L);
+    void getUserId() {
+        when(tokenCacheHandler.extractClaim(accessToken, ClaimRequest.USER_ID_CLAIM_KEY, Long.class)).thenReturn(1L);
 
-        Long response = tokenService.getUserId(token);
+        Long result = tokenService.getUserId(accessToken);
 
-        assertNotNull(response);
-        assertEquals(1L, response);
+        assertThat(result).isOne();
     }
 
     @Test
-    void testGetLoginId_success() {
-        String token = "validToken";
-        when(tokenCacheHandler.extractClaim(token, ClaimRequestDto.LOGIN_ID_CLAIM_KEY, String.class))
-                .thenReturn("validLoginId");
+    void getLoginId() {
+        when(tokenCacheHandler.extractClaim(accessToken, ClaimRequest.LOGIN_ID_CLAIM_KEY, String.class))
+                .thenReturn("testLoginId");
 
-        String response = tokenService.getLoginId(token);
+        String result = tokenService.getLoginId(accessToken);
 
-        assertNotNull(response);
-        assertEquals("validLoginId", response);
+        assertThat(result).isEqualTo("testLoginId");
     }
 
     @Test
-    void testGetUserRole_success() {
-        String token = "validToken";
-        when(tokenCacheHandler.extractClaim(token, ClaimRequestDto.USER_ROLE_CLAIM_KEY, String.class))
-                .thenReturn("validUserRole");
+    void getExpirationTime() {
+        Date expirationDate = Date.from(ClockUtil.now().plusSeconds(123).atZone(TestUtils.getZonedId()).toInstant());
+        when(tokenCacheHandler.getExpirationDate(accessToken)).thenReturn(expirationDate);
 
-        String response = tokenService.getUserRole(token);
+        long result = tokenService.getExpirationTime(accessToken);
 
-        assertNotNull(response);
-        assertEquals("validUserRole", response);
+        assertThat(result).isEqualTo(123);
     }
 
-    @Test
-    void testGetExpirationTime_success() {
-        String token = "validToken";
-        Date expirationDate = Date.from(LocalDateTime.now().plusSeconds(60).atZone(ZoneId.systemDefault()).toInstant());
-        when(tokenCacheHandler.getExpirationDate(token)).thenReturn(expirationDate);
+    @Nested
+    class UserRoleTests {
 
-        long actual = tokenService.getExpirationTime(token);
+        private void mockGetUserRole(String role) {
+            when(tokenCacheHandler.extractClaim(accessToken, ClaimRequest.USER_ROLE_CLAIM_KEY, String.class)).thenReturn(role);
+        }
 
-        assertEquals(60, actual, 1);
+        @BeforeEach
+        void setUpUserRoleTests() {
+            mockGetUserRole(UserRole.USER.name());
+        }
+
+        @Test
+        void getUserRole() {
+            String result = tokenService.getUserRole(accessToken);
+
+            assertThat(result).isEqualTo(UserRole.USER.name());
+        }
+
+        @Test
+        void isAdmin() {
+            mockGetUserRole(UserRole.ADMIN.name());
+            boolean result = tokenService.isAdmin(accessToken);
+
+            assertThat(result).isTrue();
+        }
+
+        @Test
+        void isAdmin_false() {
+            boolean result = tokenService.isAdmin(accessToken);
+
+            assertThat(result).isFalse();
+        }
     }
 
-    @Test
-    void testHasRole_success() {
-        String token = "validToken";
-        UserRole role = UserRole.USER;
-        when(tokenCacheHandler.extractClaim(token, ClaimRequestDto.USER_ROLE_CLAIM_KEY, String.class))
-                .thenReturn("USER");
+    @Nested
+    class TokenCreationTests {
+        private static final long ACCESS_TOKEN_EXP_TIME = 3600L;
+        private static final long REFRESH_TOKEN_EXP_TIME = 64800L;
 
-        boolean actual = tokenService.hasRole(token, role);
+        private final UserInfoDto mockUserInfoDto = mock(UserInfoDto.class);
+        private final ClaimRequest mockClaimRequest = mock(ClaimRequest.class);
 
-        assertTrue(actual);
-    }
+        private final String refreshToken = "refreshToken";
 
-    @Test
-    void testCreateAccessToken_success() {
-        UserInfoDto member = new UserInfoDto();
-        when(jwtUtils.createToken(anyMap(), eq(accessTokenExpTime)))
-                .thenReturn("accessToken");
+        @BeforeEach
+        void setUp() {
+            when(properties.getRefreshTokenExpTime()).thenReturn(REFRESH_TOKEN_EXP_TIME);
+            when(properties.getAccessTokenExpTime()).thenReturn(ACCESS_TOKEN_EXP_TIME);
+            when(jwtUtils.createToken(any(ClaimRequest.class), eq(REFRESH_TOKEN_EXP_TIME))).thenReturn(refreshToken);
+            when(jwtUtils.createToken(any(ClaimRequest.class), eq(ACCESS_TOKEN_EXP_TIME))).thenReturn(accessToken);
+        }
 
-        String actual = tokenService.createAccessToken(member);
+        @Test
+        void createTokenResponseDto() {
+            TokenResponseDto result = tokenService.createTokenResponseDto(mockUserInfoDto);
 
-        assertNotNull(actual);
-        assertEquals("accessToken", actual);
-    }
+            assertAll(
+                    () -> assertThat(result.getRefreshToken()).isEqualTo(refreshToken),
+                    () -> assertThat(result.getAccessToken()).isEqualTo(accessToken)
+            );
+        }
 
-    @Test
-    void testCreateRefreshToken_success() {
-        UserInfoDto member = new UserInfoDto();
-        when(jwtUtils.createToken(anyMap(), eq(refreshTokenExpTime)))
-                .thenReturn("refreshToken");
+        @Test
+        void regenerateTokens() {
+            when(tokenCacheHandler.extractClaimsByToken(refreshToken)).thenReturn(mockClaimRequest);
 
-        String actual = tokenService.createRefreshToken(member);
+            TokenResponseDto result = tokenService.regenerateTokens(refreshToken);
 
-        assertNotNull(actual);
-        assertEquals("refreshToken", actual);
-    }
-
-    @Test
-    void testCreatePasswordResetToken_success() {
-        UserInfoDto member = new UserInfoDto();
-        when(jwtUtils.createToken(anyMap(), eq(passwordResetTokenExpTime)))
-                .thenReturn("passwordResetToken");
-
-        String actual = tokenService.createPasswordResetToken(member);
-
-        assertNotNull(actual);
-        assertEquals("passwordResetToken", actual);
-    }
-
-    @Test
-    void testRegenerateAccessToken_success() {
-        ClaimRequestDto dto = new ClaimRequestDto();
-        String refreshToken = "refreshToken";
-        when(tokenCacheHandler.extractClaimsByToken(refreshToken))
-                .thenReturn(dto);
-        when(jwtUtils.createToken(anyMap(), eq(accessTokenExpTime)))
-                .thenReturn("regeneratedAccessToken");
-
-        String actual = tokenService.regenerateAccessToken(refreshToken);
-
-        assertNotNull(actual);
-        assertEquals("regeneratedAccessToken", actual);
-    }
-
-    @Test
-    void testRegenerateRefreshToken_success() {
-        ClaimRequestDto dto = new ClaimRequestDto();
-        String refreshToken = "refreshToken";
-        when(tokenCacheHandler.extractClaimsByToken(refreshToken))
-                .thenReturn(dto);
-        when(jwtUtils.createToken(anyMap(), eq(refreshTokenExpTime)))
-                .thenReturn("regeneratedRefreshToken");
-
-        String actual = tokenService.regenerateRefreshToken(refreshToken);
-
-        assertNotNull(actual);
-        assertEquals("regeneratedRefreshToken", actual);
+            assertAll(
+                    () -> assertThat(result.getRefreshToken()).isEqualTo(refreshToken),
+                    () -> assertThat(result.getAccessToken()).isEqualTo(accessToken)
+            );
+        }
     }
 }

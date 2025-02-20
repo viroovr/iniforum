@@ -1,14 +1,10 @@
 package com.forum.project.domain.user.controller;
 
-import com.forum.project.domain.user.service.UserFacade;
 import com.forum.project.domain.bookmark.service.QuestionBookmarkService;
-import com.forum.project.domain.auth.dto.EmailRequestDto;
-import com.forum.project.core.base.BaseResponseDto;
-import com.forum.project.domain.user.dto.ResetPasswordRequestDto;
 import com.forum.project.domain.user.dto.UserInfoDto;
 import com.forum.project.domain.user.dto.UserRequestDto;
 import com.forum.project.domain.user.dto.UserResponseDto;
-import jakarta.validation.Valid;
+import com.forum.project.domain.user.service.UserFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,24 +38,5 @@ public class UserController {
     ) throws IOException{
         UserResponseDto userResponseDto = userFacade.updateUserProfileByHeader(header, userRequestDto, file);
         return ResponseEntity.status(HttpStatus.OK).body(userResponseDto);
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<BaseResponseDto> resetPassword(
-            @RequestParam("token") String token,
-            @RequestBody ResetPasswordRequestDto request
-    ) {
-        userFacade.resetPassword(token, request.getPassword());
-        BaseResponseDto responseDto = new BaseResponseDto("Password reset successfully");
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
-
-    @PostMapping("/send/reset-password")
-    public ResponseEntity<BaseResponseDto> requestResetPassword(
-            @Valid @RequestBody EmailRequestDto request
-    ) {
-        userFacade.requestPasswordReset(request.getEmail());
-        BaseResponseDto responseDto = new BaseResponseDto("Reset password send successfully");
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 }

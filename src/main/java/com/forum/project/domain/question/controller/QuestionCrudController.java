@@ -2,7 +2,7 @@ package com.forum.project.domain.question.controller;
 
 import com.forum.project.domain.question.service.QuestionCrudService;
 import com.forum.project.domain.question.mapper.QuestionDtoFactory;
-import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.auth.service.AuthorizationService;
 import com.forum.project.domain.user.entity.User;
 import com.forum.project.core.base.BaseResponseDto;
 import com.forum.project.domain.question.dto.QuestionCreateDto;
@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class QuestionCrudController {
     private final QuestionCrudService questionCrudService;
-    private final AuthenticationService authenticationService;
+    private final AuthorizationService authorizationService;
 
     @PostMapping(value = "/post")
     public ResponseEntity<QuestionResponseDto> postQuestion(
             @RequestBody QuestionRequestDto questionRequestDto,
             @RequestHeader(value = "Authorization") String header
     ) {
-        User user = authenticationService.extractUserByHeader(header);
+        User user = authorizationService.extractUserByHeader(header);
         QuestionCreateDto questionCreateDto = QuestionDtoFactory.toCreateDto(questionRequestDto, user);
         QuestionResponseDto response = questionCrudService.create(questionCreateDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -36,7 +36,7 @@ public class QuestionCrudController {
             @PathVariable Long id,
             @RequestHeader(value = "Authorization") String header
     ) {
-        Long userId = authenticationService.extractUserId(header);
+        Long userId = authorizationService.extractUserId(header);
         QuestionResponseDto questionResponseDto = questionCrudService.readQuestion(id, userId);
         return ResponseEntity.status(HttpStatus.OK).body(questionResponseDto);
     }
@@ -47,7 +47,7 @@ public class QuestionCrudController {
             @RequestBody QuestionRequestDto dto,
             @RequestHeader(value = "Authorization") String header
     ) {
-        Long userId = authenticationService.extractUserId(header);
+        Long userId = authorizationService.extractUserId(header);
         QuestionResponseDto questionResponseDto = questionCrudService.updateTitleAndContent(
                 questionId, userId, dto.getTitle(), dto.getContent());
         return ResponseEntity.status(HttpStatus.OK).body(questionResponseDto);
@@ -58,7 +58,7 @@ public class QuestionCrudController {
             @PathVariable("id") Long questionId,
             @RequestHeader(value = "Authorization") String header
     ) {
-        Long userId = authenticationService.extractUserId(header);
+        Long userId = authorizationService.extractUserId(header);
         questionCrudService.delete(questionId, userId);
 
         BaseResponseDto response = new BaseResponseDto("Question deleted successfully.");

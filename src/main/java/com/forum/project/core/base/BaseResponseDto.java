@@ -14,8 +14,11 @@ import org.springframework.http.ResponseEntity;
 public class BaseResponseDto {
     private String message;
 
-    public static ResponseEntity<BaseResponseDto> buildSuccessResponse(String message) {
-        BaseResponseDto responseBody = new BaseResponseDto(message);
-        return ResponseEntity.status(HttpStatus.OK).body(responseBody);
+    public static ResponseEntity<BaseResponseDto> buildOkResponse(String message) {
+        return ResponseEntity.status(HttpStatus.OK).body(new BaseResponseDto(message));
+    }
+
+    public static ResponseEntity<BaseResponseDto> buildResponse(String message, HttpStatus httpStatus) {
+        return ResponseEntity.status(httpStatus).body(new BaseResponseDto(message));
     }
 }

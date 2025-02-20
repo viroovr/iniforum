@@ -1,6 +1,6 @@
 package com.forum.project.infrastructure.jwt;
 
-import com.forum.project.domain.auth.dto.ClaimRequestDto;
+import com.forum.project.domain.auth.vo.ClaimRequest;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -41,8 +41,8 @@ public class TokenCacheHandler {
         return claims.getExpiration();
     }
 
-    public ClaimRequestDto extractClaimsByToken(String token) {
+    public ClaimRequest extractClaimsByToken(String token) {
         Claims claims = getClaims(token);
-        return new ClaimRequestDto(claims);
+        return new ClaimRequest(claims);
     }
 }

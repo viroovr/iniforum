@@ -1,10 +1,10 @@
 package com.forum.project.domain.auth.controller;
 
 import com.forum.project.core.base.BaseResponseDto;
+import com.forum.project.core.common.TokenUtil;
 import com.forum.project.domain.auth.dto.*;
 import com.forum.project.domain.auth.service.AuthService;
-import com.forum.project.domain.auth.service.AuthenticationService;
-import com.forum.project.domain.auth.service.EmailVerificationService;
+import com.forum.project.domain.email.service.EmailVerificationService;
 import com.forum.project.infrastructure.security.CookieManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
 public class AuthController {
-    private final AuthenticationService authenticationService;
     private final AuthService authService;
     private final CookieManager cookieManager;
     private final EmailVerificationService emailVerificationService;
@@ -45,7 +44,7 @@ public class AuthController {
     }
 
     private TokenRequestDto extractTokens(String header, HttpServletRequest request) {
-        String accessToken = authenticationService.extractTokenByHeader(header);
+        String accessToken = TokenUtil.extractToken(header);
         String refreshToken = cookieManager.getRefreshTokenFromCookies(request);
         return new TokenRequestDto(accessToken, refreshToken);
     }
@@ -56,11 +55,10 @@ public class AuthController {
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        TokenRequestDto dto = extractTokens(header, request);
-        authService.logout(dto.getRefreshToken(), dto.getAccessToken());
+        authService.logout(extractTokens(header, request));
         response.addCookie(cookieManager.createEmtpyRefreshTokenCookie());
 
-        return BaseResponseDto.buildSuccessResponse("Logged out successfully");
+        return BaseResponseDto.buildOkResponse("Logged out successfully");
     }
 
     @PostMapping("/refresh")
@@ -69,8 +67,7 @@ public class AuthController {
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        TokenRequestDto dto = extractTokens(header, request);
-        TokenResponseDto responseDto = authService.refreshAccessToken(dto.getRefreshToken(), dto.getAccessToken());
+        TokenResponseDto responseDto = authService.refreshAccessToken(extractTokens(header, request));
 
         response.addCookie(cookieManager.createRefreshTokenCookie(responseDto.getRefreshToken()));
 

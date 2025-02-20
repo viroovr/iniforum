@@ -1,5 +1,7 @@
 package com.forum.project.infrastructure.jwt;
 
+import com.forum.project.core.common.ClockUtil;
+import com.forum.project.domain.auth.vo.ClaimRequest;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Map;
@@ -58,8 +61,10 @@ public class JwtUtils {
         return false;
     }
 
-    public String createToken(Map<String, Object> claims, long expireTimeSec) {
-        ZonedDateTime now = ZonedDateTime.now();
+    public String createToken(ClaimRequest claimRequest, long expireTimeSec) {
+        Map<String, Object> claims = claimRequest.toMap();
+
+        ZonedDateTime now = ClockUtil.now().atZone(ZoneId.systemDefault());
         ZonedDateTime tokenValidity = now.plusSeconds(expireTimeSec);
 
         return Jwts.builder()

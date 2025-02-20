@@ -2,10 +2,8 @@ package com.forum.project.domain.auth.service;
 
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
-import com.forum.project.domain.auth.dto.LoginRequestDto;
-import com.forum.project.domain.auth.dto.SignupRequestDto;
-import com.forum.project.domain.auth.dto.SignupResponseDto;
-import com.forum.project.domain.auth.dto.TokenResponseDto;
+import com.forum.project.domain.auth.dto.*;
+import com.forum.project.domain.user.dto.UserCreateDto;
 import com.forum.project.domain.user.entity.User;
 import com.forum.project.domain.user.mapper.UserDtoMapper;
 import com.forum.project.domain.user.service.UserService;
@@ -18,13 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-    private final UserPasswordService userPasswordService;
     private final TokenService tokenService;
+    private final UserPasswordService userPasswordService;
     private final TokenBlacklistHandler tokenBlacklistHandler;
     private final UserService userService;
 
-    public SignupResponseDto createUser(SignupRequestDto signupRequestDto) {
-        return userService.createUser(signupRequestDto);
+    public SignupResponseDto createUser(SignupRequestDto dto) {
+        UserCreateDto createDto = UserDtoMapper.fromSignupRequestDto(dto, userPasswordService.encode(dto.getPassword()));
+        return userService.createUser(createDto);
     }
 
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
@@ -37,35 +36,37 @@ public class AuthService {
 
     private void validateToken(String token) {
         if (!tokenService.isValidToken(token))
-            throw new ApplicationException(ErrorCode.AUTH_INVALID_TOKEN);
+            throw new ApplicationException(ErrorCode.AUTH_INVALID_TOKEN,
+                    "유효하지 않은 토큰입니다.");
     }
 
-    private void blacklistTokens(String refreshToken, String accessToken) {
-        tokenBlacklistHandler.blacklistRefreshToken(refreshToken, tokenService.getExpirationTime(refreshToken));
-        tokenBlacklistHandler.blacklistAccessToken(accessToken, tokenService.getExpirationTime(accessToken));
+    private void blacklistTokens(TokenRequestDto dto) {
+        tokenBlacklistHandler.blacklistRefreshToken(dto.getRefreshToken(), tokenService.getExpirationTime(dto.getRefreshToken()));
+        tokenBlacklistHandler.blacklistAccessToken(dto.getAccessToken(), tokenService.getExpirationTime(dto.getAccessToken()));
     }
+
     @Transactional
-    public void logout(String refreshToken, String accessToken) {
-        validateToken(accessToken);
-        validateToken(refreshToken);
+    public void logout(TokenRequestDto dto) {
+        validateToken(dto.getAccessToken());
+        validateToken(dto.getRefreshToken());
 
-        blacklistTokens(refreshToken, accessToken);
+        blacklistTokens(dto);
     }
 
-    private void validateBlacklistToken(String token) {
+    private void validateBlacklistRefreshToken(String token) {
         if (tokenBlacklistHandler.isBlacklistedRefreshToken(token))
             throw new ApplicationException(ErrorCode.AUTH_BLACKLISTED_REFRESH_TOKEN);
     }
 
-    public TokenResponseDto refreshAccessToken(String refreshToken, String oldAccessToken) {
-        validateToken(refreshToken);
-        validateBlacklistToken(refreshToken);
+    public TokenResponseDto refreshAccessToken(TokenRequestDto dto) {
+        validateToken(dto.getRefreshToken());
 
-        String refreshedAccessToken = tokenService.regenerateAccessToken(refreshToken);
-        String newRefreshToken = tokenService.regenerateRefreshToken(refreshToken);
+        validateBlacklistRefreshToken(dto.getRefreshToken());
 
-        blacklistTokens(refreshToken, oldAccessToken);
+        TokenResponseDto tokens = tokenService.regenerateTokens(dto.getRefreshToken());
 
-        return new TokenResponseDto(refreshedAccessToken, newRefreshToken);
+        blacklistTokens(dto);
+
+        return tokens;
     }
 }

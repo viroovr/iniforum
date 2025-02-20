@@ -1,9 +1,9 @@
 package com.forum.project.infrastructure.security;
 
-import com.forum.project.domain.auth.dto.CookieBuilder;
-import com.forum.project.domain.auth.service.TokenService;
+import com.forum.project.domain.auth.util.CookieBuilder;
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
+import com.forum.project.domain.auth.vo.TokenExpirationProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +15,13 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class CookieManager {
 
-    private final TokenService tokenService;
+    private final TokenExpirationProperties properties;
 
     public Cookie createRefreshTokenCookie(String refreshToken) {
         return new CookieBuilder("refreshToken", refreshToken)
                 .httpOnly(true)
                 .path("/")
-                .maxAge((int) tokenService.getRefreshTokenExpTime())
+                .maxAge((int) properties.getRefreshTokenExpTime())
                 .build();
     }
 

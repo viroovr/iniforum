@@ -2,7 +2,7 @@ package com.forum.project.domain.report.service;
 
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
-import com.forum.project.domain.auth.service.EmailAdminService;
+import com.forum.project.domain.email.service.EmailService;
 import com.forum.project.domain.report.entity.CommentReport;
 import com.forum.project.domain.report.repository.CommentReportRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommentReportService implements ReportService<CommentReport> {
     private final CommentReportRepository commentReportRepository;
-    private final EmailAdminService emailAdminService;
+    private final EmailService emailService;
 
     private static final long REPORT_THRESHOLD = 10;
 
@@ -35,7 +35,7 @@ public class CommentReportService implements ReportService<CommentReport> {
     public void notifyAdminIfHighReports(Long commentId) {
         Long reportCount = commentReportRepository.countByCommentId(commentId);
         if (reportCount >= REPORT_THRESHOLD) {
-            emailAdminService.sendEmail(
+            emailService.sendEmailToAdmin(
                     "다중 신고 댓글 알림",
                     "Comment ID " + commentId + " 신고가 " + reportCount + "회 이상 접수되었습니다.");
         }

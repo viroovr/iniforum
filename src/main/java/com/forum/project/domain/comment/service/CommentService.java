@@ -4,7 +4,7 @@ import com.forum.project.domain.comment.mapper.CommentDtoConverterFactory;
 import com.forum.project.domain.like.service.CommentLikeService;
 import com.forum.project.domain.report.service.CommentReportService;
 import com.forum.project.domain.user.service.UserProfileService;
-import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.auth.service.AuthorizationService;
 import com.forum.project.domain.comment.entity.Comment;
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
-    private final AuthenticationService authenticationService;
+    private final AuthorizationService authorizationService;
     private final CommentLikeService commentLikeService;
     private final CommentReportService commentReportService;
     private final UserProfileService userProfileService;
@@ -46,7 +46,7 @@ public class CommentService {
     @Transactional
     @AuthCheck
     public void deleteComment(Long commentId, String header) {
-        Long currentUserId = authenticationService.extractUserId(header);
+        Long currentUserId = authorizationService.extractUserId(header);
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.COMMENT_NOT_FOUND));
 

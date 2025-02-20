@@ -1,28 +1,27 @@
 package com.forum.project.domain.auth.controller;
 
-import com.forum.project.domain.user.service.UserFacade;
+import com.forum.project.core.base.BaseResponseDto;
+import com.forum.project.domain.auth.dto.PasswordResetRequestDto;
+import com.forum.project.domain.auth.service.PasswordResetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/password-reset")
 @RequiredArgsConstructor
 public class PasswordResetController {
-    private final UserFacade userFacade;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/request")
-    public ResponseEntity<Void> requestPasswordReset(@RequestParam String email) {
-        userFacade.requestPasswordReset(email);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<BaseResponseDto> requestPasswordReset(@RequestParam String email) {
+        passwordResetService.sendNewResetTokenToEmail(email);
+        return BaseResponseDto.buildOkResponse("Reset password send successfully.");
     }
 
     @PostMapping("/reset")
-    public ResponseEntity<Void> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
-        userFacade.resetPassword(token, newPassword);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<BaseResponseDto> resetPassword(@RequestBody PasswordResetRequestDto dto) {
+        passwordResetService.resetPassword(dto);
+        return BaseResponseDto.buildOkResponse("Password reset successfully");
     }
 }

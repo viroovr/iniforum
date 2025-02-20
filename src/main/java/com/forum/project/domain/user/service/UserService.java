@@ -2,9 +2,8 @@ package com.forum.project.domain.user.service;
 
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
-import com.forum.project.domain.auth.dto.SignupRequestDto;
+import com.forum.project.domain.auth.dto.PasswordResetRequestDto;
 import com.forum.project.domain.auth.dto.SignupResponseDto;
-import com.forum.project.domain.auth.service.UserPasswordService;
 import com.forum.project.domain.user.dto.UserCreateDto;
 import com.forum.project.domain.user.entity.User;
 import com.forum.project.domain.user.mapper.UserDtoMapper;
@@ -19,10 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final UserPasswordService userPasswordService;
     private final UserFacade userFacade;
 
-    private void validateExistEmail(String email) {
+    private void validateDuplicateEmail(String email) {
         if (userRepository.existsByEmail(email))
             throw new ApplicationException(ErrorCode.EMAIL_ALREADY_EXISTS);
     }
@@ -39,19 +37,33 @@ public class UserService {
     }
 
     @Transactional
-    public SignupResponseDto createUser(SignupRequestDto dto) {
-        validateExistEmail(dto.getEmail());
+    public SignupResponseDto createUser(UserCreateDto dto) {
+        validateDuplicateEmail(dto.getEmail());
         validateExistsLoginId(dto.getLoginId());
 
-        UserCreateDto createDto = UserDtoMapper.fromSignupRequestDto(dto, userPasswordService.encode(dto.getPassword()));
-        User preparedUser = UserDtoMapper.toEntity(createDto, insertAndReturnKeys(createDto));
+        User preparedUser = UserDtoMapper.toEntity(dto, insertAndReturnKeys(dto));
 
         userFacade.logUserActivity(preparedUser.getId(), UserAction.SIGNUP_SUCCESS.name());
         return UserDtoMapper.toSignupResponseDto(preparedUser);
     }
 
+    private void validateEmail(String email) {
+        if (userRepository.existsByEmail(email)) return;
+        throw new ApplicationException(ErrorCode.EMAIL_NOT_FOUND);
+    }
+
+    public void updatePassword(PasswordResetRequestDto dto) {
+        validateEmail(dto.getEmail());
+        userRepository.updatePassword(dto.getEmail(), dto.getNewPassword());
+    }
+
     public User findByLoginId(String loginId) {
         return userRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    public User findById(Long id) {
+        return userRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
     }
 }

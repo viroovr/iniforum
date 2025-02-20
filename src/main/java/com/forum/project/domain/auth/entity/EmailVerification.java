@@ -18,16 +18,12 @@ public class EmailVerification {
     }
 
     public void validateCodeMatch(String inputCode) {
-        if (!this.verificationCode.equals(inputCode))
-            throw new ApplicationException(ErrorCode.INVALID_VERIFICATION_CODE,
-                    "입력받은 코드와 저장된 코드가 일치하지 않습니다."
-            );
+        if (this.verificationCode.equals(inputCode)) return;
+        throw new ApplicationException(ErrorCode.INVALID_VERIFICATION_CODE,"코드와 저장된 코드가 일치하지 않습니다.");
     }
 
     public void validateVerified() {
-        if (!this.verified)
-            throw new ApplicationException(ErrorCode.INVALID_VERIFICATION_CODE,
-                    "인증되지 않은 이메일입니다."
-            );
+        if (this.verified) return;
+        throw new ApplicationException(ErrorCode.INVALID_VERIFICATION_CODE,"인증되지 않은 이메일입니다.");
     }
 }

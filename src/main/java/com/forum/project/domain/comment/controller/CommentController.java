@@ -1,7 +1,7 @@
 package com.forum.project.domain.comment.controller;
 
 import com.forum.project.domain.comment.service.CommentService;
-import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.auth.service.AuthorizationService;
 import com.forum.project.domain.comment.dto.CommentRequestDto;
 import com.forum.project.domain.comment.dto.CommentResponseDto;
 import com.forum.project.domain.report.dto.ReportRequestDto;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping(value = "/api/v1/comments")
 @RequiredArgsConstructor
 public class CommentController {
-    private final AuthenticationService authenticationService;
+    private final AuthorizationService authorizationService;
     private final CommentService commentService;
 
     @PostMapping(value = "/{questionId}")
@@ -26,7 +26,7 @@ public class CommentController {
             @PathVariable Long questionId,
             @RequestBody CommentRequestDto commentRequestDto
     ) {
-        Long userId = authenticationService.extractUserId(header);
+        Long userId = authorizationService.extractUserId(header);
         CommentResponseDto commentResponseDto = commentService.addComment(questionId, userId, commentRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(commentResponseDto);
     }
@@ -45,7 +45,7 @@ public class CommentController {
             @PathVariable("id") Long commentId,
             @RequestBody CommentRequestDto commentRequestDto
     ) {
-        Long userId = authenticationService.extractUserId(header);
+        Long userId = authorizationService.extractUserId(header);
         commentService.updateComment(commentId, userId, commentRequestDto);
         BaseResponseDto response = new BaseResponseDto("Comment updated successfully.");
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -66,7 +66,7 @@ public class CommentController {
             @RequestHeader(value = "Authorization") String header,
             @PathVariable Long id
     ) {
-        Long userId = authenticationService.extractUserId(header);
+        Long userId = authorizationService.extractUserId(header);
         commentService.likeComment(id, userId);
         BaseResponseDto response = new BaseResponseDto("Comment liked successfully.");
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -77,7 +77,7 @@ public class CommentController {
             @RequestHeader(value = "Authorization") String header,
             @PathVariable Long id
     ) {
-        Long userId = authenticationService.extractUserId(header);
+        Long userId = authorizationService.extractUserId(header);
         commentService.dislikeComment(id, userId);
         BaseResponseDto response = new BaseResponseDto("Comment disliked successfully.");
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -89,7 +89,7 @@ public class CommentController {
             @RequestHeader(value = "Authorization") String header,
             @PathVariable Long id
     ) {
-        Long userId = authenticationService.extractUserId(header);
+        Long userId = authorizationService.extractUserId(header);
         commentService.reportComment(id, userId, dto);
         BaseResponseDto response = new BaseResponseDto("Comment reported successfully.");
         return ResponseEntity.status(HttpStatus.OK).body(response);

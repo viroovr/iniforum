@@ -3,7 +3,7 @@ package com.forum.project.application.comment;
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
 import com.forum.project.domain.user.service.UserProfileService;
-import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.auth.service.AuthorizationService;
 import com.forum.project.domain.comment.entity.Comment;
 import com.forum.project.domain.comment.service.CommentService;
 import com.forum.project.domain.like.service.CommentLikeService;
@@ -41,7 +41,7 @@ class CommentServiceTest {
     private CommentReportService commentReportService;
 
     @Mock
-    private AuthenticationService authenticationService;
+    private AuthorizationService authorizationService;
 
     @Mock
     private UserProfileService userProfileService;
@@ -102,13 +102,13 @@ class CommentServiceTest {
         String header = "validHeader";
         Long userId = 1L;
         Comment comment = Comment.builder().userId(userId).build();
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
+        when(authorizationService.extractUserId(header)).thenReturn(userId);
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
         doNothing().when(commentRepository).deleteById(commentId);
 
         commentService.deleteComment(commentId, header);
 
-        verify(authenticationService).extractUserId(header);
+        verify(authorizationService).extractUserId(header);
         verify(commentRepository).findById(commentId);
         verify(commentRepository).deleteById(commentId);
     }
@@ -120,7 +120,7 @@ class CommentServiceTest {
         Long userId = 123L;
         Comment comment = Comment.builder()
                 .userId(1500L).build();
-        when(authenticationService.extractUserId(header)).thenReturn(userId);
+        when(authorizationService.extractUserId(header)).thenReturn(userId);
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
         doNothing().when(commentRepository).deleteById(commentId);
 
@@ -128,7 +128,7 @@ class CommentServiceTest {
                 () -> commentService.deleteComment(commentId, header));
 
         assertEquals(ErrorCode.AUTH_BAD_CREDENTIAL, applicationException.getErrorCode());
-        verify(authenticationService).extractUserId(header);
+        verify(authorizationService).extractUserId(header);
         verify(commentRepository).findById(commentId);
         verify(commentRepository, never()).deleteById(commentId);
     }

@@ -1,41 +1,80 @@
 package com.forum.project.domain.auth.service;
 
-import com.forum.project.domain.user.mapper.UserDtoMapper;
+import com.forum.project.core.common.ClockUtil;
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
-import com.forum.project.domain.user.entity.User;
-import com.forum.project.domain.user.repository.UserRepository;
-import com.forum.project.domain.user.dto.UserInfoDto;
+import com.forum.project.domain.auth.dto.PasswordResetRequestDto;
+import com.forum.project.domain.auth.entity.ResetToken;
+import com.forum.project.domain.auth.repository.ResetTokenRepository;
+import com.forum.project.domain.email.service.EmailService;
+import com.forum.project.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class PasswordResetService {
-    private final UserRepository userRepository;
-    private final TokenService tokenService;
-    private final EmailUserService emailUserService;
-    private final UserPasswordService passwordService;
+    private final UserService userService;
+    private final EmailService emailService;
+    private final ResetTokenRepository resetTokenRepository;
+    private final UserPasswordService userPasswordService;
 
-    public void requestPasswordReset(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
-        UserInfoDto userInfoDto = UserDtoMapper.toUserInfoDto(user);
+    private static final long TTL = 15;
 
-        String resetToken = tokenService.createPasswordResetToken(userInfoDto);
-        emailUserService.sendPasswordResetEmail(user.getEmail(), resetToken);
+    private void deleteResetToken(String token) {
+        resetTokenRepository.deleteByToken(token);
     }
 
-    public void resetPassword(String token, String newPassword) {
-        if (token == null || !tokenService.isValidToken(token)) {
-            throw new ApplicationException(ErrorCode.AUTH_INVALID_TOKEN);
+    private void validateExpiryDate(ResetToken resetToken) {
+        if (resetToken.isExpired()){
+            deleteResetToken(resetToken.getToken());
+            throw new ApplicationException(ErrorCode.AUTH_INVALID_TOKEN,
+                    "리셋 토큰의 유효시간이 지났습니다.");
         }
-        Long userId = tokenService.getUserId(token);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
+    }
 
-        String encodedPassword = passwordService.encode(newPassword);
-        user.setPassword(encodedPassword);
-        userRepository.updateProfile(user);
+    private ResetToken getExistentResetToken(String token) {
+        return resetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.RESET_TOKEN_NOT_FOUND,
+                        "존재하지 않는 리셋 토큰입니다."));
+    }
+
+    private void validateResetToken(String token) {
+        ResetToken resetToken = getExistentResetToken(token);
+
+        validateExpiryDate(resetToken);
+    }
+
+    private ResetToken createResetToken(String email) {
+        String token = UUID.randomUUID().toString();
+        return new ResetToken(token, email, ClockUtil.now().plusMinutes(TTL));
+    }
+
+    @Transactional
+    private void saveResetToken(ResetToken resetToken) {
+        int updated = resetTokenRepository.save(resetToken);
+
+        if (updated == 0) throw new ApplicationException(ErrorCode.DATABASE_ERROR,
+                "리셋 토큰을 저장하지 못했습니다.");
+    }
+
+    public void sendNewResetTokenToEmail(String email) {
+        ResetToken resetToken = createResetToken(email);
+
+        saveResetToken(resetToken);
+        emailService.sendPasswordResetEmail(email, resetToken.getToken());
+    }
+
+    @Transactional
+    public void resetPassword(PasswordResetRequestDto dto) {
+        validateResetToken(dto.getToken());
+
+        dto.setNewPassword(userPasswordService.encode(dto.getNewPassword()));
+        userService.updatePassword(dto);
+
+        deleteResetToken(dto.getToken());
     }
 }

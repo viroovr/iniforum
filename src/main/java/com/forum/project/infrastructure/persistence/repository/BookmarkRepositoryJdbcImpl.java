@@ -6,6 +6,7 @@ import com.forum.project.infrastructure.persistence.key.BookmarkKey;
 import com.forum.project.infrastructure.persistence.queries.BookmarkQueries;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -44,9 +45,11 @@ public class BookmarkRepositoryJdbcImpl implements BookmarkRepository {
     }
 
     @Override
-    public List<Bookmark> findAllByUserId(Long userId) {
+    public List<Bookmark> findAllByUserId(Long userId, Pageable pageable) {
         String sql = BookmarkQueries.findAllByUserId();
-        SqlParameterSource params = new MapSqlParameterSource("userId", userId);
+        SqlParameterSource params = new MapSqlParameterSource("userId", userId)
+                .addValue("offset", pageable.getOffset())
+                .addValue("limit", pageable.getPageSize());
 
         return namedParameterJdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(Bookmark.class));
     }

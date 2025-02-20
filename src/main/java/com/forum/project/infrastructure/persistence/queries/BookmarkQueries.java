@@ -19,7 +19,7 @@ public class BookmarkQueries {
 
     public static String findAllByUserId() {
         return "SELECT * FROM bookmarks " +
-               "WHERE user_id=:userId;";
+               "WHERE user_id=:userId LIMIT :limit OFFSET :offset;";
     }
 
     public static String findById() {

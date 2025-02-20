@@ -1,8 +1,8 @@
 package com.forum.project.domain.report.service;
 
-import com.forum.project.domain.auth.service.EmailAdminService;
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
+import com.forum.project.domain.email.service.EmailService;
 import com.forum.project.domain.question.validator.QuestionValidator;
 import com.forum.project.domain.report.entity.QuestionReport;
 import com.forum.project.domain.report.repository.QuestionReportRepository;
@@ -16,7 +16,7 @@ import java.util.List;
 public class QuestionReportService implements ReportService<QuestionReport> {
     private final QuestionReportRepository questionReportRepository;
     private final QuestionValidator questionValidator;
-    private final EmailAdminService emailAdminService;
+    private final EmailService emailAdminService;
 
     private static final long REPORT_THRESHOLD = 10;
 
@@ -42,7 +42,7 @@ public class QuestionReportService implements ReportService<QuestionReport> {
     public void notifyAdminIfHighReports(Long questionId) {
         Long reportCount = questionReportRepository.countByQuestionId(questionId);
         if (reportCount >= REPORT_THRESHOLD) {
-            emailAdminService.sendEmail(
+            emailAdminService.sendEmailToAdmin(
                     "다중 신고 댓글 알림",
                     "Question ID " + questionId + " 신고가 " + reportCount + "회 이상 접수되었습니다.");
         }

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -116,7 +117,7 @@ class BookmarkRepositoryJdbcImplTest {
         insertData(userId, 3L, "testNotes2");
         insertData(2L, 4L, "notFind");
 
-        List<Bookmark> result = bookmarkRepository.findAllByUserId(userId);
+        List<Bookmark> result = bookmarkRepository.findAllByUserId(userId, PageRequest.of(0, 10));
 
         assertThat(result)
                 .hasSize(2)

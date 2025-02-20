@@ -2,7 +2,7 @@ package com.forum.project.domain.question.controller;
 
 import com.forum.project.domain.question.service.QuestionQueryService;
 import com.forum.project.domain.question.vo.QuestionSortType;
-import com.forum.project.domain.auth.service.AuthenticationService;
+import com.forum.project.domain.auth.service.AuthorizationService;
 import com.forum.project.domain.question.vo.QuestionStatus;
 import com.forum.project.domain.question.dto.QuestionPageResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(value = "/api/v1/questions/query")
 @RequiredArgsConstructor
 public class QuestionQueryController {
-    private final AuthenticationService authenticationService;
+    private final AuthorizationService authorizationService;
     private final QuestionQueryService questionQueryService;
 
     @GetMapping

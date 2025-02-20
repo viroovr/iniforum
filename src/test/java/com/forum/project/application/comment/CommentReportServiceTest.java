@@ -1,8 +1,8 @@
 package com.forum.project.application.comment;
 
-import com.forum.project.domain.auth.service.EmailAdminService;
 import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
+import com.forum.project.domain.email.service.EmailService;
 import com.forum.project.domain.report.entity.CommentReport;
 import com.forum.project.domain.report.repository.CommentReportRepository;
 import com.forum.project.domain.report.service.CommentReportService;
@@ -26,7 +26,7 @@ class CommentReportServiceTest {
     private CommentReportRepository commentReportRepository;
 
     @Mock
-    private EmailAdminService emailAdminService;
+    private EmailService emailAdminService;
 
     @InjectMocks
     private CommentReportService commentReportService;
@@ -98,12 +98,12 @@ class CommentReportServiceTest {
         Long reportCount = 11L;
 
         when(commentReportRepository.countByCommentId(commentId)).thenReturn(reportCount);
-        doNothing().when(emailAdminService).sendEmail(anyString(), anyString());
+        doNothing().when(emailAdminService).sendEmailToAdmin(anyString(), anyString());
 
         commentReportService.notifyAdminIfHighReports(commentId);
 
         verify(commentReportRepository).countByCommentId(commentId);
-        verify(emailAdminService).sendEmail(anyString(), anyString());
+        verify(emailAdminService).sendEmailToAdmin(anyString(), anyString());
     }
 
     @Test
@@ -116,7 +116,7 @@ class CommentReportServiceTest {
         commentReportService.notifyAdminIfHighReports(commentId);
 
         verify(commentReportRepository).countByCommentId(commentId);
-        verify(emailAdminService, never()).sendEmail(anyString(), anyString());
+        verify(emailAdminService, never()).sendEmailToAdmin(anyString(), anyString());
     }
 
     @Test
