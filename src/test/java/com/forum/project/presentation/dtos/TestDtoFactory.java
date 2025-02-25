@@ -1,6 +1,10 @@
 package com.forum.project.presentation.dtos;
 
 import com.forum.project.domain.auth.dto.*;
+import com.forum.project.domain.bookmark.dto.BookmarkRequestDto;
+import com.forum.project.domain.bookmark.entity.Bookmark;
+import com.forum.project.domain.report.dto.ReportRequestDto;
+import com.forum.project.domain.report.vo.ReportReason;
 import com.forum.project.domain.user.dto.UserCreateDto;
 import com.forum.project.domain.user.vo.UserRole;
 import com.forum.project.domain.user.entity.User;
@@ -69,6 +73,23 @@ public class TestDtoFactory {
                 .build();
     }
 
+    public static BookmarkRequestDto createBookmarkRequestDto() {
+        return BookmarkRequestDto.builder()
+                .userId(1L)
+                .questionId(1L)
+                .notes("testNotes")
+                .build();
+    }
+
+    public static Bookmark createBookmark() {
+        return Bookmark.builder()
+                .id(1L)
+                .userId(1L)
+                .questionId(1L)
+                .notes("testNotes")
+                .build();
+    }
+
     public static EmailVerificationRequestDto createEmailVerificationRequestDto() {
         return EmailVerificationRequestDto.builder()
                 .email("test@test.com")
@@ -79,6 +100,13 @@ public class TestDtoFactory {
         return EmailVerificationConfirmDto.builder()
                 .email("test@test.com")
                 .code("123456")
+                .build();
+    }
+
+    public static ReportRequestDto createReportRequestDto() {
+        return ReportRequestDto.builder()
+                .reason(ReportReason.SPAM)
+                .details("testDetails")
                 .build();
     }
 

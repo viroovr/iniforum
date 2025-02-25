@@ -38,7 +38,5 @@ public class UserProfileService {
         return UserDtoMapper.toUserResponseDto(user);
     }
 
-    public String getLoginId(Long userId) {
-        return userRepository.getLoginIdById(userId);
-    }
+
 }

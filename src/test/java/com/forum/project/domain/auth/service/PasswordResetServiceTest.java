@@ -29,6 +29,7 @@ class PasswordResetServiceTest {
 
     @Mock private UserService userService;
     @Mock private EmailService emailService;
+    @Mock private UserPasswordService userPasswordService;
     @Mock private ResetTokenRepository resetTokenRepository;
 
     @InjectMocks
@@ -49,6 +50,7 @@ class PasswordResetServiceTest {
     @Test
     void resetPassword() {
         when(resetTokenRepository.findByToken(passwordResetRequestDto.getToken())).thenReturn(Optional.of(resetToken));
+        when(userPasswordService.encode(anyString())).thenReturn(anyString());
 
         assertDoesNotThrow(() -> passwordResetService.resetPassword(passwordResetRequestDto));
     }

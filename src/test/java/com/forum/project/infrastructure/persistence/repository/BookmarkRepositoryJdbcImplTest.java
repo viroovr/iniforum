@@ -1,15 +1,19 @@
 package com.forum.project.infrastructure.persistence.repository;
 
+import com.forum.project.core.common.ClockUtil;
+import com.forum.project.domain.bookmark.dto.BookmarkRequestDto;
 import com.forum.project.domain.bookmark.entity.Bookmark;
 import com.forum.project.domain.bookmark.repository.BookmarkRepository;
 import com.forum.project.infrastructure.persistence.JdbcTestUtils;
-import com.forum.project.infrastructure.persistence.key.BookmarkKey;
+import com.forum.project.domain.bookmark.vo.BookmarkKey;
 import com.forum.project.infrastructure.persistence.queries.BookmarkQueries;
+import com.forum.project.presentation.dtos.TestDtoFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -33,8 +37,10 @@ class BookmarkRepositoryJdbcImplTest {
     private NamedParameterJdbcTemplate jdbcTemplate;
     private BookmarkRepository bookmarkRepository;
 
+    private BookmarkRequestDto bookmarkRequestDto;
     @BeforeEach
     void setUp() {
+        bookmarkRequestDto = TestDtoFactory.createBookmarkRequestDto();
         bookmarkRepository = new BookmarkRepositoryJdbcImpl(jdbcTemplate);
 
         JdbcTestUtils.dropTable(jdbcTemplate, "bookmarks");
@@ -90,13 +96,15 @@ class BookmarkRepositoryJdbcImplTest {
 
     @Test
     void insertAndReturnGeneratedKeys() {
-        Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
-        Map<String, Object> result = bookmarkRepository.insertAndReturnGeneratedKeys(createBookmark(1L, 1L));
+        LocalDateTime now = ClockUtil.now();
+        Optional<BookmarkKey> result = bookmarkRepository.insertAndReturnGeneratedKeys(bookmarkRequestDto);
 
-        assertThat(result).hasSize(BookmarkKey.getKeys().length);
-
-        assertThat((Long) result.get(BookmarkKey.ID)).isEqualTo(1L);
-        assertThat((Timestamp) result.get(BookmarkKey.CREATED_DATE)).isAfter(expectedTimestamp);
+        assertThat(result)
+                .isNotEmpty()
+                .hasValueSatisfying(bookmarkKey -> {
+                    assertThat(bookmarkKey.getId()).isOne();
+                    assertThat(bookmarkKey.getCreatedDate()).isAfterOrEqualTo(now);
+                });
     }
 
     @Test

@@ -17,7 +17,7 @@ public interface UserRepository{
     List<User> findAllByLastActivityDateBefore(LocalDateTime thresholdDate);
     List<User> searchByLoginIdAndStatus(String keyword, String status, int page, int size);
 
-    String getLoginIdById(Long id);
+    Optional<String> getLoginIdById(Long id);
 
     Long countByLoginIdAndStatus(String keyword, String status);
 

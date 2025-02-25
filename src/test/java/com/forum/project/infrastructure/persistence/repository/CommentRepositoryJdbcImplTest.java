@@ -1,6 +1,9 @@
 package com.forum.project.infrastructure.persistence.repository;
 
+import com.forum.project.core.common.ClockUtil;
+import com.forum.project.domain.comment.dto.CommentCreateDto;
 import com.forum.project.domain.comment.entity.Comment;
+import com.forum.project.domain.comment.mapper.CommentDtoMapper;
 import com.forum.project.domain.comment.repository.CommentRepository;
 import com.forum.project.domain.comment.vo.CommentStatus;
 import com.forum.project.infrastructure.persistence.JdbcTestUtils;
@@ -65,6 +68,15 @@ class CommentRepositoryJdbcImplTest {
                 .build();
     }
 
+    private CommentCreateDto createCommentCreateDto(Long userId, Long questionId, Long parentCommentId) {
+        return CommentCreateDto.builder()
+                .userId(userId)
+                .questionId(questionId)
+                .parentCommentId(parentCommentId)
+                .content("testContent")
+                .build();
+    }
+
     private void insertTestData(Long userId, Long questionId, Long parentCommentId, String status) {
         String sql = CommentQueries.insert();
         SqlParameterSource params = new MapSqlParameterSource()
@@ -89,15 +101,16 @@ class CommentRepositoryJdbcImplTest {
 
     @Test
     void insertAndReturnGeneratedKeys() {
-        Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
-        Map<String, Object> generatedKeys = commentRepository.insertAndReturnGeneratedKeys(
-                createComment(1L, 1L, null));
+        LocalDateTime now = ClockUtil.now();
+        Optional<CommentKey> generatedKeys = commentRepository.insertAndReturnGeneratedKeys(
+                createCommentCreateDto(1L, 1L, null));
 
-        assertThat(generatedKeys).hasSize(CommentKey.getKeys().length);
-
-        assertThat((Long) generatedKeys.get(CommentKey.ID)).isEqualTo(1L);
-        assertThat((Timestamp) generatedKeys.get(CommentKey.CREATED_DATE)).isAfter(expectedTimestamp);
-        assertThat((Timestamp) generatedKeys.get(CommentKey.LAST_MODIFIED_DATE)).isAfter(expectedTimestamp);
+        assertThat(generatedKeys).isNotEmpty()
+                        .hasValueSatisfying(commentKey -> {
+                            assertThat(commentKey.getCreatedDate()).isAfterOrEqualTo(now);
+                            assertThat(commentKey.getLastModifiedDate()).isAfterOrEqualTo(now);
+                            assertThat(commentKey.getId()).isOne();
+                        });
     }
 
     @Test

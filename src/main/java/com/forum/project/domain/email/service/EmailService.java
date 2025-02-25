@@ -16,7 +16,7 @@ public class EmailService {
     private static final String VERIFICATION_SUBJECT = "이메일 인증 코드";
     private static final String PASSWORD_RESET_SUBJECT = "비밀번호 재설정 요청";
 
-    private void sendEmail(String recipient, String subject, String body) {
+    public void sendEmail(String recipient, String subject, String body) {
         emailSender.sendEmail(recipient, subject, body);
     }
 
@@ -25,17 +25,14 @@ public class EmailService {
     }
 
     public void sendVerificationEmail(String toEmail, String code) {
-        String body = emailTemplateProvider.getVerificationEmail(code);
-        sendEmail(toEmail, VERIFICATION_SUBJECT, body);
+        sendEmail(toEmail, VERIFICATION_SUBJECT, emailTemplateProvider.getVerificationEmail(code));
     }
 
     private String createResetLink(String resetToken) {
-        return appProperties.getUrl() + "/reset-password?token=" + resetToken;
+        return String.format("%s/reset-password?token=%s", appProperties.getUrl(), resetToken);
     }
 
     public void sendPasswordResetEmail(String userEmail, String resetToken) {
-        String resetLink = createResetLink(resetToken);
-        String body = emailTemplateProvider.getPasswordResetEmail(resetLink);
-        sendEmail(userEmail, PASSWORD_RESET_SUBJECT, body);
+        sendEmail(userEmail, PASSWORD_RESET_SUBJECT, emailTemplateProvider.getPasswordResetEmail(createResetLink(resetToken)));
     }
 }

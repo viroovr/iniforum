@@ -11,10 +11,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EmailVerificationService {
-
-    private final VerificationCodeService verificationCodeService;
     private final EmailService emailService;
     private final RandomStringGenerator randomStringGenerator;
+    private final VerificationCodeService verificationCodeService;
 
     private static final int CODE_LENGTH = 6;
     private static final int CODE_EXPIRATION_TIME = 3;

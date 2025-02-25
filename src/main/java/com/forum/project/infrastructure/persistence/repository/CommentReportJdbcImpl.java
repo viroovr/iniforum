@@ -1,5 +1,6 @@
 package com.forum.project.infrastructure.persistence.repository;
 
+import com.forum.project.domain.report.dto.CommentReportCreateDto;
 import com.forum.project.domain.report.entity.CommentReport;
 import com.forum.project.domain.report.repository.CommentReportRepository;
 import com.forum.project.infrastructure.persistence.key.CommentReportKey;
@@ -24,10 +25,20 @@ import java.util.Optional;
 public class CommentReportJdbcImpl implements CommentReportRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
+    private SqlParameterSource createSqlParameterSource(CommentReportCreateDto dto) {
+        return new MapSqlParameterSource(Map.of(
+                "userId", dto.getUserId(),
+                "commentId", dto.getCommentId(),
+                "reason", dto.getReason().name(),
+                "status", dto.getStatus().name(),
+                "details", dto.getDetails()
+        ));
+    }
+
     @Override
-    public Map<String, Object> insertAndReturnGeneratedKeys(CommentReport commentReport) {
+    public Map<String, Object> insertAndReturnGeneratedKeys(CommentReportCreateDto dto) {
         String sql = CommentReportQueries.insert();
-        SqlParameterSource namedParameters = new BeanPropertySqlParameterSource(commentReport);
+        SqlParameterSource namedParameters = createSqlParameterSource(dto);
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(sql, namedParameters, keyHolder, CommentReportKey.getKeys());

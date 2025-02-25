@@ -26,7 +26,7 @@ public class QuestionReportController {
             @RequestBody ReportRequestDto dto
     ) {
         Long userId = authorizationService.extractUserId(header);
-        questionReportService.saveReport(questionId, userId, dto.getReason());
+        questionReportService.saveReport(questionId, userId, dto.getDetails());
         BaseResponseDto response = new BaseResponseDto("Question Reported Successfully.");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

@@ -40,14 +40,14 @@ public class CommentQueries {
     public static String updateDownVotedCount() {
         return "UPDATE comments " +
                 "SET " +
-                "down_voted_count=:downVotedCount " +
+                "down_voted_count= down_voted_count + :delta " +
                 "WHERE id=:id";
     }
 
     public static String updateUpVotedCount() {
         return "UPDATE comments " +
                 "SET " +
-                "up_voted_count=:upVotedCount " +
+                "up_voted_count = up_voted_count + :delta " +
                 "WHERE id=:id";
     }
 

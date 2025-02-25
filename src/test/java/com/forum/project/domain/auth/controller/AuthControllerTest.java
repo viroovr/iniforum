@@ -37,7 +37,7 @@ class AuthControllerTest {
 
     private static final String BASE_PATH = "/api/v1/auth";
 
-    private String header;
+    private final String header = "Bearer accessToken";
     private SignupRequestDto signupRequestDto;
     private SignupResponseDto signupResponseDto;
     private LoginRequestDto loginRequestDto;
@@ -51,7 +51,6 @@ class AuthControllerTest {
         loginRequestDto = TestDtoFactory.createLoginRequestDto();
         tokenResponseDto = TestDtoFactory.createTokenResponseDto();
         tokenRequestDto = TestDtoFactory.createTokenRequestDto();
-        header = "Bearer accessToken";
     }
 
     private ResultActions testRequestWithValidDto(Object dto, String endpoint) throws Exception {
@@ -100,6 +99,7 @@ class AuthControllerTest {
     void logout() throws Exception {
         mockExtractTokens();
         when(cookieManager.createEmtpyRefreshTokenCookie()).thenReturn(new Cookie("refreshToken", ""));
+
         testRequestByCookieAndHeader(tokenResponseDto.getRefreshToken(), "/logout")
                 .andExpect(cookie().value("refreshToken", ""));
     }

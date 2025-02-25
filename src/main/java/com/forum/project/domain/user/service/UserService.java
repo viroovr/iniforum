@@ -66,4 +66,9 @@ public class UserService {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
     }
+
+    public String getLoginId(Long userId) {
+        return userRepository.getLoginIdById(userId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.USER_NOT_FOUND));
+    }
 }

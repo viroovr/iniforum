@@ -1,5 +1,6 @@
 package com.forum.project.infrastructure.persistence.repository;
 
+import com.forum.project.domain.comment.dto.CommentCreateDto;
 import com.forum.project.domain.comment.entity.Comment;
 import com.forum.project.domain.comment.repository.CommentRepository;
 import com.forum.project.infrastructure.persistence.key.CommentKey;
@@ -27,14 +28,14 @@ public class CommentRepositoryJdbcImpl implements CommentRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
-    public Map<String, Object> insertAndReturnGeneratedKeys(Comment comment) {
+    public Optional<CommentKey> insertAndReturnGeneratedKeys(CommentCreateDto dto) {
         String sql = CommentQueries.insert();
-        SqlParameterSource namedParameters = new BeanPropertySqlParameterSource(comment);
+        SqlParameterSource namedParameters = new BeanPropertySqlParameterSource(dto);
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(sql, namedParameters, keyHolder, CommentKey.getKeys());
+        int updated = jdbcTemplate.update(sql, namedParameters, keyHolder, CommentKey.getKeys());
 
-        return keyHolder.getKeys();
+        return updated > 0 ? Optional.of(new CommentKey(keyHolder.getKeys())) : Optional.empty();
     }
 
     @Override
@@ -82,30 +83,35 @@ public class CommentRepositoryJdbcImpl implements CommentRepository {
     }
 
     @Override
-    public int updateUpVotedCount(Long id, Long upVotedCount) {
+    public int updateUpVotedCount(Long id, Long delta) {
         String sql = CommentQueries.updateUpVotedCount();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", id)
-                .addValue("upVotedCount", upVotedCount);
+                .addValue("delta", delta);
 
         return jdbcTemplate.update(sql, params);
     }
 
     @Override
-    public int updateDownVotedCount(Long id, Long downVotedCount) {
+    public int updateReportCount(Long id, Long delta) {
+        return 0;
+    }
+
+    @Override
+    public int updateDownVotedCount(Long id, Long delta) {
         String sql = CommentQueries.updateDownVotedCount();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", id)
-                .addValue("downVotedCount", downVotedCount);
+                .addValue("delta", delta);
 
         return jdbcTemplate.update(sql, params);
     }
 
     @Override
-    public void deleteById(Long id) {
+    public int deleteById(Long id) {
         String sql = CommentQueries.deleteById();
         SqlParameterSource namedParameters = new MapSqlParameterSource("id", id);
-        jdbcTemplate.update(sql, namedParameters);
+        return jdbcTemplate.update(sql, namedParameters);
     }
 
     @Override

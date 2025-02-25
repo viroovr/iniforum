@@ -1,26 +1,20 @@
 package com.forum.project.domain.user.vo;
 
 import com.forum.project.core.base.BaseKey;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.stream.Stream;
 
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class UserKey extends BaseKey {
-    private Long id;
-    private LocalDateTime createdDate;
+import static com.forum.project.core.common.KeyUtil.getDateValue;
+import static com.forum.project.core.common.KeyUtil.getLongValue;
 
-    private LocalDateTime lastActivityDate;
-    private LocalDateTime lastPasswordModifiedDate;
-    private LocalDateTime lastLoginDate;
+@Getter
+public class UserKey extends BaseKey {
+    private final LocalDateTime lastActivityDate;
+    private final LocalDateTime lastPasswordModifiedDate;
+    private final LocalDateTime lastLoginDate;
 
     public static final String LAST_ACTIVITY_DATE = "last_activity_date";
     public static final String LAST_PASSWORD_MODIFIED_DATE = "last_password_modified_date";
@@ -34,8 +28,7 @@ public class UserKey extends BaseKey {
     }
 
     public UserKey(Map<String, Object> keys) {
-        this.id = getLongValue(keys, ID);
-        this.createdDate = getDateValue(keys, CREATED_DATE);
+        super(getLongValue(keys, ID), getDateValue(keys, CREATED_DATE));
         this.lastActivityDate = getDateValue(keys, LAST_ACTIVITY_DATE);
         this.lastPasswordModifiedDate = getDateValue(keys, LAST_PASSWORD_MODIFIED_DATE);
         this.lastLoginDate = getDateValue(keys, LAST_LOGIN_DATE);

@@ -22,7 +22,7 @@ public class AuthController {
     private final CookieManager cookieManager;
     private final EmailVerificationService emailVerificationService;
 
-    @PostMapping(value = "/signup")
+    @RequestMapping(value = "/signup", method = RequestMethod.POST)
     public ResponseEntity<SignupResponseDto> requestSignup(
             @Valid @RequestBody SignupRequestDto dto
     ) {
@@ -32,7 +32,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).body(responseBody);
     }
 
-    @PostMapping(value = "/login")
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
     public ResponseEntity<TokenResponseDto> requestLogin(
             @Valid @RequestBody LoginRequestDto loginRequestDto,
             HttpServletResponse response
@@ -49,7 +49,7 @@ public class AuthController {
         return new TokenRequestDto(accessToken, refreshToken);
     }
 
-    @PostMapping(value = "/logout")
+    @RequestMapping(value = "/logout", method = RequestMethod.POST)
     public ResponseEntity<BaseResponseDto> logout(
             @RequestHeader("Authorization") String header,
             HttpServletRequest request,
@@ -61,7 +61,7 @@ public class AuthController {
         return BaseResponseDto.buildOkResponse("Logged out successfully");
     }
 
-    @PostMapping("/refresh")
+    @RequestMapping(value = "/refresh", method = RequestMethod.POST)
     public ResponseEntity<TokenResponseDto> refreshAccessToken(
             @RequestHeader("Authorization") String header,
             HttpServletRequest request,

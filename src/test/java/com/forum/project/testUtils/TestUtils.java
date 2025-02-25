@@ -22,6 +22,11 @@ public class TestUtils {
     public static ZoneId getZonedId() {
         return ZoneId.of("Asia/Seoul");
     }
+
+    public static String getIsoDateTime() {
+        return "2025-01-01T00:00:00.00Z";
+    }
+
     public static void assertApplicationException(
             ThrowableAssert.ThrowingCallable callable,
             ErrorCode expectedErrorCode

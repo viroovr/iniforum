@@ -6,6 +6,7 @@ import com.forum.project.domain.like.vo.LikeStatus;
 import com.forum.project.domain.like.entity.QuestionLike;
 import com.forum.project.domain.like.repository.QuestionLikeRepository;
 import com.forum.project.domain.question.service.QuestionCrudService;
+import com.forum.project.domain.question.vo.QuestionContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,30 +14,38 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class QuestionLikeService {
-    private final QuestionLikeRepository questionLikeRepository;
     private final QuestionCrudService questionCrudService;
+    private final QuestionLikeRepository questionLikeRepository;
+
+    private void validateDuplicateContext(QuestionContext context) {
+        if(questionLikeRepository.existsByQuestionIdAndUserId(context.questionId(), context.userId()))
+            throw new ApplicationException(ErrorCode.LIKE_ALREADY_EXISTS);
+    }
 
     @Transactional
-    public void addLike(Long questionId, Long userId, LikeStatus likeStatus, String ipAddress) {
-        if(questionLikeRepository.existsByQuestionIdAndUserId(questionId, userId))
-            throw new ApplicationException(ErrorCode.LIKE_ALREADY_EXISTS);
+    public void likeQuestion(QuestionContext context, String ipAddress) {
+        validateDuplicateContext(context);
 
         questionLikeRepository.insertAndReturnGeneratedKeys(QuestionLike.builder()
-                .questionId(questionId)
-                .status(likeStatus.name())
-                .userId(userId)
+                .questionId(context.questionId())
+                .status(LikeStatus.LIKE.name())
+                .userId(context.userId())
                 .ipAddress(ipAddress)
                 .build());
 
-        questionCrudService.incrementVotedCount(questionId, likeStatus);
+        questionCrudService.incrementVotedCount(context.questionId(), LikeStatus.LIKE);
     }
 
-    public void cancelLike(Long questionId, Long userId, LikeStatus likeStatus) {
-        if(!questionLikeRepository.existsByQuestionIdAndUserId(questionId, userId))
+    private void validateExistingContext(QuestionContext context) {
+        if(questionLikeRepository.existsByQuestionIdAndUserId(context.questionId(), context.userId()))
             throw new ApplicationException(ErrorCode.LIKE_NOT_FOUND);
+    }
 
-        questionLikeRepository.deleteByQuestionIdAndUserId(questionId, userId);
+    public void cancelLike(QuestionContext context) {
+        validateExistingContext(context);
 
-        questionCrudService.decrementVotedCount(questionId, likeStatus);
+        questionLikeRepository.deleteByQuestionIdAndUserId(context.questionId(), context.userId());
+
+        questionCrudService.decrementVotedCount(context.questionId(), LikeStatus.LIKE);
     }
 }

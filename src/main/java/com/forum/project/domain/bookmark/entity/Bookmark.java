@@ -1,35 +1,28 @@
 package com.forum.project.domain.bookmark.entity;
 
-import com.forum.project.core.common.DateUtils;
-import com.forum.project.core.base.BaseEntity;
-import com.forum.project.infrastructure.persistence.key.BookmarkKey;
+import com.forum.project.domain.bookmark.vo.BookmarkKey;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-@AllArgsConstructor
+@Builder
 @NoArgsConstructor
-@SuperBuilder
-public class Bookmark extends BaseEntity {
+@AllArgsConstructor
+public class Bookmark {
+    private Long id;
     private Long userId;
     private Long questionId;
     private String notes;
     private LocalDateTime lastAccessedDate;
+    private LocalDateTime createdDate;
 
-    public void setKeys(Map<String, Object> keys) {
-        if (keys == null) {
-            throw new IllegalArgumentException("Keys map cannot be null");
-        }
-
-        setId((Long) keys.get(BookmarkKey.ID));
-        setCreatedDate(DateUtils.convertToLocalDateTime(keys.get(BookmarkKey.CREATED_DATE)));
-        this.lastAccessedDate = DateUtils.convertToLocalDateTime(keys.get(BookmarkKey.LAST_ACCESSED_DATE));
+    public void setKeys(BookmarkKey keys) {
+        this.id = keys.getId();
+        this.createdDate = keys.getCreatedDate();
+        this.lastAccessedDate = keys.getLastAccessedDate();
     }
 }

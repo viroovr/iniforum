@@ -11,11 +11,11 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.Map;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class CommentLike extends BaseLike {
     private Long commentId;
 

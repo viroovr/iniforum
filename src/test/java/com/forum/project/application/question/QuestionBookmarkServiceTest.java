@@ -1,20 +1,27 @@
 package com.forum.project.application.question;
 
+import com.forum.project.core.exception.ErrorCode;
+import com.forum.project.domain.bookmark.dto.BookmarkRequestDto;
 import com.forum.project.domain.bookmark.entity.Bookmark;
-import com.forum.project.domain.bookmark.service.QuestionBookmarkService;
-import com.forum.project.infrastructure.persistence.key.BookmarkKey;
 import com.forum.project.domain.bookmark.repository.BookmarkRepository;
+import com.forum.project.domain.bookmark.service.QuestionBookmarkService;
+import com.forum.project.domain.bookmark.vo.BookmarkKey;
+import com.forum.project.presentation.dtos.TestDtoFactory;
+import com.forum.project.testUtils.TestUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,22 +32,67 @@ class QuestionBookmarkServiceTest {
     @Mock
     private BookmarkRepository bookmarkRepository;
 
+    private BookmarkRequestDto bookmarkRequestDto;
+
+    @BeforeEach
+    void setUp() {
+        bookmarkRequestDto = TestDtoFactory.createBookmarkRequestDto();
+    }
+
     @Test
-    void testSaveQuestionBookmark_success() {
-        Long questionId = 1L;
-        Long userId = 1L;
+    void saveQuestionBookmark() {
+        when(bookmarkRepository.existsByUserIdAndQuestionId(anyLong(), anyLong())).thenReturn(false);
+        when(bookmarkRepository.insertAndReturnGeneratedKeys(any(BookmarkRequestDto.class)))
+                .thenReturn(Optional.of(mock(BookmarkKey.class)));
 
-        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
+        assertThat(questionBookmarkService.saveQuestionBookmark(bookmarkRequestDto))
+                .extracting(Bookmark::getQuestionId)
+                .isEqualTo(bookmarkRequestDto.getQuestionId());
+    }
 
-        Map<String, Object> generatedKeys = new HashMap<>();
-        generatedKeys.put(BookmarkKey.ID, 1L);
-        generatedKeys.put(BookmarkKey.CREATED_DATE, timestamp);
-        generatedKeys.put(BookmarkKey.LAST_ACCESSED_DATE, timestamp);
+    @Test
+    void saveQuestionBookmark_alreadyExists() {
+        when(bookmarkRepository.existsByUserIdAndQuestionId(anyLong(), anyLong())).thenReturn(true);
 
-        when(bookmarkRepository.existsByUserIdAndQuestionId(userId, questionId))
-                .thenReturn(false);
-        when(bookmarkRepository.insertAndReturnGeneratedKeys(any(Bookmark.class))).thenReturn(generatedKeys);
+        TestUtils.assertApplicationException(
+                () -> questionBookmarkService.saveQuestionBookmark(bookmarkRequestDto),
+                ErrorCode.BOOKMARK_ALREADY_EXISTS
+        );
+    }
 
-        questionBookmarkService.saveQuestionBookmark(questionId, userId);
+    @Test
+    void saveQuestionBookmark_keyReturningError() {
+        when(bookmarkRepository.existsByUserIdAndQuestionId(anyLong(), anyLong())).thenReturn(false);
+        when(bookmarkRepository.insertAndReturnGeneratedKeys(any(BookmarkRequestDto.class)))
+                .thenReturn(Optional.empty());
+
+        TestUtils.assertApplicationException(
+                () -> questionBookmarkService.saveQuestionBookmark(bookmarkRequestDto),
+                ErrorCode.DATABASE_ERROR
+        );
+    }
+
+    @Test
+    void removeBookmark() {
+        when(bookmarkRepository.delete(anyLong(), anyLong())).thenReturn(1);
+
+        assertThatNoException().isThrownBy(() -> questionBookmarkService.removeBookmark(1L,1L));
+    }
+
+    @Test
+    void removeBookmark_removeFail() {
+        when(bookmarkRepository.delete(anyLong(), anyLong())).thenReturn(0);
+
+        TestUtils.assertApplicationException(
+                () -> questionBookmarkService.removeBookmark(1L,1L),
+                ErrorCode.DATABASE_ERROR
+        );
+    }
+
+    @Test
+    void getUserBookmarks() {
+        when(bookmarkRepository.findAllByUserId(anyLong(), any(Pageable.class))).thenReturn(Collections.emptyList());
+
+        assertThat(questionBookmarkService.getUserBookmarks(1L, 0, 10)).isEmpty();
     }
 }

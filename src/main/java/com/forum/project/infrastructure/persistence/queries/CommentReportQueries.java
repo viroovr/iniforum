@@ -3,9 +3,9 @@ package com.forum.project.infrastructure.persistence.queries;
 public class CommentReportQueries {
     public static String insert() {
         return "INSERT INTO comment_reports " +
-                "(user_id, comment_id, reason, status) " +
+                "(user_id, comment_id, reason, status, details) " +
                 "VALUES " +
-                "(:userId, :commentId, :reason, :status)";
+                "(:userId, :commentId, :reason, :status, :details)";
     }
 
     public static String existsByCommentIdAndUserId() {

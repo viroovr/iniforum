@@ -1,8 +1,9 @@
 package com.forum.project.infrastructure.persistence.repository;
 
+import com.forum.project.domain.bookmark.dto.BookmarkRequestDto;
 import com.forum.project.domain.bookmark.entity.Bookmark;
 import com.forum.project.domain.bookmark.repository.BookmarkRepository;
-import com.forum.project.infrastructure.persistence.key.BookmarkKey;
+import com.forum.project.domain.bookmark.vo.BookmarkKey;
 import com.forum.project.infrastructure.persistence.queries.BookmarkQueries;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -17,7 +18,6 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -55,19 +55,20 @@ public class BookmarkRepositoryJdbcImpl implements BookmarkRepository {
     }
 
     @Override
-    public Map<String ,Object> insertAndReturnGeneratedKeys(Bookmark bookmark) {
+    public Optional<BookmarkKey> insertAndReturnGeneratedKeys(BookmarkRequestDto dto) {
         String sql = BookmarkQueries.insert();
-        SqlParameterSource source = new BeanPropertySqlParameterSource(bookmark);
+        SqlParameterSource source = new BeanPropertySqlParameterSource(dto);
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        namedParameterJdbcTemplate.update(sql, source, keyHolder, BookmarkKey.getKeys());
-        return keyHolder.getKeys();
+        int updatedRows = namedParameterJdbcTemplate.update(sql, source, keyHolder, BookmarkKey.getKeys());
+
+        return updatedRows > 0 ? Optional.of(new BookmarkKey(keyHolder.getKeys())) : Optional.empty();
     }
 
     @Override
-    public void delete(Long userId, Long questionId) {
+    public int delete(Long userId, Long questionId) {
         String sql = BookmarkQueries.delete();
         SqlParameterSource params = createSqlParameterSource(userId, questionId);
-        namedParameterJdbcTemplate.update(sql, params);
+        return namedParameterJdbcTemplate.update(sql, params);
     }
 
     @Override

@@ -13,12 +13,12 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
-public class Comment extends BaseEntity {
+public class Comment {
+    private Long id;
     private Long userId;
     private Long questionId;
     private Long parentCommentId;
@@ -35,15 +35,12 @@ public class Comment extends BaseEntity {
     @Builder.Default
     private Boolean isEdited = false;
     private LocalDateTime lastModifiedDate;
+    private LocalDateTime createdDate;
 
-    public void setKeys(Map<String, Object> keys) {
-        if (keys == null) {
-            throw new IllegalArgumentException("Keys map cannot be null");
-        }
-
-        setId((Long) keys.get(CommentKey.ID));
-        setCreatedDate(DateUtils.convertToLocalDateTime(keys.get(CommentKey.CREATED_DATE)));
-        this.lastModifiedDate = DateUtils.convertToLocalDateTime(keys.get(CommentKey.LAST_MODIFIED_DATE));
+    public void setKeys(CommentKey key) {
+        this.id = key.getId();
+        this.createdDate = key.getCreatedDate();
+        this.lastModifiedDate = key.getLastModifiedDate();
     }
 
     public void updateContent(String newContent) {
@@ -89,5 +86,15 @@ public class Comment extends BaseEntity {
         if (this.content == null || this.content.trim().isEmpty()) {
             throw new ApplicationException(ErrorCode.INVALID_COMMENT_CONTENT);
         }
+    }
+
+    public void validateOwner(Long userId) {
+        if (this.userId.equals(userId)) return;
+        throw new ApplicationException(ErrorCode.AUTH_BAD_CREDENTIAL, "댓글에 대한 권한이 없습니다.");
+    }
+
+    public void validateQuestionId(Long questionId) {
+        if (this.questionId.equals(questionId)) return;
+        throw new ApplicationException(ErrorCode.AUTH_BAD_CREDENTIAL, "해당 질문에 속하는 댓글이 아닙니다.");
     }
 }

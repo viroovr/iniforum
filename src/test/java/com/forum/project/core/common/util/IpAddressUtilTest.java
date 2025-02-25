@@ -1,4 +1,4 @@
-package com.forum.project.common.util;
+package com.forum.project.core.common.util;
 
 import com.forum.project.core.common.IpAddressUtil;
 import jakarta.servlet.http.HttpServletRequest;

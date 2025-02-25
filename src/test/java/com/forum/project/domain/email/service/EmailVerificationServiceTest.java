@@ -21,12 +21,9 @@ class EmailVerificationServiceTest {
     @InjectMocks
     private EmailVerificationService emailVerificationService;
 
-    @Mock
-    private EmailService emailService;
-    @Mock
-    private VerificationCodeService verificationCodeService;
-    @Mock
-    private RandomStringGenerator randomStringGenerator;
+    @Mock private EmailService emailService;
+    @Mock private RandomStringGenerator randomStringGenerator;
+    @Mock private VerificationCodeService verificationCodeService;
 
     private static final int CODE_LENGTH = 6;
     private static final int CODE_EXPIRATION_TIME = 3;
@@ -48,7 +45,6 @@ class EmailVerificationServiceTest {
 
         emailVerificationService.sendVerificationCode(EMAIL);
 
-        verify(randomStringGenerator).generate(CODE_LENGTH);
         verify(verificationCodeService).save(EMAIL, emailVerification, CODE_EXPIRATION_TIME);
         verify(emailService).sendVerificationEmail(EMAIL, CODE);
     }
@@ -59,8 +55,7 @@ class EmailVerificationServiceTest {
 
         emailVerificationService.verifyEmailCode(EMAIL, CODE);
 
-        assertThat(emailVerification).returns(true, EmailVerification::isVerified);
-        verify(verificationCodeService).get(EMAIL);
+        assertThat(emailVerification.isVerified()).isTrue();
         verify(verificationCodeService).save(EMAIL, emailVerification, REGISTER_EXPIRATION_TIME);
     }
 
@@ -77,7 +72,7 @@ class EmailVerificationServiceTest {
     @Test
     void verifyEmailCode_notCodeMatch() {
         when(verificationCodeService.get(EMAIL)).thenReturn(
-                new EmailVerification("differentCode", true));
+                new EmailVerification("differentCode", false));
 
         TestUtils.assertApplicationException(
                 () -> emailVerificationService.verifyEmailCode(EMAIL, CODE),
@@ -87,7 +82,8 @@ class EmailVerificationServiceTest {
 
     @Test
     void validateEmailCode() {
-        when(verificationCodeService.get(EMAIL)).thenReturn(new EmailVerification(CODE, true));
+        emailVerification.verify();
+        when(verificationCodeService.get(EMAIL)).thenReturn(emailVerification);
 
         assertThatCode(() -> emailVerificationService.validateEmailCode(EMAIL)).doesNotThrowAnyException();
 

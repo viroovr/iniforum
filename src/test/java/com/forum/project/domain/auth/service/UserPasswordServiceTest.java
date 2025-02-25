@@ -1,6 +1,5 @@
 package com.forum.project.domain.auth.service;
 
-import com.forum.project.core.exception.ApplicationException;
 import com.forum.project.core.exception.ErrorCode;
 import com.forum.project.testUtils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;

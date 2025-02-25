@@ -38,6 +38,7 @@ public enum ErrorCode {
     COMMENT_ALREADY_DELETED("DUP_009", "Comment already deleted", HttpStatus.CONFLICT),
     COMMENT_ALREADY_REPORTED("DUP_010", "Comment already reported", HttpStatus.CONFLICT),
     QUESTION_ALREADY_REPORTED("DUP_011", "Question already reported", HttpStatus.CONFLICT),
+    BOOKMARK_ALREADY_EXISTS("DUP_012", "Bookmark already exists", HttpStatus.CONFLICT),
 
 //  4. Validation
     INVALID_REQUEST("VALID_000", "Invalid Request", HttpStatus.BAD_REQUEST),

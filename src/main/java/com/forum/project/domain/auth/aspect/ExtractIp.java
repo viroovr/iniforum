@@ -1,4 +1,4 @@
-package com.forum.project.infrastructure.security.auth;
+package com.forum.project.domain.auth.aspect;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,5 +7,5 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Token {
+public @interface ExtractIp {
 }

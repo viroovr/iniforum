@@ -1,7 +1,9 @@
 package com.forum.project.infrastructure.persistence.repository;
 
+import com.forum.project.domain.report.dto.CommentReportCreateDto;
 import com.forum.project.domain.report.entity.CommentReport;
 import com.forum.project.domain.report.repository.CommentReportRepository;
+import com.forum.project.domain.report.vo.ReportReason;
 import com.forum.project.domain.report.vo.ReportStatus;
 import com.forum.project.infrastructure.persistence.JdbcTestUtils;
 import com.forum.project.infrastructure.persistence.key.CommentReportKey;
@@ -41,7 +43,8 @@ class CommentReportJdbcImplTest {
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
                 "user_id BIGINT NOT NULL, " +
                 "comment_id BIGINT NOT NULL, " +
-                "reason VARCHAR(500) NOT NULL, " +
+                "reason VARCHAR(50) NOT NULL, " +
+                "details VARCHAR(500)," +
                 "created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 "status ENUM('PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED') DEFAULT 'PENDING', " +
                 "is_resolved BOOLEAN DEFAULT FALSE ");
@@ -56,12 +59,23 @@ class CommentReportJdbcImplTest {
                 .build();
     }
 
+    private CommentReportCreateDto createCommentReportCreateDto(Long userId, Long commentId, ReportStatus status) {
+        return CommentReportCreateDto.builder()
+                .userId(userId)
+                .commentId(commentId)
+                .reason(ReportReason.HARASSMENT)
+                .details("testDetails")
+                .status(status)
+                .build();
+    }
+
     private void insertTestData(Long userId, Long commentId, String reason, String status) {
         String insertSql = CommentReportQueries.insert();
         SqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", userId)
                 .addValue("commentId", commentId)
                 .addValue("reason", reason)
+                .addValue("details", "testDetails")
                 .addValue("status", status);
         jdbcTemplate.update(insertSql, params);
     }
@@ -74,7 +88,7 @@ class CommentReportJdbcImplTest {
     void insertAndReturnGeneratedKeys() {
         Timestamp expectedTimestamp = Timestamp.valueOf(LocalDateTime.now());
         Map<String, Object> generatedKeys = commentReportRepository.insertAndReturnGeneratedKeys(
-                createCommentReport(1L, 1L, ReportStatus.PENDING.name()));
+                createCommentReportCreateDto(1L, 1L, ReportStatus.PENDING));
 
         assertThat(generatedKeys).hasSize(CommentReportKey.getKeys().length);
 

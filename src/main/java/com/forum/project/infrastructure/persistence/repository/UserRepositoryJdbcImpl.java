@@ -155,10 +155,10 @@ public class UserRepositoryJdbcImpl implements UserRepository {
     }
 
     @Override
-    public String getLoginIdById(Long id) {
+    public Optional<String> getLoginIdById(Long id) {
         String sql = UserQueries.getLoginIdById();
         SqlParameterSource params = new MapSqlParameterSource("id", id);
-        return jdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> rs.getString("login_id"));
+        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, params, String.class));
     }
 
     @Override

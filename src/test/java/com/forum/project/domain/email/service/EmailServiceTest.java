@@ -27,7 +27,6 @@ class EmailServiceTest {
 
     private static final String VERIFICATION_SUBJECT = "이메일 인증 코드";
     private static final String PASSWORD_RESET_SUBJECT = "비밀번호 재설정 요청";
-
     private String toEmail;
 
     @BeforeEach
@@ -53,14 +52,14 @@ class EmailServiceTest {
         verify(emailSender).sendEmail(toEmail, VERIFICATION_SUBJECT, "body");
     }
 
-    private String createResetLink() {
+    private String mockCreateResetLink() {
         when(appProperties.getUrl()).thenReturn("https://test.com");
-        return "https://test.com" + "/reset-password?token=" + "resetToken";
+        return String.format("%s/reset-password?token=%s", "https://test.com", "resetToken");
     }
 
     @Test
     void sendPasswordResetEmail() {
-        when(emailTemplateProvider.getPasswordResetEmail(createResetLink())).thenReturn("body");
+        when(emailTemplateProvider.getPasswordResetEmail(mockCreateResetLink())).thenReturn("body");
 
         emailService.sendPasswordResetEmail(toEmail, "resetToken");
 

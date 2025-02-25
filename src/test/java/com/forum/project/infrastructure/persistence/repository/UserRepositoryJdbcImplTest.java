@@ -307,9 +307,10 @@ class UserRepositoryJdbcImplTest {
     void getLoginIdById() {
         insertData("testLoginId", "testEmail@email.com");
 
-        String result = userRepository.getLoginIdById(1L);
+        Optional<String> result = userRepository.getLoginIdById(1L);
 
-        assertThat(result).isEqualTo("testLoginId");
+        assertThat(result).isNotEmpty()
+                        .hasValueSatisfying(s -> assertThat(s).isEqualTo("testLoginId"));
     }
 
     @Test
